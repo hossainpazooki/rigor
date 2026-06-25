@@ -1,0 +1,13 @@
+# surface-scrub denylist — copy to "surface-scrub.denylist" (gitignored) and fill in.
+#
+# One token per line. Blank lines and #-comments are ignored. Matching is
+# case-insensitive; a hyphen-extended form (foo-cli-v2) does NOT match foo-cli,
+# but an alphanumeric suffix (foo-cliv2) still flags foo-cli.
+#
+# List the project names, internal codenames, and domain-specific terms that must
+# never appear in this toolkit's shipped skill & command examples. The real list
+# stays local and untracked, so the plugin itself carries no fingerprints.
+
+my-internal-project
+internal-codename
+some-domain-acronym
