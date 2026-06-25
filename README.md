@@ -11,42 +11,53 @@ Every example is domain-neutral, so a clone reads as nobody's specific stack.
 ## How it works
 
 A layered workflow: two always-on hooks frame every session, the **verification
-spine** breaks load-bearing claims, and the **operating-system layer** runs the
-wider recon → refute → synthesize → gate → handoff loop. The commands are thin
-entry points; the skills carry the judgment; the agent and hooks do the enforcing.
+spine** breaks load-bearing claims, the **operating-system layer** runs the wider
+recon → refute → synthesize → gate → handoff loop, and the **orchestration layer**
+routes multi-agent work through the Workflow tool under rigor's guardrails. Commands
+are thin entry points; skills carry the judgment; agents and hooks do the enforcing.
 
 ```mermaid
 graph TD
     subgraph always["Always on"]
-        SS["session-start<br/>surfaces toolkit + vendored rules"]
+        SS["session-start<br/>surfaces toolkit + rules"]
         GG["git-guard<br/>blocks agent git-history writes"]
     end
 
     subgraph spine["Phase 1 · verification spine"]
         VC["/verify-claim"] --> REF["refute<br/>recompute · re-run gate · dispatch"]
-        REF --> SK["skeptic-verifier agent"]
+        REF --> SK["skeptic-verifier"]
         HC["/honesty-check"] --> IVP["implemented-vs-planned"]
     end
 
     subgraph osys["Phase 2 · operating-system layer"]
         RC["/recon"] --> FRS["fanout-recon-synthesize<br/>decompose · fan-out · synthesize"]
-        FB["/fanout"] --> FBS["fanout-build<br/>contract · disjoint · gate · refute claim"]
         GD["gate-discipline"]
         HO["/handoff"]
     end
 
+    subgraph orch["Phase 3 · orchestration discipline"]
+        ORC["orchestrate<br/>default to Workflows + guardrails"]
+        FO["/fanout"] --> FBS["fanout-build<br/>contract · disjoint · gate · refute claim"]
+        CF["check-fanout<br/>lints the workflow script"]
+    end
+
     SS --> spine
     SS --> osys
+    SS --> orch
+    ORC --> FBS
+    ORC --> CF
     FRS -. refutes findings via .-> REF
-    GD -. re-runs the gate via .-> REF
     FBS -. refutes the claim via .-> REF
+    GD -. re-runs the gate via .-> REF
 
     classDef always fill:#3a2e1a,stroke:#d29922,color:#e6edf3;
     classDef p1 fill:#16331f,stroke:#2ea043,color:#e6edf3;
     classDef p2 fill:#16263a,stroke:#388bfd,color:#e6edf3;
+    classDef p3 fill:#2e1a3a,stroke:#a371f7,color:#e6edf3;
     class SS,GG always;
     class VC,REF,SK,HC,IVP p1;
-    class RC,FRS,GD,HO,FB,FBS p2;
+    class RC,FRS,GD,HO p2;
+    class ORC,FO,FBS,CF p3;
 ```
 
 ## What's in v1 (the verification spine)
