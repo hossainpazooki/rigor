@@ -584,6 +584,15 @@ git tag v0.3.0
   ("do not execute as written"). These should upgrade the Phase 2 `/handoff`
   template and `gate-discipline` skill. Recorded for a Phase 2 revision, not part of
   this plan.
+- **spec-drift gate (candidate).** The audit's `doc-consistency` dimension made a
+  standing executable check (the rigor pattern: alongside `git-guard`,
+  `surface-scrub`, `check-fanout`): detect implemented-vs-documented drift — a
+  README/plan/spec asserting what the code does not, a documented command that
+  fails, an ADR or "locked decision" the code never honored, a status tag that
+  outran the build. Grounded in both the ATLAS ADR-drift finding and this repo's own
+  #27/#28/#34/#35 doc-consistency fixes. Heuristic, narrow, high-signal — the
+  static-analysis honesty caveat applies (it flags suspected drift for a human to
+  adjudicate, it does not prove a doc is true). Not built here.
 
 ---
 
