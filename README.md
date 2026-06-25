@@ -50,10 +50,10 @@ graph TD
     FBS -. refutes the claim via .-> REF
     GD -. re-runs the gate via .-> REF
 
-    classDef always fill:#3a2e1a,stroke:#d29922,color:#e6edf3;
-    classDef p1 fill:#16331f,stroke:#2ea043,color:#e6edf3;
-    classDef p2 fill:#16263a,stroke:#388bfd,color:#e6edf3;
-    classDef p3 fill:#2e1a3a,stroke:#a371f7,color:#e6edf3;
+    classDef always fill:#fdf2d0,stroke:#d29922,color:#5c4a00;
+    classDef p1 fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
+    classDef p2 fill:#d8e9ff,stroke:#388bfd,color:#0d2b52;
+    classDef p3 fill:#ecdfff,stroke:#a371f7,color:#3a1060;
     class SS,GG always;
     class VC,REF,SK,HC,IVP p1;
     class RC,FRS,GD,HO p2;
@@ -106,8 +106,8 @@ flowchart TD
     V2 --> RV
     RV --> GC["git-guard<br/>emit commit commands for the human"]
 
-    classDef p3 fill:#2e1a3a,stroke:#a371f7,color:#e6edf3;
-    classDef halt fill:#3a1a1a,stroke:#f85149,color:#e6edf3;
+    classDef p3 fill:#ecdfff,stroke:#a371f7,color:#3a1060;
+    classDef halt fill:#ffe0e0,stroke:#f85149,color:#6a0d0d;
     class S0,S1,SP,C,SC,B1,B2,B3,IG,V1,V2,RV,GC p3;
     class H halt;
 ```
