@@ -30,6 +30,7 @@ graph TD
 
     subgraph osys["Phase 2 · operating-system layer"]
         RC["/recon"] --> FRS["fanout-recon-synthesize<br/>decompose · fan-out · synthesize"]
+        FB["/fanout"] --> FBS["fanout-build<br/>contract · disjoint · gate · refute claim"]
         GD["gate-discipline"]
         HO["/handoff"]
     end
@@ -38,13 +39,14 @@ graph TD
     SS --> osys
     FRS -. refutes findings via .-> REF
     GD -. re-runs the gate via .-> REF
+    FBS -. refutes the claim via .-> REF
 
     classDef always fill:#3a2e1a,stroke:#d29922,color:#e6edf3;
     classDef p1 fill:#16331f,stroke:#2ea043,color:#e6edf3;
     classDef p2 fill:#16263a,stroke:#388bfd,color:#e6edf3;
     class SS,GG always;
     class VC,REF,SK,HC,IVP p1;
-    class RC,FRS,GD,HO p2;
+    class RC,FRS,GD,HO,FB,FBS p2;
 ```
 
 ## What's in v1 (the verification spine)
@@ -81,6 +83,21 @@ shape ships at `skills/fanout-recon-synthesize/example.mjs` — it is the loop t
 audited this toolkit's own spine. `gate-discipline` keeps staged work honest
 (no stage past a red gate; close via real integration; ADR a deviation rather
 than bury it). `/handoff` emits a fixed "read this first" brief.
+
+## Phase 3 (orchestration discipline)
+
+| Component | Kind | Status |
+|---|---|---|
+| `fanout-build` | skill | provisional |
+| `/fanout` | command | provisional |
+| `check-fanout` | gate (heuristic) | provisional |
+
+`fanout-build` packages the trustworthy multi-agent **build** — one shared
+contract, disjoint-file ownership, scaffold-first, an `integration-runner` gate,
+and a `skeptic-verifier` pass that refutes the *claim* (a green gate is not a true
+claim). `/fanout` is its entry point; `check-fanout` flags a fan-out workflow
+script missing that scaffolding (structure only — it cannot prove file-disjointness
+or that a claim is true). Grounded in two independent real multi-agent builds.
 
 ## Build order (the dependency spine)
 
