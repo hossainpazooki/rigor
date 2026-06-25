@@ -113,9 +113,8 @@ deliver context — see [`docs/session-start-setup.md`](docs/session-start-setup
 `git-guard` blocks agent-initiated git-history writes; Claude outputs the command
 for you to run instead. Override per web-driven repo with `RIGOR_GIT_ALLOW=1`.
 
-Status, the self-audit (37 findings — spine code fixes applied and independently
-verified), and what remains live in [`docs/BACKLOG.md`](docs/BACKLOG.md) and
-[`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25-spine-audit.md).
+The full self-audit (37 findings — spine code fixes applied and independently
+verified) is in [`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25-spine-audit.md).
 
 ## Tests
 
@@ -123,9 +122,9 @@ verified), and what remains live in [`docs/BACKLOG.md`](docs/BACKLOG.md) and
 `node scripts/check-surface-scrub.mjs` gates skill/command examples against
 project fingerprints.
 
-## Roadmap
+## Agents
 
-See [`docs/BACKLOG.md`](docs/BACKLOG.md) — the live work queue: spine remediation
-(top priority), the held agents (`repo-cartographer`, `integration-runner`) that
-migrate only when they actually fire, and the promotion rule. Detail on the
-remediation lives in [`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25-spine-audit.md).
+Three vendored agents live in [`agents/`](agents/), each tagged `provisional` —
+`skeptic-verifier`, `repo-cartographer`, `integration-runner`. See each file for
+what it does and when to use it. Promotion `provisional` → `settled` is tracked in
+`FEEDBACK.md`.

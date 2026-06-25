@@ -561,8 +561,9 @@ absent. Self-contained beats elegant — portability is the plugin's whole purpo
 
 - [ ] **Step 4: Verify session-start uses the vendored rules**
 
-Run: `cd ~/dev/rigor && HOME=/nonexistent CLAUDE_PLUGIN_ROOT=$(pwd) node hooks/session-start.mjs`
-Expected: stdout JSON whose `additionalContext` contains both `using-rigor` and content from the vendored rule files (the absent-HOME path injects them).
+Run: `cd ~/dev/rigor && HOME=/nonexistent USERPROFILE=/nonexistent CLAUDE_PLUGIN_ROOT=$(pwd) node hooks/session-start.mjs`
+(On Windows `os.homedir()` reads `USERPROFILE`, not `HOME` — both must be overridden to exercise the absent-`~/.claude/rules` injection path.)
+Expected: stdout JSON whose `additionalContext` contains both `using-rigor` and content from the vendored rule files (the absent-home path injects them).
 
 - [ ] **Step 5: Commit (command for Hossain)**
 
@@ -838,7 +839,7 @@ outputs the command for you to run. Override per web-driven repo with
 
 ## Tests
 
-`node --test tests/` (hooks + surface-scrub). `node scripts/check-surface-scrub.mjs`
+`node --test` (hooks + surface-scrub). `node scripts/check-surface-scrub.mjs`
 gates skill/command examples against project fingerprints.
 
 ## Roadmap
@@ -888,7 +889,7 @@ git commit -m "docs: README (honest provisional framing) + BACKLOG"
 
 - [ ] **Step 1: All tests green**
 
-Run: `cd ~/dev/rigor && node --test tests/`
+Run: `cd ~/dev/rigor && node --test`
 Expected: all git-guard + session-start + surface-scrub tests PASS, 0 failures.
 
 - [ ] **Step 2: Surface-scrub clean across all content**

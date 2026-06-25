@@ -69,6 +69,12 @@ rigor/                              # separate new git repo
 └── README.md
 ```
 
+**Update 2026-06-25:** the Phase 2 entries above (`fanout-recon-synthesize`,
+`gate-discipline`, `recon.md`, `handoff.md`) are now **built and shipped**, tagged
+provisional. `BACKLOG.md` has been **retired** — its live content (held agents,
+promotion rule, audit status) moved to the README roadmap and `docs/audits/`. This
+tree reflects the original design.
+
 ### The refute decision (resolved explicitly — required by review)
 
 `fanout-recon-synthesize` and `claim-verification` rested on the same primitive:
@@ -208,8 +214,9 @@ domains," not "never used."
 
 - Plugin name (`rigor` is a working placeholder — alts: `keystone`, `the-loop`,
   `ops`).
-- Hook implementation language (shell vs node) — pick per portability across
-  win32/Linux, matching the author's dual-environment.
+- ~~Hook implementation language (shell vs node)~~ — **resolved:** Node `.mjs`
+  (ESM, `node:test`/`fs`/`os`), Node ≥18, for win32/Linux portability without a
+  Git-Bash dependency.
 - Exact vendored-rules re-sync cadence/mechanism.
 
 ## Non-goals (v1)
