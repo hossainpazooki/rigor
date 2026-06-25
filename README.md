@@ -1,8 +1,51 @@
-# rigor
+# rigor — verification & discipline for Claude Code
 
-A portable Claude Code plugin packaging a verification-and-discipline toolkit:
-refute load-bearing claims, keep built-vs-planned honest, and never let an agent
-write git history.
+**rigor** packages the operating discipline of a careful engineer into a portable
+Claude Code plugin. Its **verification spine** (Phase 1) refutes load-bearing
+claims before they are trusted, keeps the built-vs-planned line honest, and never
+lets an agent write your git history. Its **operating-system layer** (Phase 2)
+adds the wider loop: decompose a question into disjoint parallel recon and keep
+only what survives refutation, hold staged work to its gates, and hand off clean.
+Every example is domain-neutral, so a clone reads as nobody's specific stack.
+
+## How it works
+
+A layered workflow: two always-on hooks frame every session, the **verification
+spine** breaks load-bearing claims, and the **operating-system layer** runs the
+wider recon → refute → synthesize → gate → handoff loop. The commands are thin
+entry points; the skills carry the judgment; the agent and hooks do the enforcing.
+
+```mermaid
+graph TD
+    subgraph always["Always on"]
+        SS["session-start<br/>surfaces toolkit + vendored rules"]
+        GG["git-guard<br/>blocks agent git-history writes"]
+    end
+
+    subgraph spine["Phase 1 · verification spine"]
+        VC["/verify-claim"] --> REF["refute<br/>recompute · re-run gate · dispatch"]
+        REF --> SK["skeptic-verifier agent"]
+        HC["/honesty-check"] --> IVP["implemented-vs-planned"]
+    end
+
+    subgraph osys["Phase 2 · operating-system layer"]
+        RC["/recon"] --> FRS["fanout-recon-synthesize<br/>decompose · fan-out · synthesize"]
+        GD["gate-discipline"]
+        HO["/handoff"]
+    end
+
+    SS --> spine
+    SS --> osys
+    FRS -. refutes findings via .-> REF
+    GD -. re-runs the gate via .-> REF
+
+    classDef always fill:#3a2e1a,stroke:#d29922,color:#e6edf3;
+    classDef p1 fill:#16331f,stroke:#2ea043,color:#e6edf3;
+    classDef p2 fill:#16263a,stroke:#388bfd,color:#e6edf3;
+    class SS,GG always;
+    class VC,REF,SK,HC,IVP p1;
+    class RC,FRS,GD,HO p2;
+```
 
 ## What's in v1 (the verification spine)
 
