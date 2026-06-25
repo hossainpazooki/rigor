@@ -34,7 +34,7 @@ graph TD
     T4 -.guards.-> T7[refute skill]
     T4 -.guards.-> T8[implemented-vs-planned]
     T6[skeptic-verifier agent] --> T7
-    T7 --> T9[/verify-claim + /honesty-check]
+    T7 --> T9["/verify-claim + /honesty-check"]
     T8 --> T9
 ```
 
