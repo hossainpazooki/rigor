@@ -60,6 +60,58 @@ graph TD
     class ORC,FO,FBS,CF p3;
 ```
 
+### A sample run
+
+Say you're adding a feature too big for one pass. With rigor loaded:
+
+1. **Session start.** `session-start` surfaces the toolkit — including the rule to
+   reach for the Workflow tool, not ad-hoc agent dispatch.
+2. **Orchestrate.** You follow `orchestrate`: author the run as a `fanout-build`
+   workflow and `check-fanout` it first — it confirms the script carries a shared
+   contract, an integration step, a verify phase, and output schemas.
+3. **Spike → Contract → Scaffold.** The workflow proves the riskiest unknown builds
+   (or halts), writes one shared contract (exact interfaces + a file→owner map),
+   and scaffolds the shared files until the project compiles.
+4. **Build (fan out).** One agent per file, each carrying the contract verbatim and
+   owning only its files — so the parallel writers never collide.
+5. **Integrate.** An `integration-runner` runs the real, named gate to green and
+   returns the verbatim output — evidence, not a self-report.
+6. **Verify.** `skeptic-verifier`s refute the *claim*, not just the gate: is the
+   feature actually wired and reachable, or merely present? A green gate hiding an
+   unmounted feature gets caught here.
+7. **Don't trust the green.** The workflow reports done; you re-run the load-bearing
+   gate yourself (`refute`) before believing it.
+8. **Commit.** `git-guard` blocks any agent from writing history; the workflow hands
+   you the exact commit commands to run.
+
+The same shape minus the build phases is `/recon` (a question, not a build); the
+same discipline minus the fan-out is `refute` on a single claim.
+
+```mermaid
+flowchart TD
+    S0["session-start<br/>surfaces toolkit"] --> S1["orchestrate + check-fanout<br/>script has contract · gate · verify · schemas"]
+    S1 --> SP{"Spike: riskiest<br/>unknown builds?"}
+    SP -->|no| H["HALT — fix the base first"]
+    SP -->|yes| C["Contract<br/>one shared source of truth"]
+    C --> SC["Scaffold<br/>shared files compile (stubs)"]
+    SC --> B1["build: file A"]
+    SC --> B2["build: file B"]
+    SC --> B3["build: file C"]
+    B1 --> IG["Integrate<br/>integration-runner runs the real gate → green"]
+    B2 --> IG
+    B3 --> IG
+    IG --> V1["skeptic: is it wired?"]
+    IG --> V2["skeptic: did the path run?"]
+    V1 --> RV["re-run the gate yourself<br/>(refute — green ≠ claim-true)"]
+    V2 --> RV
+    RV --> GC["git-guard<br/>emit commit commands for the human"]
+
+    classDef p3 fill:#2e1a3a,stroke:#a371f7,color:#e6edf3;
+    classDef halt fill:#3a1a1a,stroke:#f85149,color:#e6edf3;
+    class S0,S1,SP,C,SC,B1,B2,B3,IG,V1,V2,RV,GC p3;
+    class H halt;
+```
+
 ## What's in v1 (the verification spine)
 
 Listed in **build order** — enforcement infra lands before the content it guards.
