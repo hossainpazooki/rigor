@@ -25,7 +25,8 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
 | `fanout-recon-synthesize` | 0 (1 same-repo exercise) | provisional |
 | `gate-discipline` | 0 | provisional |
 | `skeptic-verifier` | 0 | provisional |
-| `/verify-claim`, `/honesty-check`, `/recon`, `/handoff` | 0 | provisional |
+| `/verify-claim`, `/honesty-check`, `/recon`, `/handoff`, `/fanout` | 0 | provisional |
 | `git-guard`, `session-start` | 0 | provisional |
 | `fanout-build` | 0 | provisional |
 | `orchestrate` | 0 | provisional |
+| `check-fanout` | 0 | provisional |
