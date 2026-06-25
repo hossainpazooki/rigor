@@ -6,8 +6,9 @@
 `docs/superpowers/specs/` (the brainstorming skill's default location) before the
 `rigor` repo existed. It now lives in its home repo at `rigor/docs/specs/`. The
 Phase 1 verification spine described here is **built** and ships tagged
-`provisional` (see `README.md` for component status); Phase 2 remains designed-here,
-not-yet-built. ADR-0001 lives at `docs/adr/0001-vendor-the-rules.md`.
+`provisional`; Phases 2 and 3 have since been built and shipped too (this spec
+predates them — the `README.md` inventory is authoritative for current component
+status). ADR-0001 lives at `docs/adr/0001-vendor-the-rules.md`.
 
 ---
 
@@ -125,10 +126,10 @@ decisions, reuse map, invariants).
 **Agents (1 shipped, 2 held)** — honesty applied to the inventory:
 - **`skeptic-verifier`** — ships. It fired this session and is load-bearing for
   `refute`.
-- **`repo-cartographer`, `integration-runner`** — **held** in `BACKLOG.md`. Neither
-  fired as the *named agent* this session (`Explore` agents did cartography; the
-  author ran integration/verification inline). They are migrated only when they
-  actually fire in real use — not on faith.
+- **`repo-cartographer`, `integration-runner`** — originally **held** (neither
+  fired as the *named agent* this session: `Explore` agents did cartography; the
+  author ran integration/verification inline). **Both now ship** under `agents/`,
+  vendored on request and tagged `provisional`; `BACKLOG.md` has since been retired.
 
 **Hooks (2):**
 - `session-start` — surfaces the toolkit (a short `using-rigor` pointer, the way
