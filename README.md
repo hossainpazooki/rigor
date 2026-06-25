@@ -88,11 +88,16 @@ than bury it). `/handoff` emits a fixed "read this first" brief.
 
 | Component | Kind | Status |
 |---|---|---|
+| `orchestrate` | skill (policy) | provisional |
 | `fanout-build` | skill | provisional |
 | `/fanout` | command | provisional |
 | `check-fanout` | gate (heuristic) | provisional |
 
-`fanout-build` packages the trustworthy multi-agent **build** — one shared
+`orchestrate` is the policy: for multi-agent work, default to the **Workflow tool**
+wrapped in rigor's guardrails (shared contract, disjoint files, an integration
+gate, a skeptic claim-refutation, `check-fanout`, never-trust-the-self-report) —
+not ad-hoc dispatch. `fanout-build` packages the trustworthy multi-agent
+**build** — one shared
 contract, disjoint-file ownership, scaffold-first, an `integration-runner` gate,
 and a `skeptic-verifier` pass that refutes the *claim* (a green gate is not a true
 claim). `/fanout` is its entry point; `check-fanout` flags a fan-out workflow

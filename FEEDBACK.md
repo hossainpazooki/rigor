@@ -28,3 +28,4 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
 | `/verify-claim`, `/honesty-check`, `/recon`, `/handoff` | 0 | provisional |
 | `git-guard`, `session-start` | 0 | provisional |
 | `fanout-build` | 0 | provisional |
+| `orchestrate` | 0 | provisional |
