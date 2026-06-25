@@ -8,6 +8,13 @@
 
 **Tech Stack:** Markdown (skill/command), Node.js ≥18 ESM `.mjs` (the check + the example), `node:test` + `node:assert`, the existing surface-scrub + frontmatter conventions.
 
+> **Added post-plan (2026-06-25):** a fourth Phase-3 component, the `orchestrate`
+> policy skill ("default multi-agent work to the Workflow tool with rigor's
+> guardrails, not ad-hoc dispatch"), was shipped after this plan by direct build
+> (approved design; a single `skills/orchestrate/SKILL.md` plus a `session-start`
+> pointer wire-in). It is not in the task list below. The README Phase-3 table is
+> the complete, current component list.
+
 ## Design grounding (why these components)
 
 This phase is **not** invented — every component is justified by two independent real multi-agent builds in the author's history (a systems-language migration and a web-frontend migration), mined from their session transcripts. Both, independently, converged on the same pipeline and hit the same failure modes.
