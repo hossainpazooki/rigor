@@ -1,0 +1,8 @@
+{
+  "name": "rigor",
+  "description": "Portable verification-and-discipline toolkit: refute load-bearing claims, keep built-vs-planned honest, and never let an agent write git history.",
+  "version": "0.1.0",
+  "author": { "name": "Hossain", "email": "hossain@pazooki.com" },
+  "license": "UNLICENSED",
+  "keywords": ["verification", "discipline", "honesty", "workflow"]
+}
