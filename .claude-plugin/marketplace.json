@@ -1,0 +1,17 @@
+{
+  "name": "rigor",
+  "owner": {
+    "name": "Hossain",
+    "email": "hossain@pazooki.com"
+  },
+  "metadata": {
+    "description": "Local marketplace for the rigor verification-and-discipline toolkit."
+  },
+  "plugins": [
+    {
+      "name": "rigor",
+      "source": "./",
+      "description": "Portable verification-and-discipline toolkit: refute load-bearing claims (recompute, re-execute the gate, dispatch skeptics, check citation fidelity), keep built-vs-planned honest, and never let an agent write git history."
+    }
+  ]
+}

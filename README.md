@@ -189,9 +189,34 @@ design rationale: [`docs/specs/2026-06-25-rigor-plugin-design.md`](docs/specs/20
 
 ## Install
 
-Add this repo as a local Claude Code plugin (see current Claude Code plugin docs).
-The `SessionStart` hook needs a one-time `~/.claude/settings.json` registration to
-deliver context — see [`docs/session-start-setup.md`](docs/session-start-setup.md).
+This repo is its own local plugin marketplace (`.claude-plugin/marketplace.json` +
+`.claude-plugin/plugin.json`). In a Claude Code session:
+
+```
+/plugin marketplace add <absolute-path-to-this-repo>
+/plugin install rigor@rigor
+```
+
+Commands are then namespaced under the plugin: **`/rigor:verify-claim`**,
+`/rigor:honesty-check`, `/rigor:recon`, `/rigor:handoff`, `/rigor:fanout` (the
+`rigor:` prefix is required for plugin commands). Installing also auto-activates the
+`skills/` and `agents/`; the commands invoke those skills directly.
+
+For persistent, cross-repo availability, register it in `~/.claude/settings.json`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "rigor": { "source": { "source": "url", "url": "file:///C:/Users/hossa/dev/rigor/.claude-plugin/marketplace.json" } }
+  },
+  "enabledPlugins": { "rigor@rigor": true }
+}
+```
+
+The `SessionStart` hook needs a separate one-time `~/.claude/settings.json`
+registration to deliver context (plugin-path SessionStart hooks don't surface
+`additionalContext` — claude-code#16538); the slash commands work without it. See
+[`docs/session-start-setup.md`](docs/session-start-setup.md).
 
 ## The one hard rule
 
