@@ -59,6 +59,28 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
   noise" overstatement (p=1.4e-4 at sev 1.0 is still significant). **Second independent
   domain** for `skeptic-verifier`.
 
+- 2026-06-26 · `check-citation-fidelity` (refute move 4) · misfired (insufficient depth) ·
+  credit-risk ML / causal inference (closed-loop-default-detection) · root-causing the CLDD
+  §7 defect showed the move-4 check would NOT have caught it. The error was a **numeric
+  provenance** failure — a 25-seed cross-seed mean (0.0134) mislabeled as a single "seed 42"
+  measurement, plus level numbers (`0.0734/0.0598`) sourced from nothing. The check is a
+  **string-substring matcher**: brittle to rounding (`0.0734` is a substring of `0.073412…`)
+  and it verifies "string appears in *a* source," not "this number equals the output of the
+  *specific* computation it is attributed to." What actually caught it was move 1 (recompute).
+  Citation-fidelity is right for identifiers/section-refs/quotes, **insufficient for numbers**.
+  Candidate fix: a numeric-provenance check — `(claimed_value, source_csv, column, row-filter)
+  → assert match within tolerance` — the move-1 mechanization the substring check is not.
+
+- 2026-06-26 · `refute` (enforcement) · misfired (by omission) · credit-risk ML / causal
+  inference (closed-loop-default-detection) · the wrong §7 numbers landed in a "RESOLVED"
+  status doc **un-refuted** and sat there until rigor was manually aimed at the repo — rigor
+  caught them as a *detector* but never as a *preventer*. Nothing gates "a number in a
+  published status doc must carry a reproducible source." **Same root as `check-fanout` #7**
+  (a check that depends on someone *remembering* to run it gets skipped under momentum) — now
+  the recurring theme across three instances (skipped #7 pre-flight; §7 authored un-refuted;
+  stale `66` count). The structural insufficiency is enforcement: rigor's load-bearing checks
+  are opt-in, not triggered.
+
 ## Promotion ledger
 
 | Component | Independent domains survived | Status |
@@ -73,3 +95,4 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
 | `fanout-build` | 0 | provisional |
 | `orchestrate` | 0 | provisional |
 | `check-fanout` | 0 | provisional |
+| `check-citation-fidelity` | 0 | provisional — verified for identifier/quote fidelity; **insufficient for numeric provenance** (see 2026-06-26 misfire) |
