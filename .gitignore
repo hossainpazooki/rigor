@@ -1,3 +1,6 @@
 node_modules/
 *.log
 .DS_Store
+
+# local-only surface-scrub denylist — project fingerprints never ship
+surface-scrub.denylist
