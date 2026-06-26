@@ -106,13 +106,26 @@ tree reflects the original design.
 Net: one primitive (`refute`), two callers (`fanout-recon-synthesize` skill;
 `/verify-claim` command). The overlap is removed, not shipped unexamined.
 
+**Update 2026-06-26 (battle-test amendment).** A by-hand run of the refute spine in
+an independent domain (payments/regulatory compliance — ATLAS regulatory-rule-engine;
+logged in `FEEDBACK.md`) surfaced two gaps and added a **fourth move** to `refute`:
+(d) **Check citation fidelity** — every named source/identifier/quote a claim
+attributes to a file or document must actually appear in that source; grep the cited
+source, and a citation that does not hit is fabricated or drifted.
+`scripts/check-citation-fidelity.mjs` mechanizes the grep over (identifier, source)
+pairs. The same run also hardened move (c): *dispatching skeptics does not discharge
+your duty* — independently re-execute at least one load-bearing check yourself, because
+a fan-out of skeptics can collectively miss what a single direct read of the source
+catches (cross-links `orchestrate` guardrail #8). So refute is now four moves, not
+three.
+
 ### Components
 
 **Skills (4)** — each carries judgment, with surface-scrubbed (domain-neutral)
 examples:
 | Skill | Pattern (travels) | Surface-scrub note |
 |---|---|---|
-| `refute` | break one load-bearing claim: **recompute numbers + re-execute the real gate + dispatch skeptics** | examples use a generic "the test suite passes / the number is X" claim, not any stack |
+| `refute` | break one load-bearing claim: **recompute numbers + re-execute the real gate + dispatch skeptics + check citation fidelity** | examples use a generic "the test suite passes / the number is X" claim, not any stack |
 | `fanout-recon-synthesize` | disjoint parallel recon → refute survivors → synthesize | example question is domain-neutral (e.g. "does feature X exist and work") |
 | `gate-discipline` | acceptance criteria before starting; no stage until prior green; close via PR not a local pointer; open an ADR when criteria can't be met / spec conflicts | replace any "ADR referencing PROJECT_AUDIT" example with a neutral one |
 | `implemented-vs-planned` | keep built-vs-proposed visible: status tags, precise verbs, never aspirational-as-done. **Empirical-number verification is _not_ here** — that belongs to `refute` (cross-reference it; do not duplicate recompute) | the checklist is generic; no project tags |

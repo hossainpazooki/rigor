@@ -24,7 +24,7 @@ graph TD
     end
 
     subgraph spine["Phase 1 · verification spine"]
-        VC["/verify-claim"] --> REF["refute<br/>recompute · re-run gate · dispatch"]
+        VC["/verify-claim"] --> REF["refute<br/>recompute · re-run gate · dispatch · citation-fidelity"]
         REF --> SK["skeptic-verifier"]
         HC["/honesty-check"] --> IVP["implemented-vs-planned"]
     end
@@ -203,9 +203,12 @@ verified) is in [`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25
 
 ## Tests
 
-`node --test` (auto-discovers `tests/*.test.mjs` — hooks + surface-scrub).
+`node --test` (auto-discovers `tests/*.test.mjs` — hooks + surface-scrub +
+citation-fidelity).
 `node scripts/check-surface-scrub.mjs` gates skill/command examples against
-project fingerprints.
+project fingerprints. `node scripts/check-citation-fidelity.mjs <claims.json>`
+flags any cited identifier/quote that is absent from its named source (a
+fabricated or drifted citation).
 
 ## Agents
 

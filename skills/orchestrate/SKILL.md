@@ -34,7 +34,11 @@ contract and no verification, and report green. The guardrails are rigor's job:
 7. **Lint the script with `check-fanout` before you run it** — it flags a fan-out
    missing the contract, the integration step, the verify phase, or schemas.
 8. **Never trust the workflow's self-reported green.** After it returns, re-run the
-   load-bearing gate yourself — this is `refute`.
+   load-bearing gate yourself — this is `refute`. The same holds for *any* fan-out,
+   including a bare `skeptic-verifier` dispatch (`refute` move 3): the dispatch does
+   not discharge your duty — independently re-execute at least one load-bearing
+   check yourself, since a fan-out can collectively miss what a single direct read
+   of the source catches.
 9. **Git stays commands-for-the-human** — agents never write history.
 10. **Survive the fan-out:** null-safe aggregation (errored agents return null),
     stall-retry, and a token budget — long fan-outs stall and hit limits.
