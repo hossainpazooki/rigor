@@ -36,22 +36,56 @@ verify the effect:
    supposed to change — query the row, fetch the artifact, hit the endpoint,
    re-derive the output — rather than trusting the success signal. (This is
    `refute` move 2, generalized from "re-run the gate" to "inspect the effect.")
-2. **Probe in layers, narrow to broad.** Confirm the substrate is up → the thing
+2. **Prove the probe discriminates — run a negative control.** A probe that passes
+   against a broken world proves nothing: a `/health` that returns 200 for a
+   service serving stubs, a `SELECT 1` that proves connectivity not correctness, a
+   smoke test green against a mock. Before you credit a probe, show it **fails**
+   against the effect-absent state — the prior version, a perturbed input, shuffled
+   labels, an empty output. If it passes both with and without the effect, it is
+   **vacuous** — discard it. This is the move that separates verifying the *effect*
+   from re-reading the *report*, and the one with the least precedent — most
+   "verified" deploys never run it. `scripts/check-effect-probe.mjs` mechanizes the
+   shape: an effect-claim is credited only if its probe passed **and** a paired
+   negative control failed.
+3. **Probe in layers, narrow to broad.** Confirm the substrate is up → the thing
    answers → its dependencies are reachable → a few real cases return what they
-   should. A pass at one layer does not imply the next.
-3. **Cross-check any verdict against its own evidence; fail closed.** When the
+   should. A pass at one layer does not imply the next; **name the layers and
+   paths you did not probe** — an unprobed path reads as "working" when it is only
+   untested.
+4. **Cross-check any verdict against its own evidence; fail closed.** When the
    action returns a verdict plus supporting numbers (`passed: true`, `0 errors`),
    recompute the verdict from the numbers and reject on mismatch. A boolean you
    did not recompute is the self-reported green `refute` exists to break.
-4. **Make the effect reversible, and prove the reversal.** If the action can leave
+5. **Make the effect reversible, and prove the reversal.** If the action can leave
    the world broken, it must be undoable; a failed probe triggers the undo and
    **re-verifies** that the reverted state is itself healthy. An action you cannot
    reverse is an unclosed gate, not a finished one.
-5. **Name what you verified against.** The probe checked the effect against *some*
+6. **Name what you verified against.** The probe checked the effect against *some*
    oracle — say which, using `implemented-vs-planned`'s axis: **self-consistent**
    (the same source produced and judged it — dev-grade only), **independent** (a
    separate oracle — claim-grade), or **oracle-gap** (no real oracle yet — name
    the blocker). Never quote a self-consistent probe as production-truth.
+
+Dispatch the `effect-prober` agent to run moves 1–3 adversarially — it probes the
+resulting state, tries to show the effect is *absent*, and returns
+`VACUOUS-PROBE` when a probe cannot tell the effect's presence from its absence.
+
+## Action types — each has its own oracle and its own vacuity trap
+
+The discipline is one shape; the probe and the control that proves it differ by
+action. The trap is always the same: a check that would pass even if the action
+had no effect.
+
+| Action | The report (don't trust) | Probe the effect | Negative control (must fail) |
+|---|---|---|---|
+| Deploy / rollout | rollout finished, `/health` 200 | a real request returns correct output | the same probe against the *previous* version still passes → not testing this deploy |
+| Migration | `upgrade head` succeeded | a row reads back in the new shape | the read would have passed *before* the migration → not testing the migration |
+| Pipeline / batch job | exit 0 | the output has the expected rows and values | exit 0 with an empty or stale output still passes a presence-only check |
+| Publish / release | the registry accepted the push | a consumer pulls and loads the *exact* artifact | a floating tag resolves to an older artifact and still loads |
+| Model / eval rollout | `passed: true`, metric ≥ target | the metric holds on a held-out split | the threshold was tuned and scored on the same data, or the metric survives shuffled labels → measures fit, not signal |
+
+The last row is the general form: a verdict produced on the data it is judged
+against cannot discriminate the effect from its absence.
 
 ## Preconditions the probe assumes
 

@@ -129,6 +129,46 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
   demonstrated for numeric provenance + citation fidelity and **provisional over
   semantic/design/omission defects**.
 
+- 2026-06-27 · `verify-the-effect` / `effect-prober` / `check-effect-probe` ·
+  helped · institutional digital-asset platform API (decoder service) · **First
+  catch — independent domain #1, and a non-numeric/non-string defect** (exactly the
+  class the 2026-06-27 scope entry flagged as unproven). The LLM decoder reports a
+  healthy, configured deploy — `get_health()` (`src/decoder/llm_service.py:121-129`)
+  returns `status: healthy, anthropic_configured: true, available_tiers: [anchored,
+  guided, exploratory]` when a key is set — yet `explain()` (`llm_service.py:28-88`)
+  returns a hardcoded stub ("This is a stub explanation … available once the
+  Anthropic API key is configured") on **every** call, with no code path that
+  references `has_api_key` or any client. The *report* (healthy + configured) is
+  true while the *effect* (a real explanation) is absent. The spine's numeric/citation
+  moves slide right over it: `confidence: 0.85` is a real number and the citations
+  resolve to real input fields — every number and string checks out while the
+  behavior is a stub. Caught by a complete static read of `explain()` (exhaustive
+  over inputs) + the verify-the-effect content probe (`'stub' not in explanation` →
+  **EFFECT-REFUTED**); `check-effect-probe.mjs` flagged the as-deployed
+  `/decoder/health` probe as *vacuous* (no control separating stub from real). Note:
+  **stronger than the original mining summary**, which said "returns stub when no key
+  set" — the raw source shows it returns the stub *even with a key configured*.
+  Confirmed from source, not the subagent summary. Caveat: static + record-level, not
+  a live end-to-end probe against a running deploy.
+
+- 2026-06-27 · `verify-the-effect` / `check-effect-probe` · helped · genomics
+  label-error ML (CLUE) · **Independent domain #2 — a different action type
+  (model/eval rollout, not a service deploy).** The IMPROVE step
+  `tune_decision_threshold()` (`clue/loop.py:88-112`) picks the threshold that
+  maximises F1 **and reports that maximum on the very cohort it tuned on** — an
+  in-sample number that took selection on the data it is then scored against (the
+  repo's own documented gap #2). The non-vacuity move classifies that reported F1 as
+  a *vacuous-probe* result: it cannot discriminate generalization from in-sample fit.
+  The discriminating control already exists in the repo — `select_threshold_holdout()`
+  (`loop.py:115-144`) applies a threshold chosen on a disjoint `tune_cohort` to a
+  held-out `measure_cohort`; `check-effect-probe.mjs` **credits** that record (probe
+  passed, control failed) and flags the in-sample one. Honest framing — convergence,
+  not novel discovery: CLUE independently arrived at the same negative-control
+  discipline and even labels the residual *shared-generator-structure* optimism as
+  gap #1 (the oracle-gap — move 6). An independent methodology landing on a known real
+  defect validates the lens; it does not get full credit for finding it. Confirmed
+  from `loop.py` source.
+
 ## Promotion ledger
 
 | Component | Independent domains survived | Status |
@@ -137,7 +177,9 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
 | `implemented-vs-planned` | 0 | provisional |
 | `fanout-recon-synthesize` | 0 (1 same-repo exercise) | provisional — inherits `refute`'s numeric/string reach by construction; has independently caught nothing (see 2026-06-27) |
 | `gate-discipline` | 0 | provisional |
-| `verify-the-effect` | 0 (authored from 3 same-author repos — see 2026-06-26 entry) | provisional |
+| `verify-the-effect` | 1 strong (digital-asset API decoder) + 1 convergent (CLUE eval — re-derives a documented gap); both same-author, static/record-level not live (see 2026-06-27) | provisional — short of `refute`'s standard until a live end-to-end probe |
+| `effect-prober` | 0 (authored 2026-06-27) | provisional |
+| `check-effect-probe` | 0 (exercised on the 2 catches above, same session) | provisional |
 | `skeptic-verifier` | 2 (payments/regulatory, credit-risk ML) | **settled** — every logged win was a numeric recompute; same scope caveat as `refute` (see 2026-06-27) |
 | `/verify-claim`, `/honesty-check`, `/recon`, `/handoff`, `/fanout`, `/verify-effect` | 0 | provisional |
 | `git-guard`, `session-start` | 0 | provisional |

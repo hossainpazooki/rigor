@@ -138,6 +138,8 @@ is read by **this README only**; it is not a functional gate. A component become
 | `fanout-recon-synthesize` | skill | provisional (exercised once — see `FEEDBACK.md`) |
 | `gate-discipline` | skill | provisional |
 | `verify-the-effect` | skill | provisional |
+| `effect-prober` | agent | provisional |
+| `check-effect-probe` | gate (non-vacuity) | provisional |
 | `/recon` | command | provisional |
 | `/handoff` | command + template | provisional |
 | `/verify-effect` | command | provisional |
@@ -238,15 +240,20 @@ verified) is in [`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25
 ## Tests
 
 `node --test` (auto-discovers `tests/*.test.mjs` — hooks + surface-scrub +
-citation-fidelity).
+citation-fidelity + effect-probe).
 `node scripts/check-surface-scrub.mjs` gates skill/command examples against
 project fingerprints. `node scripts/check-citation-fidelity.mjs <claims.json>`
 flags any cited identifier/quote that is absent from its named source (a
-fabricated or drifted citation).
+fabricated or drifted citation). `node scripts/check-effect-probe.mjs <probes.json>`
+credits an effect-claim only if its probe passed **and** a paired negative control
+failed — flagging a vacuous probe that would pass even with the effect absent.
 
 ## Agents
 
-Three vendored agents live in [`agents/`](agents/), each tagged `provisional` —
-`skeptic-verifier`, `repo-cartographer`, `integration-runner`. See each file for
-what it does and when to use it. Promotion `provisional` → `settled` is tracked in
-`FEEDBACK.md`.
+Four agents live in [`agents/`](agents/), each tagged `provisional` — three
+vendored (`skeptic-verifier`, `repo-cartographer`, `integration-runner`) plus
+`effect-prober`, the adversarial effect-verifier for `verify-the-effect`: it probes
+the state an action left behind, tries to show the effect is *absent*, and returns
+`VACUOUS-PROBE` when a probe cannot tell the effect's presence from its absence. See
+each file for what it does and when to use it. Promotion `provisional` → `settled`
+is tracked in `FEEDBACK.md`.
