@@ -33,6 +33,9 @@ graph TD
         RC["/recon"] --> FRS["fanout-recon-synthesize<br/>decompose · fan-out · synthesize"]
         GD["gate-discipline"]
         HO["/handoff"]
+        VE["/verify-effect"] --> VTE["verify-the-effect<br/>probe the effect · negative-control non-vacuity"]
+        VTE --> EP["effect-prober"]
+        CEP["check-effect-probe<br/>credits only a non-vacuous probe"]
     end
 
     subgraph orch["Phase 3 · orchestration discipline"]
@@ -49,6 +52,8 @@ graph TD
     FRS -. refutes findings via .-> REF
     FBS -. refutes the claim via .-> REF
     GD -. re-runs the gate via .-> REF
+    VTE -. probes the effect via .-> REF
+    CEP -. gates non-vacuity of .-> VTE
 
     classDef always fill:#fdf2d0,stroke:#d29922,color:#5c4a00;
     classDef p1 fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
@@ -56,7 +61,7 @@ graph TD
     classDef p3 fill:#ecdfff,stroke:#a371f7,color:#3a1060;
     class SS,GG always;
     class VC,REF,SK,HC,IVP p1;
-    class RC,FRS,GD,HO p2;
+    class RC,FRS,GD,HO,VE,VTE,EP,CEP p2;
     class ORC,FO,FBS,CF p3;
 ```
 
@@ -83,9 +88,16 @@ Say you're adding a feature too big for one pass. With rigor loaded:
    gate yourself (`refute`) before believing it.
 8. **Commit.** `git-guard` blocks any agent from writing history; the workflow hands
    you the exact commit commands to run.
+9. **Verify the effect.** When the change ships as an irreversible action — a
+   deploy, a migration — `verify-the-effect` probes the *resulting state*, not the
+   action's success report: an `effect-prober` runs the live probe with a
+   **negative control** (it must fail against the effect-absent state), and
+   `check-effect-probe` refuses to credit a probe that would pass even if the
+   action did nothing. "Rolled out" is the report; "served correctly" is the effect.
 
 The same shape minus the build phases is `/recon` (a question, not a build); the
-same discipline minus the fan-out is `refute` on a single claim.
+same discipline minus the fan-out is `refute` on a single claim; and the same
+discipline aimed at an action's *result* is `verify-the-effect`.
 
 ```mermaid
 flowchart TD
@@ -105,10 +117,17 @@ flowchart TD
     V1 --> RV["re-run the gate yourself<br/>(refute — green ≠ claim-true)"]
     V2 --> RV
     RV --> GC["git-guard<br/>emit commit commands for the human"]
+    GC --> SHIP["ship the change<br/>(deploy · migrate · publish)"]
+    SHIP --> VTE2{"verify-the-effect<br/>probe + negative control"}
+    VTE2 -->|"vacuous / effect absent"| REV["reverse + re-verify<br/>(effect-prober: VACUOUS-PROBE / REFUTED)"]
+    VTE2 -->|"effect confirmed"| DONE["done — name what it<br/>was verified against"]
 
     classDef p3 fill:#ecdfff,stroke:#a371f7,color:#3a1060;
+    classDef p2 fill:#d8e9ff,stroke:#388bfd,color:#0d2b52;
     classDef halt fill:#ffe0e0,stroke:#f85149,color:#6a0d0d;
     class S0,S1,SP,C,SC,B1,B2,B3,IG,V1,V2,RV,GC p3;
+    class SHIP,VTE2,DONE p2;
+    class REV halt;
     class H halt;
 ```
 
