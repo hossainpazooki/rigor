@@ -137,15 +137,24 @@ is read by **this README only**; it is not a functional gate. A component become
 |---|---|---|
 | `fanout-recon-synthesize` | skill | provisional (exercised once — see `FEEDBACK.md`) |
 | `gate-discipline` | skill | provisional |
+| `verify-the-effect` | skill | provisional |
 | `/recon` | command | provisional |
 | `/handoff` | command + template | provisional |
+| `/verify-effect` | command | provisional |
 
 `fanout-recon-synthesize` is the decompose → fan-out → refute → synthesize loop;
 `/recon` is its thin caller. A runnable, domain-neutral example of the proven
 shape ships at `skills/fanout-recon-synthesize/example.mjs` — it is the loop that
 audited this toolkit's own spine. `gate-discipline` keeps staged work honest
 (no stage past a red gate; close via real integration; ADR a deviation rather
-than bury it). `/handoff` emits a fixed "read this first" brief.
+than bury it). `verify-the-effect` carries the same idea to any **irreversible
+action** (a deploy, migration, pipeline run, `apply`, rollout): the action's
+success report is a claim, not its effect, so you probe the resulting state
+rather than trust the exit code — in layers, with the acting artifact pinned and
+immutable, any verdict cross-checked against its own numbers, and a failed probe
+reversed and re-verified. The build → promote → deploy pipeline is its worked
+example. `/verify-effect` is its thin caller. `/handoff` emits a fixed "read this
+first" brief.
 
 ## Phase 3 (orchestration discipline)
 
@@ -198,8 +207,8 @@ This repo is its own local plugin marketplace (`.claude-plugin/marketplace.json`
 ```
 
 Commands are then namespaced under the plugin: **`/rigor:verify-claim`**,
-`/rigor:honesty-check`, `/rigor:recon`, `/rigor:handoff`, `/rigor:fanout` (the
-`rigor:` prefix is required for plugin commands). Installing also auto-activates the
+`/rigor:honesty-check`, `/rigor:recon`, `/rigor:handoff`, `/rigor:fanout`,
+`/rigor:verify-effect` (the `rigor:` prefix is required for plugin commands). Installing also auto-activates the
 `skills/` and `agents/`; the commands invoke those skills directly.
 
 For persistent, cross-repo availability, register it in `~/.claude/settings.json`:

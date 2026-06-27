@@ -4,5 +4,5 @@
   "version": "0.1.0",
   "author": { "name": "Hossain", "email": "hossain@pazooki.com" },
   "license": "UNLICENSED",
-  "keywords": ["verification", "discipline", "honesty", "workflow"]
+  "keywords": ["verification", "discipline", "honesty", "workflow", "deployment", "release"]
 }
