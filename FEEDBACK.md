@@ -13,7 +13,7 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
 | Component | Independent domains survived | Status |
 |---|---|---|
 | `refute` | 2 (payments/regulatory, credit-risk ML) | **settled** — demonstrated for numeric provenance + citation fidelity; reach over semantic/design/omission defects **unproven** (see 2026-06-27) |
-| `implemented-vs-planned` | 1 (point-in-time lakehouse — VANTAGE) | provisional — first independent domain; final summary flagged the `main()` stub + CI-defined-not-run + Databricks-configured-not-deployed without overclaim (see 2026-06-28) |
+| `implemented-vs-planned` | 1 (point-in-time lakehouse — VANTAGE) | provisional — first independent domain; final summary flagged the `main()` stub + CI-defined-not-run + Databricks-configured-not-deployed without overclaim; flagged gap since closed end-to-end & re-verified green (see 2026-06-28 + follow-up) |
 | `fanout-recon-synthesize` | 0 (1 same-repo exercise) | provisional — inherits `refute`'s numeric/string reach by construction; has independently caught nothing (see 2026-06-27) |
 | `gate-discipline` | 0 | provisional |
 | `verify-the-effect` | 1 strong (digital-asset API decoder) + 1 convergent detector (CLUE) + 1 convergent builder (VANTAGE) — all same-author, no live end-to-end probe | provisional — short of `refute`'s standard until a live end-to-end probe (see 2026-06-27, 2026-06-28) |
@@ -24,7 +24,7 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
 | `orchestrate` | 1 (point-in-time lakehouse — VANTAGE) | provisional — guardrail #8 (re-run ≥1 load-bearing check yourself) caught 2 false refutations the fan-out missed (see 2026-06-28) |
 | `/verify-claim`, `/honesty-check`, `/recon`, `/handoff`, `/fanout`, `/verify-effect` | 0 | provisional |
 | `git-guard`, `session-start` | 0 | provisional |
-| `fanout-build` | 1 (point-in-time lakehouse — VANTAGE) | provisional — first independent domain, end-to-end; orchestrator-as-skeptic caught 2 false refutations from its own verify stage (see 2026-06-28) |
+| `fanout-build` | 1 (point-in-time lakehouse — VANTAGE; 2 fan-outs in-domain) | provisional — first independent domain, end-to-end; run 1 orchestrator-as-skeptic caught 2 false refutations; run 2 closed the flagged gaps, clean-gate green 29 tests, tests-as-probes (see 2026-06-28 + follow-up) |
 | `check-fanout` | 0 | provisional |
 | `check-citation-fidelity` | 0 | provisional — verified for identifier/quote fidelity; **insufficient for numeric provenance** (see 2026-06-26 misfire) |
 
@@ -243,3 +243,30 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
   negative-control discipline strengthens the lens — but, as with CLUE (2026-06-27), this is
   **convergence, not a novel catch**, and same-operator. Does **not** advance the
   independent-detector count; the live end-to-end gap from 2026-06-27 stays open.
+
+- 2026-06-28 (follow-up) · `fanout-build` · helped · point-in-time SEC fundamentals
+  lakehouse (VANTAGE) · **Second fan-out, same domain** — closed the two gaps the first run
+  honestly flagged: `Pipeline.main` wired to a real `TsvIngest.ingestQuarter` -> `runFromFrames`
+  end-to-end (no longer a `println` stub), and quarantine writes split to distinct `/rows`
+  `/detail` `/unevaluable` Delta paths with `Unevaluable` now quarantining before throwing. Two
+  reinforcing observations for the blueprint: (1) **the discipline held even with no false
+  alarm** — this run's 3 skeptics all returned `true` (vs the first run's 2 false refutations),
+  yet the orchestrator STILL re-ran a **clean** (non-incremental) gate rather than trust the
+  agreement; (2) **tests-as-probes** — `TsvIngestSpec`'s "real read path composes through
+  runFromFrames to a non-empty gold" fixture test *is* the `main-real` proof and
+  `PipelineQuarantineSpec` *is* the `quarantine-split` proof, so one clean-green run discharges
+  all three claims at once (a stronger verification design than run 1). Independently re-verified
+  this session from committed source (HEAD `3bcc0de`) + 12 test-report XMLs (**29 tests / 0 fail
+  / 0 err**, reports newer than source; clean-gate log: `Total tests run: 29`, `EXTEND_GATE_EXIT=0`,
+  real `vantage` jar). Residual: `main()`'s thin wrapper (SparkSession builder, env var, quarter
+  `foreach`) is not directly invoked by a test — the *composition* it performs is; §8 gold
+  no-overlap and same-`accepted` ties remain untested. Same author/operator caveat as run 1.
+
+- 2026-06-28 (follow-up) · `implemented-vs-planned` · validated by outcome · point-in-time
+  SEC fundamentals lakehouse (VANTAGE) · the boundary the build drew at `be70645` (`main()` =
+  stub; "the engine is tested," not "you can point it at `2023q2`") **tracked reality, not
+  vaporware**: the very next fan-out closed it end-to-end and re-verified green, and the honest
+  "CI defined-not-run / Databricks configured-not-deployed" lines are still accurate at HEAD. The
+  label moved with the artifact rather than ossifying — which is the point of the tag. CI-on-Actions
+  remains the one open "configured-not-run" item (needs a push under the `pit-fundamentals-lakehouse`
+  remote).
