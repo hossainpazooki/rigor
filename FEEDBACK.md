@@ -14,7 +14,7 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
 |---|---|---|
 | `refute` | 2 (payments/regulatory, credit-risk ML) | **settled** — demonstrated for numeric provenance + citation fidelity; reach over semantic/design/omission defects **unproven** (see 2026-06-27) |
 | `implemented-vs-planned` | 1 (point-in-time lakehouse — VANTAGE) | provisional — first independent domain; final summary flagged the `main()` stub + CI-defined-not-run + Databricks-configured-not-deployed without overclaim; flagged gap since closed end-to-end & re-verified green (see 2026-06-28 + follow-up) |
-| `fanout-recon-synthesize` | 0 (1 same-repo exercise) | provisional — inherits `refute`'s numeric/string reach by construction; has independently caught nothing (see 2026-06-27) |
+| `fanout-recon-synthesize` | 1 (genomics label-error ML + Go service — upstream-label-correction) | provisional — **first independent-domain run** caught 4 non-numeric defects (semantic / logic / mechanism), closing the 2026-06-27 gap (b); orchestrator reproduced the headline F1 0.9143; cracks are run-reported (file:line cited), not re-read this session (see 2026-06-28) |
 | `gate-discipline` | 0 | provisional |
 | `verify-the-effect` | 1 strong (digital-asset API decoder) + 1 convergent detector (CLUE) + 1 convergent builder (VANTAGE) — all same-author, no live end-to-end probe | provisional — short of `refute`'s standard until a live end-to-end probe (see 2026-06-27, 2026-06-28) |
 | `effect-prober` | 0 (authored 2026-06-27) | provisional |
@@ -270,3 +270,32 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
   label moved with the artifact rather than ossifying — which is the point of the tag. CI-on-Actions
   remains the one open "configured-not-run" item (needs a push under the `pit-fundamentals-lakehouse`
   remote).
+
+- 2026-06-28 · `fanout-recon-synthesize` (`/recon`) · helped · genomics/proteomics label-error
+  ML + Go FSM service (upstream-label-correction) · **First independent-domain exercise** for
+  `/recon` (was 0 — prior only the same-repo self-audit, per 2026-06-27), and the run that
+  **closes requirement (b) of the 2026-06-27 scope entry: an independent-domain `/recon` that
+  catches NON-numeric defects.** Decomposed ~23 load-bearing claims into 4 disjoint clusters
+  (headline numbers / loop+detector impl / integrity hardening / architecture-migration), fanned
+  out 4 recon agents under one shared return contract, had each refute its own findings, then
+  synthesized — and the orchestrator independently re-ran the single most load-bearing number
+  rather than trust the agent. **Numeric (orchestrator-reproduced in-session):** F1 0.9143 from
+  its own `TransferValidationEval().evaluate('train')` run — score=0.9142857, precision 0.8421
+  (16/19), recall 1.0 (16/16), FP {Training_1,18,19}, FN 0; 8 proteomics + 8 rnaseq + 4 clinical
+  = 20 mislabels, 16 molecular positives; threshold fixed at 0.5 with no tune-on-test;
+  `evaluate('test')` abstains (`applicable=False`, labels absent). **Non-numeric catches (the
+  milestone — none inflate a number):** (1) "4-stage GENERATE→VERIFY→MEASURE→IMPROVE loop, built
+  and tested" — IMPROVE only regenerates and never imports/calls the fidelity gate; VERIFY is a
+  separate eval, not a loop stage (`clue/loop.py`) → *present-but-does-the-wrong-thing*; (2)
+  `dual_validate` documented HIGH/REVIEW/**PASS** — the PASS branch is **unreachable** (iterates
+  the union of flagged samples) (`core/cross_omics_matcher.py:210`) → *dead-code/logic*; (3) "one
+  of six evals" — actually 8 routes (7 sync + async robustness) (`README:267`) → *miscount*; (4)
+  fidelity's 2nd detector billed as an "MSE-residual linear model (imports sklearn
+  `LinearRegression`)" — fits no regression, it's raw mean-squared difference
+  (`evals/fidelity_gate.py`) → *mechanism-mislabel*. These are precisely the semantic / logic /
+  mechanism classes the 2026-06-27 entry said the spine had **never** caught. Git discipline held
+  (offered the doc fixes, declined to edit/commit). **Evidentiary basis (honest):** the F1 was
+  orchestrator-reproduced in-session; the four cracks are the **run's reported findings with
+  file:line cites, recorded here as the run reported them — not independently re-read by this
+  evaluating session** (recorded per direction). Same author/operator caveat. `/recon` stays
+  provisional (1 independent domain; needs ≥2 to settle).
