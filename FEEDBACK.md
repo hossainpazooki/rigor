@@ -8,6 +8,26 @@ but not as an independent domain.
 
 Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line note>`
 
+## Promotion ledger
+
+| Component | Independent domains survived | Status |
+|---|---|---|
+| `refute` | 2 (payments/regulatory, credit-risk ML) | **settled** — demonstrated for numeric provenance + citation fidelity; reach over semantic/design/omission defects **unproven** (see 2026-06-27) |
+| `implemented-vs-planned` | 1 (point-in-time lakehouse — VANTAGE) | provisional — first independent domain; final summary flagged the `main()` stub + CI-defined-not-run + Databricks-configured-not-deployed without overclaim (see 2026-06-28) |
+| `fanout-recon-synthesize` | 0 (1 same-repo exercise) | provisional — inherits `refute`'s numeric/string reach by construction; has independently caught nothing (see 2026-06-27) |
+| `gate-discipline` | 0 | provisional |
+| `verify-the-effect` | 1 strong (digital-asset API decoder) + 1 convergent detector (CLUE) + 1 convergent builder (VANTAGE) — all same-author, no live end-to-end probe | provisional — short of `refute`'s standard until a live end-to-end probe (see 2026-06-27, 2026-06-28) |
+| `effect-prober` | 0 (authored 2026-06-27) | provisional |
+| `check-effect-probe` | 0 (exercised on the 2 catches above, same session) | provisional |
+| `skeptic-verifier` | 2 (payments/regulatory, credit-risk ML) | **settled** — every prior logged win was a numeric recompute (same scope caveat as `refute`); VANTAGE (2026-06-28) is a **misfire** — default-refute skeptics returned 2/4 false refutations, caught only by orchestrator re-run |
+| `integration-runner` | 1 (point-in-time lakehouse — VANTAGE) | provisional — ran the real `sbt` gate to green and fixed 5 cross-file drifts without weakening any assertion (see 2026-06-28) |
+| `orchestrate` | 1 (point-in-time lakehouse — VANTAGE) | provisional — guardrail #8 (re-run ≥1 load-bearing check yourself) caught 2 false refutations the fan-out missed (see 2026-06-28) |
+| `/verify-claim`, `/honesty-check`, `/recon`, `/handoff`, `/fanout`, `/verify-effect` | 0 | provisional |
+| `git-guard`, `session-start` | 0 | provisional |
+| `fanout-build` | 1 (point-in-time lakehouse — VANTAGE) | provisional — first independent domain, end-to-end; orchestrator-as-skeptic caught 2 false refutations from its own verify stage (see 2026-06-28) |
+| `check-fanout` | 0 | provisional |
+| `check-citation-fidelity` | 0 | provisional — verified for identifier/quote fidelity; **insufficient for numeric provenance** (see 2026-06-26 misfire) |
+
 ## Entries
 
 - 2026-06-25 · `fanout-recon-synthesize` · helped · rigor's own Phase-1 spine
@@ -169,21 +189,57 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
   defect validates the lens; it does not get full credit for finding it. Confirmed
   from `loop.py` source.
 
-## Promotion ledger
+- 2026-06-28 · `fanout-build` · helped · point-in-time SEC fundamentals lakehouse
+  (VANTAGE — Scala/Spark/Delta, a domain independent of all prior entries) · **First
+  independent domain** for `fanout-build`, run end-to-end: Spike(halt-gate) -> Contract ->
+  Scaffold -> Build(7 disjoint-file agents under one shared contract pointer) ->
+  Integrate(`integration-runner` ran the real `sbt` gate to green) -> Verify(`skeptic-verifier`
+  refutation). The spike halt-gate fired as designed — one agent proved
+  `deequ-2.0.7-spark-3.5` + Delta 3.2 + Spark 3.5.1 + sbt-assembly coexist (real exit 0,
+  216 MB jar, live probe) BEFORE any fan-out, so nothing was built on an unbuildable base.
+  **Load-bearing payoff = orchestrator as terminal skeptic (`orchestrate` #8):** the verify
+  stage refuted all four pipeline claims; re-running each prescribed probe by hand showed
+  **2 of 4 were FALSE refutations** — `permutation-silver` (order-invariant, proven through
+  the full silver->gold path) and §7 non-vacuity (proven by injecting the lookahead bug and
+  watching the test go red) — and 1 was a TRUE refutation (`missing-col`: §6 missing≠incomplete
+  collapses to `Fail` via `castNum` end-to-end), then fixed with a source-level
+  `requiredColumnsPresent` precondition + a new end-to-end test (23 -> 24 green). Trusting the
+  fan-out's self-report would have logged 2 non-bugs as real and shipped without the 1 real fix.
+  Independently verified from committed source + the 10 test-report XMLs (24 tests / 0 fail /
+  0 err; reports timestamped newer than all committed source). **Author caveat:** same
+  Claude/rigor operator as the other domains — a second independent *domain*, not a second
+  independent *author*. **Live-rerun caveat:** evaluator could not re-run `sbt` (JDK-21 box,
+  build pins Temurin 17); gate confirmation rests on the produced XML + source reads, not a
+  fresh run.
 
-| Component | Independent domains survived | Status |
-|---|---|---|
-| `refute` | 2 (payments/regulatory, credit-risk ML) | **settled** — demonstrated for numeric provenance + citation fidelity; reach over semantic/design/omission defects **unproven** (see 2026-06-27) |
-| `implemented-vs-planned` | 0 | provisional |
-| `fanout-recon-synthesize` | 0 (1 same-repo exercise) | provisional — inherits `refute`'s numeric/string reach by construction; has independently caught nothing (see 2026-06-27) |
-| `gate-discipline` | 0 | provisional |
-| `verify-the-effect` | 1 strong (digital-asset API decoder) + 1 convergent (CLUE eval — re-derives a documented gap); both same-author, static/record-level not live (see 2026-06-27) | provisional — short of `refute`'s standard until a live end-to-end probe |
-| `effect-prober` | 0 (authored 2026-06-27) | provisional |
-| `check-effect-probe` | 0 (exercised on the 2 catches above, same session) | provisional |
-| `skeptic-verifier` | 2 (payments/regulatory, credit-risk ML) | **settled** — every logged win was a numeric recompute; same scope caveat as `refute` (see 2026-06-27) |
-| `/verify-claim`, `/honesty-check`, `/recon`, `/handoff`, `/fanout`, `/verify-effect` | 0 | provisional |
-| `git-guard`, `session-start` | 0 | provisional |
-| `fanout-build` | 0 | provisional |
-| `orchestrate` | 0 | provisional |
-| `check-fanout` | 0 | provisional |
-| `check-citation-fidelity` | 0 | provisional — verified for identifier/quote fidelity; **insufficient for numeric provenance** (see 2026-06-26 misfire) |
+- 2026-06-28 · `skeptic-verifier` · misfired (false refutation) · point-in-time SEC
+  fundamentals lakehouse (VANTAGE) · the verify-stage skeptics, prompted "default to refuted
+  unless positively proven," refuted **all four** claims — but **two were false**
+  (`permutation-silver`, §7 non-vacuity), caught only when the orchestrator re-ran the probes
+  itself. A default-refute skeptic biases toward false positives, so its verdict is a lead to
+  re-run, never a discharge — the same `dispatch ≠ discharge` theme as 2026-06-26 ATLAS GAP 2,
+  now reconfirmed in a third domain. The harness encoded the right guardrail in its own return
+  value (`note: gateGreen/refutals are self-reports; orchestrator must independently re-run`),
+  and that re-run is what corrected the record. Net: the fan-out + orchestrator loop got the
+  right answer; the skeptic agents alone did not.
+
+- 2026-06-28 · `implemented-vs-planned` · helped · point-in-time SEC fundamentals lakehouse
+  (VANTAGE) · **First independent domain.** The build's final summary held the
+  implemented-vs-validated boundary without prompting: `Pipeline.main` named as a `println`
+  stub ("the engine is tested" vs "you can point it at `2023q2` and get a gold table" — the
+  TSV read path was never built, the plan's Open Item #1); CI workflow "*defined*, exact
+  sequence verified green locally, **not** yet run on GitHub Actions — don't claim a passing
+  badge"; Databricks bundle "*configured*, **not** deployed/validated — verb is
+  'ships/configures,' not 'deployed'." No aspirational work presented as built. Verified
+  against transcript L924/L934 and the committed tree (`main()` is a stub in `Pipeline.scala`;
+  `runFromFrames` is the real, tested path).
+
+- 2026-06-28 · `verify-the-effect` · convergent support (not independent-detector) ·
+  point-in-time SEC fundamentals lakehouse (VANTAGE) · the build practiced the skill's central
+  **non-vacuity / negative-control** move as a *builder*, not as a lens aimed at foreign code:
+  the §7 no-lookahead test is proven non-vacuous by bug-injection (inject the leak -> test goes
+  red), and the §6 gate's missing-col precondition is the control that separates `Unevaluable`
+  (effect-absent) from a vacuous `Pass`. A third independent domain independently landing on
+  negative-control discipline strengthens the lens — but, as with CLUE (2026-06-27), this is
+  **convergence, not a novel catch**, and same-operator. Does **not** advance the
+  independent-detector count; the live end-to-end gap from 2026-06-27 stays open.
