@@ -14,7 +14,7 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
 |---|---|---|
 | `refute` | 2 (payments/regulatory, credit-risk ML) | **settled** — demonstrated for numeric provenance + citation fidelity; reach over semantic/design/omission defects **unproven** (see 2026-06-27) |
 | `implemented-vs-planned` | 1 (point-in-time lakehouse — VANTAGE) | provisional — first independent domain; final summary flagged the `main()` stub + CI-defined-not-run + Databricks-configured-not-deployed without overclaim; flagged gap since closed end-to-end & re-verified green (see 2026-06-28 + follow-up) |
-| `fanout-recon-synthesize` | 1 (genomics label-error ML + Go service — upstream-label-correction) | provisional — **first independent-domain run** caught 4 non-numeric defects (semantic / logic / mechanism), closing the 2026-06-27 gap (b); orchestrator reproduced the headline F1 0.9143; cracks are run-reported (file:line cited), not re-read this session (see 2026-06-28) |
+| `fanout-recon-synthesize` | 1 (genomics label-error ML + Go service — upstream-label-correction); 2nd domain (credit-risk ML — CLDD) attempted 2026-06-30 but **crashed mid-run on transient API errors**, so not yet a clean 2nd | provisional — **first independent-domain run** caught 4 non-numeric defects (semantic / logic / mechanism), closing the 2026-06-27 gap (b); orchestrator reproduced the headline F1 0.9143; cracks are run-reported (file:line cited), not re-read this session (see 2026-06-28). **Infra-resilience gap** surfaced 2026-06-30: no retry/coverage-guard for mid-workflow API connection errors (see entry) |
 | `gate-discipline` | 0 | provisional |
 | `verify-the-effect` | 1 strong (digital-asset API decoder) + 1 convergent detector (CLUE) + 1 convergent builder (VANTAGE) — all same-author, no live end-to-end probe | provisional — short of `refute`'s standard until a live end-to-end probe (see 2026-06-27, 2026-06-28) |
 | `effect-prober` | 0 (authored 2026-06-27) | provisional |
@@ -299,3 +299,43 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
   file:line cites, recorded here as the run reported them — not independently re-read by this
   evaluating session** (recorded per direction). Same author/operator caveat. `/recon` stays
   provisional (1 independent domain; needs ≥2 to settle).
+
+- 2026-06-30 · `fanout-recon-synthesize` (`/recon`) / `orchestrate` · misfired
+  (infrastructure — no transient-API-error resilience) · credit-risk ML
+  (closed-loop-default-detection — a "how can the validation harness be taken to alpha?"
+  recon) · **First logged infrastructure misfire of the workflow runtime, not of the
+  reasoning.** Of 17 agents, **5 died on `API Error: Connection closed mid-response`**:
+  two of the five recon dimensions — `recon:tests` and `recon:validity` — crashed
+  **entirely** (each returned `null`, so its whole slice produced zero findings), plus
+  three refuters (`not-on-pypi`, `sphinx-build-clean`, `fidelity-doc-unrunnable`) crashed,
+  leaving load-bearing findings **unverified**. **The danger this exposes:** a crashed
+  recon dimension drops silently to `null` and a crashed refuter leaves its finding
+  un-adjudicated — both read as *"all clear"* unless synthesis explicitly accounts for
+  them. The synthesize move's "name what no task covered" rule is what saved it: the
+  orchestrator named `tests`+`validity` as **uncovered** and self-discharged the two
+  load-bearing survivors the dead refuters dropped — re-ran `pytest` (**90 passed, exit
+  0**) and re-inspected `inspect.signature(run_fidelity_gate)` to confirm the hardcoded
+  `WindowsPath('C:/Users/hossa/dev/intuit-techweek-hackathon/.../dataset')` default
+  (`orchestrate` #8 in action, this time against *infrastructure* gaps, not false
+  refutations). Also confirmed the crashed `recon:validity` agent (mid-`git status`,
+  having regenerated artifacts) left the repo **clean** (`git status --short` empty).
+  **Structural gap (the fix this entry is filed for):** `/recon` /
+  `fanout-recon-synthesize` / `orchestrate` have **no resilience to transient API
+  connection errors and no coverage-accounting guard**. Proposed fixes: (a) wrap each
+  `agent()` in per-agent **retry-with-backoff** on transient `Connection closed
+  mid-response` / connection-reset errors before dropping to `null` (the runtime's
+  built-in retry did not catch these); (b) a synthesis-time **coverage ledger** that
+  treats any dimension or refuter returning `null` as an explicit, loudly-surfaced
+  *uncovered-gap*, never folded silently into the survivor list — make the
+  "name-what-was-dropped" move mechanical, not dependent on the orchestrator remembering
+  (same opt-in-vs-triggered theme as 2026-06-26 enforcement); (c) document/automate
+  **resume-on-failure** as the standard recovery — `Workflow({scriptPath,
+  resumeFromRunId})` re-runs only the crashed agents (12 cached / 5 live), which is the
+  mitigation used here. **Evidentiary basis (honest):** the 5-agent failure set is read
+  from the workflow's own result JSON (`logs[]` + per-agent `state==error`); the two
+  self-verifications (pytest, fidelity signature) and the clean-tree check were re-run by
+  this orchestrating session. The surviving findings corroborated the prior
+  `/honesty-check` (sklearn-API-incompatible, `4-Beta` overstated, fidelity gate
+  unrunnable by outsiders) but are secondary here — this entry is logged for the
+  **runtime-resilience** lesson. Same author/operator caveat. Rerun in flight
+  (`resumeFromRunId wf_5c79cea0-42a`) to close the two uncovered dimensions.
