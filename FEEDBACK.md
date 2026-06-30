@@ -337,5 +337,27 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
   this orchestrating session. The surviving findings corroborated the prior
   `/honesty-check` (sklearn-API-incompatible, `4-Beta` overstated, fidelity gate
   unrunnable by outsiders) but are secondary here — this entry is logged for the
-  **runtime-resilience** lesson. Same author/operator caveat. Rerun in flight
-  (`resumeFromRunId wf_5c79cea0-42a`) to close the two uncovered dimensions.
+  **runtime-resilience** lesson. Same author/operator caveat.
+  **Rerun outcome (`resumeFromRunId wf_5c79cea0-42a`, 12 cached / 11 live):** the two
+  dead dimensions completed and the resume-as-recovery path worked — but it carried
+  **two further lessons.** (1) **A different failure mode recurred:** one refuter
+  (`refute:tests:fidelity-green-rests-on-absent-private-data`) died on
+  `StructuredOutput retry cap (5) exceeded`, **not** a connection error — so the
+  resilience gap is broader than connection-closed; the coverage-guard fix (b) must
+  treat *any* `null`/errored agent as an uncovered slot regardless of cause (its finding
+  was salvaged only because two convergent survivors covered it). (2) **`skeptic-verifier`
+  false refutation #N (recurring theme, now credit-risk ML too):** the validity skeptic
+  returned `headline-gcomp-reproduces` = **survives:false**, claiming fresh seed-42
+  `strong_gap=0.0082427` vs committed `0.0078823`. The orchestrator re-ran it directly
+  (`run_counterfactual_eval(seed=42, selection_severity∈{0.4,1.0})`) and reproduced the
+  committed `seed_sweep_25.csv` rows **exactly to 10 decimals** (0.0078823063…, 0.0017032393…)
+  — the skeptic had run `scripts/run_seed_sweep.py --quick` (reduced config) and compared
+  it against the full-config artifact, an apples-to-oranges false refutation. **`orchestrate`
+  #8 (re-run ≥1 load-bearing check yourself) caught it again** — same pattern as 2026-06-28
+  VANTAGE (2/4 false refutations) and 2026-06-26 ATLAS GAP 2. Net corrections to the synthesis:
+  the fidelity gate **does** reconfirm on this machine (data present; `check_fidelity.py` →
+  `OVERALL: PASSED`, n=51,722, re-run by orchestrator), and the §3 g-comp headline **does**
+  reproduce deterministically — but both are author-machine/private-data bound and CI-unverified
+  (`pytest.skip` at `tests/test_fidelity.py:36` when the dataset is absent; the "90 passed / 0
+  skipped" count is machine-specific). All orchestrator re-runs left the tree clean
+  (`git status --short` empty).
