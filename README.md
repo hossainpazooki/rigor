@@ -220,7 +220,9 @@ contract, disjoint-file ownership, scaffold-first, an `integration-runner` gate,
 and a `skeptic-verifier` pass that refutes the *claim* (a green gate is not a true
 claim). `/fanout` is its entry point; `check-fanout` flags a fan-out workflow
 script missing that scaffolding (structure only — it cannot prove file-disjointness
-or that a claim is true). Grounded in two independent real multi-agent builds.
+or that a claim is true). Grounded in its first independent end-to-end domain
+(two in-domain fan-outs) — short of the ≥2 independent domains that would settle
+it; see `FEEDBACK.md`.
 
 ## Build order (the dependency spine)
 
