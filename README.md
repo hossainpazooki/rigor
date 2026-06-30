@@ -1,5 +1,23 @@
 # rigor — verification & discipline for Claude Code
 
+**One move, applied everywhere: nothing load-bearing is trusted until it survives a real attempt to break it.**
+
+```mermaid
+flowchart LR
+    A["a load-bearing claim<br/>a number · a 'tests pass' · a 'done'"] --> R{"refute<br/>try to break it"}
+    R -->|survives| T["trusted —<br/>safe to write down"]
+    R -->|breaks| X["rejected —<br/>fix first"]
+    classDef ok fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
+    classDef halt fill:#ffe0e0,stroke:#f85149,color:#6a0d0d;
+    class A,R,T ok;
+    class X halt;
+```
+
+That single move *is* the toolkit, specialized onto bigger units — a question
+(`/recon`), a build (`/fanout`), an irreversible action's effect (`/verify-effect`) —
+and backed by two always-on hooks (a toolkit pointer and a never-write-your-git-history
+rule). Everything below is how.
+
 **rigor** packages the operating discipline of a careful engineer into a portable
 Claude Code plugin. Its **verification spine** (Phase 1) refutes load-bearing
 claims before they are trusted, keeps the built-vs-planned line honest, and never
@@ -139,8 +157,8 @@ Listed in **build order** — enforcement infra lands before the content it guar
 |---|---|---|
 | `git-guard` | hook (enforced) | provisional |
 | `session-start` | hook | provisional |
-| `skeptic-verifier` | agent | provisional |
-| `refute` | skill | provisional |
+| `skeptic-verifier` | agent | **settled** — 2 domains (1 logged misfire) |
+| `refute` | skill | **settled** — 2 domains (numeric + citation scope) |
 | `implemented-vs-planned` | skill | provisional |
 | `/verify-claim`, `/honesty-check` | commands | provisional |
 
@@ -149,6 +167,13 @@ validated as a packaged skill across multiple unfamiliar domains.* It does **not
 mean "used only once" — these patterns have cross-project history. The status field
 is read by **this README only**; it is not a functional gate. A component becomes
 `settled` after it survives ≥2 independent contexts (logged in `FEEDBACK.md`).
+
+`refute` and `skeptic-verifier` have crossed that bar and are `settled` — with their
+caveats kept inline: `refute` is proven for **numeric provenance and citation
+fidelity only** (reach over semantic/design/omission defects unproven), and
+`skeptic-verifier` carries **one logged misfire** (on its one independent fan-out
+domain: 2/4 false refutations, caught only by the orchestrator re-run). The ledger
+in `FEEDBACK.md` is the source of truth; these tables track it.
 
 ## Phase 2 (operating-system layer)
 
@@ -237,16 +262,19 @@ For persistent, cross-repo availability, register it in `~/.claude/settings.json
 ```json
 {
   "extraKnownMarketplaces": {
-    "rigor": { "source": { "source": "url", "url": "file:///C:/Users/hossa/dev/rigor/.claude-plugin/marketplace.json" } }
+    "rigor": { "source": { "source": "directory", "path": "C:/Users/hossa/dev/rigor" } }
   },
   "enabledPlugins": { "rigor@rigor": true }
 }
 ```
 
-The `SessionStart` hook needs a separate one-time `~/.claude/settings.json`
-registration to deliver context (plugin-path SessionStart hooks don't surface
-`additionalContext` — claude-code#16538); the slash commands work without it. See
-[`docs/session-start-setup.md`](docs/session-start-setup.md).
+The `SessionStart` hook delivers the toolkit pointer automatically once the plugin
+is enabled — verified in-session on current Claude Code: the plugin-path hook
+surfaces `additionalContext` directly, and the earlier limitation that required a
+separate `~/.claude/settings.json` registration (claude-code#16538) no longer
+reproduces here. If your version doesn't surface it, fall back to the manual
+registration in [`docs/session-start-setup.md`](docs/session-start-setup.md); the
+slash commands work either way.
 
 ## The one hard rule
 
@@ -259,7 +287,7 @@ verified) is in [`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25
 ## Tests
 
 `node --test` (auto-discovers `tests/*.test.mjs` — hooks + surface-scrub +
-citation-fidelity + effect-probe).
+citation-fidelity + effect-probe + fanout-check).
 `node scripts/check-surface-scrub.mjs` gates skill/command examples against
 project fingerprints. `node scripts/check-citation-fidelity.mjs <claims.json>`
 flags any cited identifier/quote that is absent from its named source (a
@@ -269,7 +297,8 @@ failed — flagging a vacuous probe that would pass even with the effect absent.
 
 ## Agents
 
-Four agents live in [`agents/`](agents/), each tagged `provisional` — three
+Four agents live in [`agents/`](agents/), all `provisional` except
+`skeptic-verifier` (now `settled` — 2 domains, 1 logged misfire) — three
 vendored (`skeptic-verifier`, `repo-cartographer`, `integration-runner`) plus
 `effect-prober`, the adversarial effect-verifier for `verify-the-effect`: it probes
 the state an action left behind, tries to show the effect is *absent*, and returns
