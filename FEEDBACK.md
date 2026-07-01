@@ -17,8 +17,8 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
 | `fanout-recon-synthesize` | 1 (genomics label-error ML + Go service — upstream-label-correction); 2nd domain (credit-risk ML — CLDD) attempted 2026-06-30 but **crashed mid-run on transient API errors**, so not yet a clean 2nd | provisional — **first independent-domain run** caught 4 non-numeric defects (semantic / logic / mechanism), closing the 2026-06-27 gap (b); orchestrator reproduced the headline F1 0.9143; cracks are run-reported (file:line cited), not re-read this session (see 2026-06-28). **Infra-resilience gap** surfaced 2026-06-30: no retry/coverage-guard for mid-workflow API connection errors (see entry) |
 | `gate-discipline` | 0 | provisional |
 | `verify-the-effect` | 1 strong (digital-asset API decoder) + 1 convergent detector (CLUE) + 1 convergent builder (VANTAGE) — all same-author, no live end-to-end probe | provisional — short of `refute`'s standard until a live end-to-end probe (see 2026-06-27, 2026-06-28) |
-| `effect-prober` | 0 (authored 2026-06-27) | provisional |
-| `check-effect-probe` | 0 (exercised on the 2 catches above, same session) | provisional |
+| `effect-prober` | 3 non-vacuous, self-verified (treasury Go authorization-gate / correct-shaped-lies determinism / upstream-label-correction mislabel-ML) — all machine-gated `effect-probe: clean` | **settled (scoped)** — proven for constructing a discriminating probe + a non-vacuous negative control across ≥2 independent domains (same scoped-settled model as `refute`/`skeptic-verifier`). **UNPROVEN reach:** an independent (non-self-consistent) oracle, and probing the *aftermath of a genuine live irreversible action* — the same open gap tracked under `verify-the-effect`; ULC's independent precisionFDA oracle skips here (data withheld) (see 2026-07-01) |
+| `check-effect-probe` | 3 (treasury / correct-shaped-lies / upstream-label-correction — `effect-probe: clean` on all 3, 2026-07-01) + 2 earlier same-session | provisional — credited only non-vacuous probes; every 2026-07-01 control genuinely discriminated (distinct-key→2 events, perturbed-seed→hash mismatch, clean-labels→0 flags) (see 2026-07-01) |
 | `skeptic-verifier` | 2 (payments/regulatory, credit-risk ML) | **settled** — every prior logged win was a numeric recompute (same scope caveat as `refute`); VANTAGE (2026-06-28) is a **misfire** — default-refute skeptics returned 2/4 false refutations, caught only by orchestrator re-run |
 | `integration-runner` | 1 (point-in-time lakehouse — VANTAGE) | provisional — ran the real `sbt` gate to green and fixed 5 cross-file drifts without weakening any assertion (see 2026-06-28) |
 | `orchestrate` | 1 (point-in-time lakehouse — VANTAGE) | provisional — guardrail #8 (re-run ≥1 load-bearing check yourself) caught 2 false refutations the fan-out missed (see 2026-06-28) |
@@ -361,3 +361,43 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
   (`pytest.skip` at `tests/test_fidelity.py:36` when the dataset is absent; the "90 passed / 0
   skipped" count is machine-specific). All orchestrator re-runs left the tree clean
   (`git status --short` empty).
+
+- 2026-07-01 · `effect-prober` · helped · THREE independent domains (orchestrated
+  recon→fanout→synthesize, goal-driven) · exercised the effect-prober discipline
+  against three repos, each an independent problem domain, all EFFECT-CONFIRMED and
+  **non-vacuous** (`check-effect-probe` → `effect-probe: clean` on all three).
+  Each probe's negative control genuinely discriminated: **(A) treasury-intent-controller**
+  (Go authorization gate) — same idempotency key → 1 settlement (dedup fires) vs distinct
+  keys → 2 settlements (control: dedup does NOT fire, so not a refuse-everything artifact);
+  **(B) correct-shaped-lies** (adversarial code-gen) — sweep re-run byte-identical vs
+  perturbed seed → hash mismatch (control proves determinism isn't constant output); **(C)
+  upstream-label-correction** (genomics mislabel ML) — 9 flagged / recall 1.0 on 30%-injected
+  swaps vs 0 flags / passed=False on clean labels. All three probes **re-run by the
+  orchestrator directly** (not trusted from the fanout subagent) and reproduced to the digit
+  (ULC: f1 0.941, recall 1.0, precision 0.889, TP 8 / FP 1=S024). `orchestrate` #8 held:
+  fanout cited two treasury tests I hadn't seen in `-list` — I grep-confirmed
+  `TestIdempotencyCollision`/`TestTerminalSeparation` exist (acceptance_test.go:290,333),
+  no fabrication.
+
+- 2026-07-01 · `effect-prober` · **promoted → settled (scoped)** · same run · initially
+  held at provisional (I read `settled` as absolute and imported `verify-the-effect`'s
+  "no live end-to-end probe" bar), then **reconsidered against the ledger's own precedent**:
+  `refute` and `skeptic-verifier` are both `settled` *with an explicit unproven-scope caveat*
+  (`refute`: numeric/citation proven, semantic reach unproven). By that same scoped-settled
+  model, `effect-prober`'s evidence qualifies — **3** independent domains (> refute's 2), each
+  a machine-gated non-vacuous discrimination re-run by the orchestrator. **Promoted for that
+  proven scope only.** The scope limits are real and stay named in the row: all three oracles
+  are **self-consistent / dev-grade** (treasury's reference adapter with a *stubbed* scorer;
+  CSL's sweep judging its own outputs; ULC's detector vs the synthetic generator's *own*
+  planted truth), and none probed the *aftermath of a live irreversible action*. ULC's genuine
+  independent oracle (`evals/transfer_validation.py` vs the precisionFDA key, repo-claimed F1
+  0.914) **skips** here (`data/raw` empty, test labels withheld). So `settled (scoped)` credits
+  the discrimination-construction capability across ≥2 domains; the independent-oracle + live-
+  action reach remains the open gap (shared with `verify-the-effect`), NOT claimed as done.
+
+- 2026-07-01 · `orchestrate` · misfire (partial) · same run · both spawned subagents
+  (`recon-domains`, `fanout-prober`) went **idle without auto-delivering** their structured
+  result; each needed an explicit `SendMessage` pull, and `recon-domains` never delivered at
+  all (backstopped by inline recon). Fanout eventually returned a clean, honestly-caveated
+  JSON. Reinforces #8: the orchestrator re-ran every load-bearing probe itself; the run did
+  not depend on either subagent's self-report.
