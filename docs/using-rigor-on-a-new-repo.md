@@ -53,5 +53,5 @@ earn.
 
 ---
 *See also:* `docs/audits/` for what these components have actually caught in practice, and
-`FEEDBACK.md` for the per-component promotion ledger (provisional → settled after ≥2
-independent domains).
+`docs/feedback/FEEDBACK.md` for the per-component promotion ledger (provisional → settled
+after ≥2 independent domains; the dated files beside it hold the full record behind each row).

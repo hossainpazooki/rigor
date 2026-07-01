@@ -166,20 +166,20 @@ Listed in **build order** — enforcement infra lands before the content it guar
 validated as a packaged skill across multiple unfamiliar domains.* It does **not**
 mean "used only once" — these patterns have cross-project history. The status field
 is read by **this README only**; it is not a functional gate. A component becomes
-`settled` after it survives ≥2 independent contexts (logged in `FEEDBACK.md`).
+`settled` after it survives ≥2 independent contexts (logged in `docs/feedback/FEEDBACK.md`).
 
 `refute` and `skeptic-verifier` have crossed that bar and are `settled` — with their
 caveats kept inline: `refute` is proven for **numeric provenance and citation
 fidelity only** (reach over semantic/design/omission defects unproven), and
 `skeptic-verifier` carries **one logged misfire** (on its one independent fan-out
 domain: 2/4 false refutations, caught only by the orchestrator re-run). The ledger
-in `FEEDBACK.md` is the source of truth; these tables track it.
+in `docs/feedback/FEEDBACK.md` is the source of truth; these tables track it.
 
 ## Phase 2 (operating-system layer)
 
 | Component | Kind | Status |
 |---|---|---|
-| `fanout-recon-synthesize` | skill | provisional (exercised once — see `FEEDBACK.md`) |
+| `fanout-recon-synthesize` | skill | provisional (exercised once — see `docs/feedback/FEEDBACK.md`) |
 | `gate-discipline` | skill | provisional |
 | `verify-the-effect` | skill | provisional |
 | `effect-prober` | agent | provisional |
@@ -222,7 +222,7 @@ claim). `/fanout` is its entry point; `check-fanout` flags a fan-out workflow
 script missing that scaffolding (structure only — it cannot prove file-disjointness
 or that a claim is true). Grounded in its first independent end-to-end domain
 (two in-domain fan-outs) — short of the ≥2 independent domains that would settle
-it; see `FEEDBACK.md`.
+it; see `docs/feedback/FEEDBACK.md`.
 
 ## Build order (the dependency spine)
 
@@ -306,4 +306,4 @@ vendored (`skeptic-verifier`, `repo-cartographer`, `integration-runner`) plus
 the state an action left behind, tries to show the effect is *absent*, and returns
 `VACUOUS-PROBE` when a probe cannot tell the effect's presence from its absence. See
 each file for what it does and when to use it. Promotion `provisional` → `settled`
-is tracked in `FEEDBACK.md`.
+is tracked in `docs/feedback/FEEDBACK.md`.
