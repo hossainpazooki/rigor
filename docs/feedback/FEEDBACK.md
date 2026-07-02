@@ -24,7 +24,7 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
 | `orchestrate` | 1 (point-in-time lakehouse — VANTAGE) | provisional — guardrail #8 (re-run ≥1 load-bearing check yourself) caught 2 false refutations the fan-out missed (see 2026-06-28) |
 | `/verify-claim`, `/honesty-check`, `/recon`, `/handoff`, `/fanout`, `/verify-effect` | 0 | provisional |
 | `git-guard`, `session-start` | 0 | provisional |
-| `fanout-build` | 1 (point-in-time lakehouse — VANTAGE; 2 fan-outs in-domain) | provisional — first independent domain, end-to-end; run 1 orchestrator-as-skeptic caught 2 false refutations; run 2 closed the flagged gaps, clean-gate green 29 tests, tests-as-probes (see 2026-06-28 + follow-up) |
+| `fanout-build` | 2 (VANTAGE lakehouse — Scala/Spark; CLDD selective-labels harness — Python/sklearn) | **settled (scoped)** — 2 independent domains end-to-end. VANTAGE (2026-06-28): orchestrator-as-skeptic caught 2/4 false refutations; run 2 closed gaps, 29 green. CLDD (2026-07-01): items 1/3/5, spike corrected a fix pre-fan-out, disjoint ownership held, gate re-run by orchestrator (92 green), 3 skeptics all SURVIVED (no false refutation to catch — cleaner but **less adversarial stress**); 07-02 real-CI follow-up fixed 2 pre-existing float-determinism mis-classifications ("pinning versions ≠ pinning determinism"). **Scope caveat:** same operator both domains; CLDD was smaller/mechanical with an unstressed verify (see 2026-07-01) |
 | `check-fanout` | 0 | provisional |
 | `check-citation-fidelity` | 0 | provisional — verified for identifier/quote fidelity; **insufficient for numeric provenance** (see 2026-06-26 misfire) |
 
