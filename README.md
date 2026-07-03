@@ -158,7 +158,7 @@ Listed in **build order** — enforcement infra lands before the content it guar
 | `git-guard` | hook (enforced) | provisional |
 | `session-start` | hook | provisional |
 | `skeptic-verifier` | agent | **settled** — 2 domains (1 logged misfire) |
-| `refute` | skill | **settled** — 2 domains (numeric + citation scope) |
+| `refute` | skill | **settled** — 2 domains (numeric + citation scope); data-claim moves provisional |
 | `implemented-vs-planned` | skill | provisional |
 | `/verify-claim`, `/honesty-check` | commands | provisional |
 
@@ -167,6 +167,9 @@ validated as a packaged skill across multiple unfamiliar domains.* It does **not
 mean "used only once" — these patterns have cross-project history. The status field
 is read by **this README only**; it is not a functional gate. A component becomes
 `settled` after it survives ≥2 independent contexts (logged in `docs/feedback/FEEDBACK.md`).
+
+Data-eng verification is judgment + refutation, not a turnkey validator — see
+[ADR-0002](docs/adr/0002-dataeng-is-judgment-not-a-universal-gate.md).
 
 `refute` and `skeptic-verifier` have crossed that bar and are `settled` — with their
 caveats kept inline: `refute` is proven for **numeric provenance and citation
@@ -223,6 +226,30 @@ script missing that scaffolding (structure only — it cannot prove file-disjoin
 or that a claim is true). Grounded in its first independent end-to-end domain
 (two in-domain fan-outs) — short of the ≥2 independent domains that would settle
 it; see `docs/feedback/FEEDBACK.md`.
+
+## Data-eng layer
+
+| Component | Kind | Status |
+|---|---|---|
+| `data-quality-fail-closed` | skill | provisional |
+| `no-lookahead` | skill | provisional |
+| `idempotent-restatement` | skill | provisional |
+| `lineage-replay` | skill | provisional |
+| `refute` data-claim moves (test-path-fidelity as move 5) | skill extension | provisional |
+
+The verification spine aimed at *properties of data and transformations*: a DQ
+constraint has three outcomes and unevaluable **halts** (`data-quality-fail-closed`);
+no row depends on data after its as-of instant, tested via restatement
+(`no-lookahead`); reruns don't double-count and same-key tiebreaks are tested
+(`idempotent-restatement`); replay claims are re-executed and diffed, never
+asserted (`lineage-replay`). `refute` gains a data-claim specialization —
+**test-path fidelity**: a green test on a bypass fixture validates nothing.
+Deliberately NOT shipped: a universal automated data validator — the target
+schema is unknown to rigor, so these ship the discipline the agent applies
+inside the target repo, not a turnkey gate
+([ADR-0002](docs/adr/0002-dataeng-is-judgment-not-a-universal-gate.md)). Each
+skill settles after firing in ≥2 independent data-eng contexts, logged as dated
+entries in `docs/feedback/` and tracked in `docs/feedback/FEEDBACK.md`.
 
 ## Build order (the dependency spine)
 
