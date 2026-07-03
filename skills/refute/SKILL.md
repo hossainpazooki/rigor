@@ -36,6 +36,23 @@ Apply every move that applies to the claim:
    its cited source (it greps the pairs you give it — it does not extract citations
    from prose for you).
 
+## Data-claim specialization
+
+When the claim is about data or pipeline correctness ("the pipeline passes",
+"the DQ suite is green", "replay is byte-equivalent", "no lookahead"), gate-green
+is not claim-true. Add:
+
+- **Move 5 — test-path fidelity.** Confirm the passing test exercised the *production
+  transform path* — the real cast, join, window, merge under claim — not a bypass
+  fixture, a hand-built output, or synthetic input that skips the coercion. A
+  green test on a fabricated output validates nothing about the pipeline. This is
+  the primary data-engineering correct-shaped lie; default to refuted until the
+  production path is shown to have run.
+
+Specialize the existing moves: **recompute (move 1)** at least one DQ metric from
+raw output; **re-execute the gate (move 2)** by running replay and the
+idempotent-rerun and diffing, rather than trusting the assertion.
+
 ## When it survives
 
 Write the claim down with the evidence attached (the recomputed number, the gate
