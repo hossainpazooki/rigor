@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { findFingerprints, loadDenylist } from '../scripts/check-surface-scrub.mjs';
@@ -40,3 +40,24 @@ test('loadDenylist parses tokens, ignoring blanks and # comments', () => {
 test('loadDenylist returns [] when the file is absent', () => {
   assert.deepEqual(loadDenylist(join(tmpdir(), 'rigor-no-such-dir-xyz')), []);
 });
+
+// Engagement-fingerprint categories (data-eng layer). SYNTHETIC tokens only —
+// an invented employer, vendor-warehouse product, and schema.table identifier.
+const ENGAGEMENT_DENY = ['acme-capital', 'fakevendor-dwh', 'fake_schema.fake_table'];
+
+test('flags an engagement-shaped fingerprint (employer, vendor-dwh, schema.table)', () => {
+  const text = 'built at acme-capital on fakevendor-dwh, loading fake_schema.fake_table';
+  assert.deepEqual(findFingerprints(text, ENGAGEMENT_DENY).sort(), [...ENGAGEMENT_DENY].sort());
+});
+
+// The four data-eng skills must scan clean against an engagement-shaped denylist —
+// they are domain-neutral by construction.
+const DATAENG_SKILLS = [
+  'data-quality-fail-closed', 'no-lookahead', 'idempotent-restatement', 'lineage-replay',
+];
+for (const s of DATAENG_SKILLS) {
+  test(`data-eng skill ${s} carries no engagement fingerprints`, () => {
+    const md = readFileSync(new URL(`../skills/${s}/SKILL.md`, import.meta.url), 'utf8');
+    assert.deepEqual(findFingerprints(md, ENGAGEMENT_DENY), []);
+  });
+}

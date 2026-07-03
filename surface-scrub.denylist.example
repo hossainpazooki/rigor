@@ -7,7 +7,18 @@
 # List the project names, internal codenames, and domain-specific terms that must
 # never appear in this toolkit's shipped skill & command examples. The real list
 # stays local and untracked, so the plugin itself carries no fingerprints.
+#
+# Categories to cover (engagement fingerprints — add YOUR real tokens locally):
+# - project names, internal codenames, domain-specific acronyms
+# - target-employer / client / engagement names
+# - data-vendor and warehouse product names WHEN tied to a specific engagement
+#   (keep generic vocabulary — Spark, Parquet, join — out; scrub the engagement,
+#   not the tech; prefer multi-word forms if a bare token is an ordinary word)
+# - real schema/table/dataset identifiers
 
 my-internal-project
 internal-codename
 some-domain-acronym
+acme-capital
+fakevendor-dwh
+real_schema.real_table
