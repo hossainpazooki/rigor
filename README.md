@@ -1,6 +1,20 @@
 # rigor — verification & discipline for Claude Code
 
-**One move, applied everywhere: nothing load-bearing is trusted until it survives a real attempt to break it.**
+**A plugin that stops you from trusting an agent's self-reported success.**
+Before "tests pass", "deployed", or "done" is believed, rigor makes the agent
+try to break the claim — and blocks it from writing your git history while
+it's at it.
+
+## The problem it exists for
+
+Agent output often *looks* finished: a green test run, a confident summary, an
+exit code 0. Too often the test exercised a bypass fixture, the number was
+restated from memory instead of recomputed from the source, or the feature
+compiles but was never wired in. rigor calls this a **correct-shaped lie** —
+output with the form of correctness but not the evidence. Every component
+below is one defense against it.
+
+The core move is **refute**: don't accept a claim, attack it.
 
 ```mermaid
 flowchart LR
@@ -13,324 +27,206 @@ flowchart LR
     class X halt;
 ```
 
-That single move *is* the toolkit, specialized onto bigger units — a question
-(`/recon`), a build (`/fanout`), an irreversible action's effect (`/verify-effect`) —
-and backed by two always-on hooks (a toolkit pointer and a never-write-your-git-history
-rule). Everything below is how.
+Everything else in the plugin is that one move specialized onto a bigger unit —
+a question, a build, a deploy's aftermath, a dataset.
 
-**rigor** packages the operating discipline of a careful engineer into a portable
-Claude Code plugin. Its **verification spine** (Phase 1) refutes load-bearing
-claims before they are trusted, keeps the built-vs-planned line honest, and never
-lets an agent write your git history. Its **operating-system layer** (Phase 2)
-adds the wider loop: decompose a question into disjoint parallel recon and keep
-only what survives refutation, hold staged work to its gates, and hand off clean.
-Every example is domain-neutral, so a clone reads as nobody's specific stack.
+Two terms, defined once and used throughout:
 
-## How it works
+- **load-bearing claim** — a claim a decision rests on. "Tests pass" before a
+  merge is load-bearing; a passing lint note is not.
+- **negative control** — a check that must *fail* when the thing it checks for
+  is absent. A probe that would pass either way proves nothing (rigor calls
+  that a **vacuous probe** and refuses to credit it).
 
-A layered workflow: two always-on hooks frame every session, the **verification
-spine** breaks load-bearing claims, the **operating-system layer** runs the wider
-recon → refute → synthesize → gate → handoff loop, and the **orchestration layer**
-routes multi-agent work through the Workflow tool under rigor's guardrails. Commands
-are thin entry points; skills carry the judgment; agents and hooks do the enforcing.
+## Which command, when
+
+| You're about to trust… | Run | What actually happens |
+|---|---|---|
+| a number, a "tests pass", any agent's "done" | `/rigor:verify-claim` | `refute`: recompute from the raw source, re-run the real gate, dispatch skeptic subagents, check cited sources actually say what's claimed |
+| a status doc, README, or commit message | `/rigor:honesty-check` | `implemented-vs-planned`: every claim gets tagged built / in-progress / planned, so proposals can't read as finished work |
+| a question too big for one pass | `/rigor:recon` | `fanout-recon-synthesize`: split into disjoint parallel research, refute the findings, synthesize only the survivors |
+| a build too big for one pass | `/rigor:fanout` | `fanout-build`: contract-first multi-agent build with an integration gate and a skeptic pass (diagram below) |
+| a deploy / migration / publish that "succeeded" | `/rigor:verify-effect` | `verify-the-effect`: probe the state the action left behind, paired with a negative control — never the action's own exit log |
+| the next session (or person) picking this up | `/rigor:handoff` | emits a fixed "read this first" brief: state, locked decisions, invariants |
+
+Two hooks run without being asked:
+
+- **`git-guard`** — blocks agent-initiated `git commit` / `push` / history
+  rewrites; the agent outputs the command for *you* to run instead. Per-repo
+  override: `RIGOR_GIT_ALLOW=1`.
+- **`session-start`** — injects a one-paragraph toolkit pointer into every
+  session so the discipline is present before the first claim is made.
+
+## What's code and what's judgment
+
+Worth being precise about, because it kills the most likely misread:
+**rigor is not an automated validator for your project.**
+
+- **Executes as code:** the 2 hooks above, plus 4 check scripts —
+  `check-surface-scrub` (no project-specific fingerprints leak into shipped
+  examples), `check-citation-fidelity` (every cited identifier/quote exists in
+  its named source), `check-effect-probe` (an effect claim is credited only if
+  its probe passed *and* its negative control failed), `check-fanout` (a
+  multi-agent workflow script carries a contract, integration step, and verify
+  phase). All run under `node --test`.
+- **Applied as judgment:** the 11 skills, 6 commands, and 4 agents are
+  discipline the agent applies *inside your repo*, against *your* gates. rigor
+  deliberately ships no turnkey pipeline validator — a shipped checker that
+  certified pipelines whose schema it can't know would itself be a
+  correct-shaped lie
+  ([ADR-0002](docs/adr/0002-dataeng-is-judgment-not-a-universal-gate.md)).
+
+## How the layers fit
 
 ```mermaid
 graph TD
-    subgraph always["Always on"]
-        SS["session-start<br/>surfaces toolkit + rules"]
-        GG["git-guard<br/>blocks agent git-history writes"]
+    subgraph units["unit being verified"]
+        Q["a question<br/>/recon"]
+        B["a build<br/>/fanout"]
+        E["an action's effect<br/>/verify-effect"]
+        D["a dataset / transform<br/>data-eng skills"]
+        S["a status<br/>/honesty-check"]
     end
+    Q --> REF["refute<br/>the one move underneath"]
+    B --> REF
+    E --> REF
+    D --> REF
+    S -. keeps labels honest while .-> REF
+    O["orchestrate<br/>multi-agent work goes through the Workflow tool,<br/>wrapped in rigor's guardrails"] --> B
+    G["gate-discipline<br/>no stage advances past a red gate"] -.-> B
+    G -.-> D
 
-    subgraph spine["Phase 1 · verification spine"]
-        VC["/verify-claim"] --> REF["refute<br/>recompute · re-run gate · dispatch · citation-fidelity"]
-        REF --> SK["skeptic-verifier"]
-        HC["/honesty-check"] --> IVP["implemented-vs-planned"]
-    end
-
-    subgraph osys["Phase 2 · operating-system layer"]
-        RC["/recon"] --> FRS["fanout-recon-synthesize<br/>decompose · fan-out · synthesize"]
-        GD["gate-discipline"]
-        HO["/handoff"]
-        VE["/verify-effect"] --> VTE["verify-the-effect<br/>probe the effect · negative-control non-vacuity"]
-        VTE --> EP["effect-prober"]
-        CEP["check-effect-probe<br/>credits only a non-vacuous probe"]
-    end
-
-    subgraph orch["Phase 3 · orchestration discipline"]
-        ORC["orchestrate<br/>default to Workflows + guardrails"]
-        FO["/fanout"] --> FBS["fanout-build<br/>contract · disjoint · gate · refute claim"]
-        CF["check-fanout<br/>lints the workflow script"]
-    end
-
-    SS --> spine
-    SS --> osys
-    SS --> orch
-    ORC --> FBS
-    ORC --> CF
-    FRS -. refutes findings via .-> REF
-    FBS -. refutes the claim via .-> REF
-    GD -. re-runs the gate via .-> REF
-    VTE -. probes the effect via .-> REF
-    CEP -. gates non-vacuity of .-> VTE
-
-    classDef always fill:#fdf2d0,stroke:#d29922,color:#5c4a00;
     classDef p1 fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
     classDef p2 fill:#d8e9ff,stroke:#388bfd,color:#0d2b52;
     classDef p3 fill:#ecdfff,stroke:#a371f7,color:#3a1060;
-    class SS,GG always;
-    class VC,REF,SK,HC,IVP p1;
-    class RC,FRS,GD,HO,VE,VTE,EP,CEP p2;
-    class ORC,FO,FBS,CF p3;
+    class REF p1;
+    class Q,E,D,S p2;
+    class B,O,G p3;
 ```
 
-### A sample run
+### Worked example: a fan-out build
 
-Say you're adding a feature too big for one pass. With rigor loaded:
-
-1. **Session start.** `session-start` surfaces the toolkit — including the rule to
-   reach for the Workflow tool, not ad-hoc agent dispatch.
-2. **Orchestrate.** You follow `orchestrate`: author the run as a `fanout-build`
-   workflow and `check-fanout` it first — it confirms the script carries a shared
-   contract, an integration step, a verify phase, and output schemas.
-3. **Spike → Contract → Scaffold.** The workflow proves the riskiest unknown builds
-   (or halts), writes one shared contract (exact interfaces + a file→owner map),
-   and scaffolds the shared files until the project compiles.
-4. **Build (fan out).** One agent per file, each carrying the contract verbatim and
-   owning only its files — so the parallel writers never collide.
-5. **Integrate.** An `integration-runner` runs the real, named gate to green and
-   returns the verbatim output — evidence, not a self-report.
-6. **Verify.** `skeptic-verifier`s refute the *claim*, not just the gate: is the
-   feature actually wired and reachable, or merely present? A green gate hiding an
-   unmounted feature gets caught here.
-7. **Don't trust the green.** The workflow reports done; you re-run the load-bearing
-   gate yourself (`refute`) before believing it.
-8. **Commit.** `git-guard` blocks any agent from writing history; the workflow hands
-   you the exact commit commands to run.
-9. **Verify the effect.** When the change ships as an irreversible action — a
-   deploy, a migration — `verify-the-effect` probes the *resulting state*, not the
-   action's success report: an `effect-prober` runs the live probe with a
-   **negative control** (it must fail against the effect-absent state), and
-   `check-effect-probe` refuses to credit a probe that would pass even if the
-   action did nothing. "Rolled out" is the report; "served correctly" is the effect.
-
-The same shape minus the build phases is `/recon` (a question, not a build); the
-same discipline minus the fan-out is `refute` on a single claim; and the same
-discipline aimed at an action's *result* is `verify-the-effect`.
+A feature too big for one pass, with rigor loaded:
 
 ```mermaid
 flowchart TD
-    S0["session-start<br/>surfaces toolkit"] --> S1["orchestrate + check-fanout<br/>script has contract · gate · verify · schemas"]
-    S1 --> SP{"Spike: riskiest<br/>unknown builds?"}
-    SP -->|no| H["HALT — fix the base first"]
-    SP -->|yes| C["Contract<br/>one shared source of truth"]
-    C --> SC["Scaffold<br/>shared files compile (stubs)"]
-    SC --> B1["build: file A"]
-    SC --> B2["build: file B"]
-    SC --> B3["build: file C"]
-    B1 --> IG["Integrate<br/>integration-runner runs the real gate → green"]
-    B2 --> IG
-    B3 --> IG
-    IG --> V1["skeptic: is it wired?"]
-    IG --> V2["skeptic: did the path run?"]
-    V1 --> RV["re-run the gate yourself<br/>(refute — green ≠ claim-true)"]
-    V2 --> RV
-    RV --> GC["git-guard<br/>emit commit commands for the human"]
-    GC --> SHIP["ship the change<br/>(deploy · migrate · publish)"]
-    SHIP --> VTE2{"verify-the-effect<br/>probe + negative control"}
-    VTE2 -->|"vacuous / effect absent"| REV["reverse + re-verify<br/>(effect-prober: VACUOUS-PROBE / REFUTED)"]
-    VTE2 -->|"effect confirmed"| DONE["done — name what it<br/>was verified against"]
+    SP{"Spike: does the<br/>riskiest unknown build?"} -->|no| H["HALT — fix the base first"]
+    SP -->|yes| C["Contract: one shared source of truth<br/>(exact interfaces + file→owner map)"]
+    C --> SC["Scaffold: shared files compile as stubs"]
+    SC --> B1["agent: file A"] & B2["agent: file B"] & B3["agent: file C"]
+    B1 & B2 & B3 --> IG["integration-runner runs the real gate to green<br/>returns verbatim output, not a self-report"]
+    IG --> SKV["skeptics refute the CLAIM, not the gate:<br/>is the feature wired and reachable, or merely present?"]
+    SKV --> RV["you re-run the load-bearing gate yourself<br/>(a workflow saying 'done' is a claim, not a result)"]
+    RV --> GC["git-guard: agent emits commit commands,<br/>the human runs them"]
+    GC --> VE["shipped irreversibly? verify-the-effect:<br/>probe + negative control on the resulting state"]
 
     classDef p3 fill:#ecdfff,stroke:#a371f7,color:#3a1060;
-    classDef p2 fill:#d8e9ff,stroke:#388bfd,color:#0d2b52;
     classDef halt fill:#ffe0e0,stroke:#f85149,color:#6a0d0d;
-    class S0,S1,SP,C,SC,B1,B2,B3,IG,V1,V2,RV,GC p3;
-    class SHIP,VTE2,DONE p2;
-    class REV halt;
+    class SP,C,SC,B1,B2,B3,IG,SKV,RV,GC,VE p3;
     class H halt;
 ```
 
-## What's in v1 (the verification spine)
+Why each step is there: the **contract** is what keeps parallel agents from
+drifting apart; **disjoint file ownership** is what keeps them from colliding;
+the **integration gate** produces evidence instead of a summary; the **skeptic
+pass** catches the green-gate-but-unwired case; and the final **re-run by you**
+exists because a workflow's self-reported success is exactly the kind of claim
+this plugin refuses to trust.
 
-Listed in **build order** — enforcement infra lands before the content it guards.
+## Data-engineering layer
 
-| Component | Kind | Status |
-|---|---|---|
-| `git-guard` | hook (enforced) | provisional |
-| `session-start` | hook | provisional |
-| `skeptic-verifier` | agent | **settled** — 2 domains (1 logged misfire) |
-| `refute` | skill | **settled** — 2 domains (numeric + citation scope); data-claim moves provisional |
-| `implemented-vs-planned` | skill | provisional |
-| `/verify-claim`, `/honesty-check` | commands | provisional |
+The same move aimed at properties of data and transforms. Each skill names a
+failure that leaves the pipeline green while the data is wrong:
 
-**`status: provisional` means:** *extracted from one working session and not yet
-validated as a packaged skill across multiple unfamiliar domains.* It does **not**
-mean "used only once" — these patterns have cross-project history. The status field
-is read by **this README only**; it is not a functional gate. A component becomes
-`settled` after it survives ≥2 independent contexts (logged in `docs/feedback/FEEDBACK.md`).
+- **`data-quality-fail-closed`** — a data-quality check has *three* outcomes:
+  pass, fail, and **unevaluable** (the check itself couldn't run — empty
+  partition, missing reference table). Fail-closed means unevaluable **halts**
+  the pipeline instead of being silently coerced into pass or fail.
+- **`no-lookahead`** — in point-in-time data, no row may depend on information
+  timestamped after that row's moment. The leak is tested with a
+  **restatement** — a late-arriving correction to a past period — because
+  append-only test data can pass while the same code leaks on corrections.
+- **`idempotent-restatement`** — running the pipeline twice must not
+  double-count, and two records with the same key must resolve by an explicit,
+  *tested* tiebreak. Proven by running twice and diffing, not asserted.
+- **`lineage-replay`** — "we can reproduce this dataset" is only true if the
+  replay is re-executed and diffed; every published batch carries a
+  content-addressed identity so "same input" is checkable, not remembered.
+- **`refute` move 5: test-path fidelity** — a green test that exercised a
+  bypass fixture (a stub path the production flow never takes) validates
+  nothing. The refutation is to trace what the test actually ran.
 
-Data-eng verification is judgment + refutation, not a turnkey validator — see
-[ADR-0002](docs/adr/0002-dataeng-is-judgment-not-a-universal-gate.md).
+Deliberately **not** shipped: an automated validator that runs these checks
+for you — see ADR-0002 above. The skills ship the attack moves and the
+claim-calibration language; the agent applies them against your schema.
 
-`refute` and `skeptic-verifier` have crossed that bar and are `settled` — with their
-caveats kept inline: `refute` is proven for **numeric provenance and citation
-fidelity only** (reach over semantic/design/omission defects unproven), and
-`skeptic-verifier` carries **one logged misfire** (on its one independent fan-out
-domain: 2/4 false refutations, caught only by the orchestrator re-run). The ledger
-in `docs/feedback/FEEDBACK.md` is the source of truth; these tables track it.
+## Status: what's proven, what isn't
 
-## Phase 2 (operating-system layer)
-
-| Component | Kind | Status |
-|---|---|---|
-| `fanout-recon-synthesize` | skill | provisional (exercised once — see `docs/feedback/FEEDBACK.md`) |
-| `gate-discipline` | skill | provisional |
-| `verify-the-effect` | skill | provisional |
-| `effect-prober` | agent | provisional |
-| `check-effect-probe` | gate (non-vacuity) | provisional |
-| `/recon` | command | provisional |
-| `/handoff` | command + template | provisional |
-| `/verify-effect` | command | provisional |
-
-`fanout-recon-synthesize` is the decompose → fan-out → refute → synthesize loop;
-`/recon` is its thin caller. A runnable, domain-neutral example of the proven
-shape ships at `skills/fanout-recon-synthesize/example.mjs` — it is the loop that
-audited this toolkit's own spine. `gate-discipline` keeps staged work honest
-(no stage past a red gate; close via real integration; ADR a deviation rather
-than bury it). `verify-the-effect` carries the same idea to any **irreversible
-action** (a deploy, migration, pipeline run, `apply`, rollout): the action's
-success report is a claim, not its effect, so you probe the resulting state
-rather than trust the exit code — in layers, with the acting artifact pinned and
-immutable, any verdict cross-checked against its own numbers, and a failed probe
-reversed and re-verified. The build → promote → deploy pipeline is its worked
-example. `/verify-effect` is its thin caller. `/handoff` emits a fixed "read this
-first" brief.
-
-## Phase 3 (orchestration discipline)
+rigor applies its own standard to itself. Every component is **provisional**
+(extracted from real working sessions, not yet survived ≥2 *independent*
+domains as a packaged component) until the ledger in
+[`docs/feedback/FEEDBACK.md`](docs/feedback/FEEDBACK.md) — the source of
+truth this table tracks — records the promotion. "Settled (scoped)" means
+settled *for the named scope only*, with unproven reach kept visible.
 
 | Component | Kind | Status |
 |---|---|---|
-| `orchestrate` | skill (policy) | provisional |
-| `fanout-build` | skill | provisional |
-| `/fanout` | command | provisional |
-| `check-fanout` | gate (heuristic) | provisional |
+| `refute` | skill | **settled (scoped)** — 2 domains, for numeric provenance + citation fidelity; reach over semantic/design/omission defects unproven; data-claim moves provisional |
+| `skeptic-verifier` | agent | **settled** — 2 domains, **1 logged misfire** (2/4 false refutations on its one independent fan-out domain, caught only by the orchestrator's own re-run) |
+| `fanout-build` | skill | **settled (scoped)** — 2 independent domains end-to-end; caveat: same operator both times, second domain smaller with an unstressed verify phase |
+| `effect-prober` | agent | **settled (scoped)** — 3 non-vacuous probes, self-verified; unproven: an independent oracle, and the aftermath of a genuine live irreversible action |
+| `implemented-vs-planned`, `gate-discipline`, `verify-the-effect`, `fanout-recon-synthesize`, `orchestrate` | skills | provisional (each has 1 independent domain logged except `gate-discipline`: 0) |
+| `data-quality-fail-closed`, `no-lookahead`, `idempotent-restatement`, `lineage-replay` | skills | provisional — built 2026-07-02, no independent data-eng domain survived yet |
+| `integration-runner`, `repo-cartographer` | agents | provisional |
+| all 6 commands, both hooks, all 4 check scripts | commands / hooks / gates | provisional (`check-citation-fidelity` carries a logged limit: insufficient for numeric provenance) |
 
-`orchestrate` is the policy: for multi-agent work, default to the **Workflow tool**
-wrapped in rigor's guardrails (shared contract, disjoint files, an integration
-gate, a skeptic claim-refutation, `check-fanout`, never-trust-the-self-report) —
-not ad-hoc dispatch. `fanout-build` packages the trustworthy multi-agent
-**build** — one shared
-contract, disjoint-file ownership, scaffold-first, an `integration-runner` gate,
-and a `skeptic-verifier` pass that refutes the *claim* (a green gate is not a true
-claim). `/fanout` is its entry point; `check-fanout` flags a fan-out workflow
-script missing that scaffolding (structure only — it cannot prove file-disjointness
-or that a claim is true). Grounded in its first independent end-to-end domain
-(two in-domain fan-outs) — short of the ≥2 independent domains that would settle
-it; see `docs/feedback/FEEDBACK.md`.
-
-## Data-eng layer
-
-| Component | Kind | Status |
-|---|---|---|
-| `data-quality-fail-closed` | skill | provisional |
-| `no-lookahead` | skill | provisional |
-| `idempotent-restatement` | skill | provisional |
-| `lineage-replay` | skill | provisional |
-| `refute` data-claim moves (test-path-fidelity as move 5) | skill extension | provisional |
-
-The verification spine aimed at *properties of data and transformations*: a DQ
-constraint has three outcomes and unevaluable **halts** (`data-quality-fail-closed`);
-no row depends on data after its as-of instant, tested via restatement
-(`no-lookahead`); reruns don't double-count and same-key tiebreaks are tested
-(`idempotent-restatement`); replay claims are re-executed and diffed, never
-asserted (`lineage-replay`). `refute` gains a data-claim specialization —
-**test-path fidelity**: a green test on a bypass fixture validates nothing.
-Deliberately NOT shipped: a universal automated data validator — the target
-schema is unknown to rigor, so these ship the discipline the agent applies
-inside the target repo, not a turnkey gate
-([ADR-0002](docs/adr/0002-dataeng-is-judgment-not-a-universal-gate.md)). Each
-skill settles after firing in ≥2 independent data-eng contexts, logged as dated
-entries in `docs/feedback/` and tracked in `docs/feedback/FEEDBACK.md`.
-
-## Build order (the dependency spine)
-
-```mermaid
-graph TD
-    T1[scaffold + manifest] --> T2[git-guard hook]
-    T1 --> T3[session-start hook]
-    T1 --> T4[surface-scrub gate]
-    T5[vendored rules + ADR-0001] --> T3
-    T4 -.guards.-> T7[refute skill]
-    T4 -.guards.-> T8[implemented-vs-planned]
-    T6[skeptic-verifier agent] --> T7
-    T7 --> T9["/verify-claim + /honesty-check"]
-    T8 --> T9
-```
-
-Enforcement infra (`git-guard`, the `surface-scrub` gate) is built before the
-content it guards; `refute` is built before the two commands that call it. Full
-task-by-task plan: [`docs/plans/2026-06-25-rigor-plugin-phase1.md`](docs/plans/2026-06-25-rigor-plugin-phase1.md);
-design rationale: [`docs/specs/2026-06-25-rigor-plugin-design.md`](docs/specs/2026-06-25-rigor-plugin-design.md).
+The misfires stay in the table on purpose — a verification toolkit that hides
+its own false refutations would be its own counterexample. Full dated entries:
+[`docs/feedback/`](docs/feedback/).
 
 ## Install
 
-This repo is its own local plugin marketplace (`.claude-plugin/marketplace.json` +
-`.claude-plugin/plugin.json`). In a Claude Code session:
+This repo is its own local plugin marketplace. In a Claude Code session:
 
 ```
 /plugin marketplace add <absolute-path-to-this-repo>
 /plugin install rigor@rigor
 ```
 
-Commands are then namespaced under the plugin: **`/rigor:verify-claim`**,
-`/rigor:honesty-check`, `/rigor:recon`, `/rigor:handoff`, `/rigor:fanout`,
-`/rigor:verify-effect` (the `rigor:` prefix is required for plugin commands). Installing also auto-activates the
-`skills/` and `agents/`; the commands invoke those skills directly.
+Commands are namespaced: `/rigor:verify-claim`, `/rigor:honesty-check`,
+`/rigor:recon`, `/rigor:handoff`, `/rigor:fanout`, `/rigor:verify-effect`.
+Skills and agents auto-activate with the plugin.
 
-For persistent, cross-repo availability, register it in `~/.claude/settings.json`:
+For cross-repo availability, register it in `~/.claude/settings.json`:
 
 ```json
 {
   "extraKnownMarketplaces": {
-    "rigor": { "source": { "source": "directory", "path": "C:/Users/hossa/dev/rigor" } }
+    "rigor": { "source": { "source": "directory", "path": "<absolute-path-to-this-repo>" } }
   },
   "enabledPlugins": { "rigor@rigor": true }
 }
 ```
 
-The `SessionStart` hook delivers the toolkit pointer automatically once the plugin
-is enabled — verified in-session on current Claude Code: the plugin-path hook
-surfaces `additionalContext` directly, and the earlier limitation that required a
-separate `~/.claude/settings.json` registration (claude-code#16538) no longer
-reproduces here. If your version doesn't surface it, fall back to the manual
-registration in [`docs/session-start-setup.md`](docs/session-start-setup.md); the
-slash commands work either way.
-
-## The one hard rule
-
-`git-guard` blocks agent-initiated git-history writes; Claude outputs the command
-for you to run instead. Override per web-driven repo with `RIGOR_GIT_ALLOW=1`.
-
-The full self-audit (37 findings — spine code fixes applied and independently
-verified) is in [`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25-spine-audit.md).
+The `SessionStart` hook delivers the toolkit pointer automatically on current
+Claude Code. If your version doesn't surface it, use the manual registration
+in [`docs/session-start-setup.md`](docs/session-start-setup.md); the slash
+commands work either way.
 
 ## Tests
 
-`node --test` (auto-discovers `tests/*.test.mjs` — hooks + surface-scrub +
-citation-fidelity + effect-probe + fanout-check).
-`node scripts/check-surface-scrub.mjs` gates skill/command examples against
-project fingerprints. `node scripts/check-citation-fidelity.mjs <claims.json>`
-flags any cited identifier/quote that is absent from its named source (a
-fabricated or drifted citation). `node scripts/check-effect-probe.mjs <probes.json>`
-credits an effect-claim only if its probe passed **and** a paired negative control
-failed — flagging a vacuous probe that would pass even with the effect absent.
+```
+node --test                                  # hooks + all 4 check scripts, auto-discovered from tests/
+node scripts/check-surface-scrub.mjs         # shipped examples carry no project fingerprints
+node scripts/check-citation-fidelity.mjs <claims.json>
+node scripts/check-effect-probe.mjs <probes.json>
+node scripts/check-fanout.mjs <workflow.mjs>
+```
 
-## Agents
+## Going deeper
 
-Four agents live in [`agents/`](agents/), all `provisional` except
-`skeptic-verifier` (now `settled` — 2 domains, 1 logged misfire) — three
-vendored (`skeptic-verifier`, `repo-cartographer`, `integration-runner`) plus
-`effect-prober`, the adversarial effect-verifier for `verify-the-effect`: it probes
-the state an action left behind, tries to show the effect is *absent*, and returns
-`VACUOUS-PROBE` when a probe cannot tell the effect's presence from its absence. See
-each file for what it does and when to use it. Promotion `provisional` → `settled`
-is tracked in `docs/feedback/FEEDBACK.md`.
+- Design rationale: [`docs/specs/2026-06-25-rigor-plugin-design.md`](docs/specs/2026-06-25-rigor-plugin-design.md)
+- Build order and task plan: [`docs/plans/2026-06-25-rigor-plugin-phase1.md`](docs/plans/2026-06-25-rigor-plugin-phase1.md)
+- ADRs: [`docs/adr/`](docs/adr/) — including why there is no universal data validator (ADR-0002)
+- Self-audit (37 findings, fixes independently verified): [`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25-spine-audit.md)
+- Promotion ledger + dated feedback entries: [`docs/feedback/`](docs/feedback/)
