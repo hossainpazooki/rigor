@@ -2,7 +2,7 @@
 name: effect-prober
 description: Adversarial effect-verifier for irreversible actions. Given an action that reports success (a deploy, migration, pipeline run, apply, publish, model/eval rollout), independently probes the resulting state to show the effect did NOT happen — and refuses to credit a probe that cannot tell the effect's presence from its absence. Read-only; never edits code or touches git.
 tools: Read, Grep, Glob, Bash
-model: inherit
+model: claude-fable-5
 status: provisional
 ---
 

@@ -62,14 +62,18 @@ Two hooks run without being asked:
 Worth being precise about, because it kills the most likely misread:
 **rigor is not an automated validator for your project.**
 
-- **Executes as code:** the 2 hooks above, plus 4 check scripts —
+- **Executes as code:** the 2 hooks above, plus 6 check scripts —
   `check-surface-scrub` (no project-specific fingerprints leak into shipped
   examples), `check-citation-fidelity` (every cited identifier/quote exists in
   its named source), `check-effect-probe` (an effect claim is credited only if
   its probe passed *and* its negative control failed), `check-fanout` (a
   multi-agent workflow script carries a contract, integration step, and verify
-  phase). All run under `node --test`.
-- **Applied as judgment:** the 11 skills, 6 commands, and 4 agents are
+  phase), `check-dispatch` (every verifier dispatch logged its stakes
+  inference; floored nodes stayed on the judgment tier; no silent model
+  downgrades), `check-tier-sync` (agent frontmatter agrees with
+  `config/models.json`; tier variants share one canonical body). All run under
+  `node --test`.
+- **Applied as judgment:** the 12 skills, 6 commands, and 5 agents are
   discipline the agent applies *inside your repo*, against *your* gates. rigor
   deliberately ships no turnkey pipeline validator — a shipped checker that
   certified pipelines whose schema it can't know would itself be a
@@ -160,6 +164,25 @@ Deliberately **not** shipped: an automated validator that runs these checks
 for you — see ADR-0002 above. The skills ship the attack moves and the
 claim-calibration language; the agent applies them against your schema.
 
+## Model-tier dispatch
+
+Which model runs a judgment node is an architectural decision enforced by a
+gate, not a per-call accident. `judgment-dispatch` routes verifiers across two
+tiers — a premium **judgment tier** (shipped default: Claude Fable 5) and a
+**cheap tier** — via an explicit stakes rubric the orchestrator must apply
+*and log* before every dispatch.
+
+The hazard it contains: stakes are inferred by the same agent whose claims are
+being checked, so an agent that under-rates stakes buys itself cheap
+verification exactly where the strong skeptic matters most. Two mechanical
+answers: the inference is itself a logged, refutable claim (`check-dispatch`
+fails closed on an unlogged one), and floored nodes — `verify-the-effect`'s
+verdict cross-check, the pre-publish honesty check — always get the judgment
+tier, beyond inference's reach. Model *strings* live in exactly two places
+(`config/models.json` and agent frontmatter, held together by
+`check-tier-sync`); everywhere else speaks in tiers, so model churn is a
+config edit, not a prose hunt.
+
 ## Status: what's proven, what isn't
 
 rigor applies its own standard to itself. Every component is **provisional**
@@ -177,8 +200,9 @@ settled *for the named scope only*, with unproven reach kept visible.
 | `effect-prober` | agent | **settled (scoped)** — 3 non-vacuous probes, self-verified; unproven: an independent oracle, and the aftermath of a genuine live irreversible action |
 | `implemented-vs-planned`, `gate-discipline`, `verify-the-effect`, `fanout-recon-synthesize`, `orchestrate` | skills | provisional (each has 1 independent domain logged except `gate-discipline`: 0) |
 | `data-quality-fail-closed`, `no-lookahead`, `idempotent-restatement`, `lineage-replay` | skills | provisional — built 2026-07-02, no independent data-eng domain survived yet |
-| `integration-runner`, `repo-cartographer` | agents | provisional |
-| all 6 commands, both hooks, all 4 check scripts | commands / hooks / gates | provisional (`check-citation-fidelity` carries a logged limit: insufficient for numeric provenance) |
+| `judgment-dispatch` | skill | provisional — built 2026-07-07; its frontmatter pin mechanism is live-verified (non-vacuous probe, [plan](docs/plans/2026-07-07-judgment-dispatch-plan.md)), but no independent domain has run through the rubric yet |
+| `integration-runner`, `repo-cartographer`, `skeptic-verifier-fast` | agents | provisional (`skeptic-verifier-fast` shares the settled canonical body, but its cheap-tier verdict quality is unproven) |
+| all 6 commands, both hooks, all 6 check scripts | commands / hooks / gates | provisional (`check-citation-fidelity` carries a logged limit: insufficient for numeric provenance) |
 
 The misfires stay in the table on purpose — a verification toolkit that hides
 its own false refutations would be its own counterexample. Full dated entries:
@@ -216,11 +240,13 @@ commands work either way.
 ## Tests
 
 ```
-node --test                                  # hooks + all 4 check scripts, auto-discovered from tests/
+node --test                                  # hooks + all 6 check scripts, auto-discovered from tests/
 node scripts/check-surface-scrub.mjs         # shipped examples carry no project fingerprints
 node scripts/check-citation-fidelity.mjs <claims.json>
 node scripts/check-effect-probe.mjs <probes.json>
 node scripts/check-fanout.mjs <workflow.mjs>
+node scripts/check-dispatch.mjs <verdicts.jsonl>   # verifier dispatches logged, floored, no silent downgrades
+node scripts/check-tier-sync.mjs                   # agent frontmatter agrees with config/models.json
 ```
 
 ## Going deeper
@@ -230,3 +256,4 @@ node scripts/check-fanout.mjs <workflow.mjs>
 - ADRs: [`docs/adr/`](docs/adr/) — including why there is no universal data validator (ADR-0002)
 - Self-audit (37 findings, fixes independently verified): [`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25-spine-audit.md)
 - Promotion ledger + dated feedback entries: [`docs/feedback/`](docs/feedback/)
+- Measured comparison vs. superpowers / SuperML / Anthropic's Data plugin: [`docs/comparisons/2026-07-03-plugin-landscape-scorecard.md`](docs/comparisons/2026-07-03-plugin-landscape-scorecard.md)
