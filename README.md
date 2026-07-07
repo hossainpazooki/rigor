@@ -3,7 +3,10 @@
 **A plugin that stops you from trusting an agent's self-reported success.**
 Before "tests pass", "deployed", or "done" is believed, rigor makes the agent
 try to break the claim — and blocks it from writing your git history while
-it's at it.
+it's at it. And because a check is only as strong as the model running it,
+rigor routes every verifier dispatch by stakes: a premium **judgment tier**
+where a wrong claim is expensive, a cheap tier where it isn't — enforced by
+gates, not prose ([model-tier dispatch](#model-tier-dispatch-putting-the-expensive-model-where-it-counts)).
 
 ## The problem it exists for
 
@@ -80,6 +83,62 @@ Worth being precise about, because it kills the most likely misread:
   correct-shaped lie
   ([ADR-0002](docs/adr/0002-dataeng-is-judgment-not-a-universal-gate.md)).
 
+## Model-tier dispatch: putting the expensive model where it counts
+
+A check is only as strong as the model running it — and premium tokens are
+exactly what you don't want to spend on a lint note. rigor already separates
+**judgment nodes** (adversarial verification: skeptics, effect probes, verdict
+cross-checks) from **mechanical nodes** (the deterministic `check-*` gates,
+which need no model at all). `judgment-dispatch` finishes the thought: which
+model runs a judgment node is an architectural decision enforced by a gate,
+not a per-call accident. Verifiers route across two tiers — a premium
+**judgment tier** (shipped default: Claude Fable 5) and a **cheap tier** — via
+an explicit stakes rubric the orchestrator must apply *and log* before every
+dispatch.
+
+```mermaid
+flowchart LR
+    C["claim to verify"] --> RB{"stakes rubric<br/>irreversibility · blast radius ·<br/>downstream decisions · refutation history"}
+    RB -->|"high — or a floored node,<br/>which skips inference entirely"| J["judgment tier<br/>skeptic-verifier · effect-prober"]
+    RB -->|medium| M["judgment-tier primary skeptic<br/>+ cheap-tier extra votes"]
+    RB -->|low| CH["cheap tier<br/>skeptic-verifier-fast"]
+    J & M & CH --> L["per-run verdict log<br/>criteria hit · tier · requested vs answered model"]
+    L --> CD{"check-dispatch<br/>fail-closed"}
+    CD -->|clean| OK["verdicts trusted —<br/>you still re-run one check yourself"]
+    CD -->|violation| X["run not trusted"]
+
+    classDef p1 fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
+    classDef p3 fill:#ecdfff,stroke:#a371f7,color:#3a1060;
+    classDef halt fill:#ffe0e0,stroke:#f85149,color:#6a0d0d;
+    class C,RB,J,M,CH,L,CD p3;
+    class OK p1;
+    class X halt;
+```
+
+The hazard this contains is rigor's own self-report problem, appearing inside
+its dispatch: stakes are inferred by the same agent whose claims are being
+checked, so an agent that under-rates stakes buys itself cheap verification
+exactly where the strong skeptic matters most. Three mechanical answers:
+
+- **The inference is itself a logged, refutable claim.** Every dispatch
+  records which rubric criteria fired; `check-dispatch` fails closed on an
+  unlogged one, and a high-stakes marker paired with a cheap-tier verifier is
+  flagged even when the declared stakes say "low".
+- **Floors are beyond inference's reach.** Floored nodes —
+  `verify-the-effect`'s verdict cross-check, the pre-publish honesty check —
+  always get the judgment tier, listed in `config/models.json` and enforced by
+  the gate, not by prose.
+- **Downgrades are never silent.** The verdict logs the requested *and* the
+  answering model; a substitution without `downgraded: true` fails the gate.
+
+Model *strings* live in exactly two places — `config/models.json` and agent
+frontmatter, held together by `check-tier-sync` (which also verifies the two
+skeptic variants share one canonical prompt body byte-for-byte) — so model
+churn is a config edit, not a prose hunt. The pin mechanism is live-verified
+with a non-vacuous probe ([build record](docs/plans/2026-07-07-judgment-dispatch-plan.md));
+the rubric itself hasn't survived an independent domain yet (status table
+below).
+
 ## How the layers fit
 
 ```mermaid
@@ -99,13 +158,14 @@ graph TD
     O["orchestrate<br/>multi-agent work goes through the Workflow tool,<br/>wrapped in rigor's guardrails"] --> B
     G["gate-discipline<br/>no stage advances past a red gate"] -.-> B
     G -.-> D
+    JD["judgment-dispatch<br/>which model tier runs each verifier —<br/>stakes-routed, floor-protected, gate-checked"] -.-> REF
 
     classDef p1 fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
     classDef p2 fill:#d8e9ff,stroke:#388bfd,color:#0d2b52;
     classDef p3 fill:#ecdfff,stroke:#a371f7,color:#3a1060;
     class REF p1;
     class Q,E,D,S p2;
-    class B,O,G p3;
+    class B,O,G,JD p3;
 ```
 
 ### Worked example: a fan-out build
@@ -119,7 +179,7 @@ flowchart TD
     C --> SC["Scaffold: shared files compile as stubs"]
     SC --> B1["agent: file A"] & B2["agent: file B"] & B3["agent: file C"]
     B1 & B2 & B3 --> IG["integration-runner runs the real gate to green<br/>returns verbatim output, not a self-report"]
-    IG --> SKV["skeptics refute the CLAIM, not the gate:<br/>is the feature wired and reachable, or merely present?"]
+    IG --> SKV["skeptics refute the CLAIM, not the gate:<br/>is the feature wired and reachable, or merely present?<br/>(dispatched at the tier the stakes rubric earns)"]
     SKV --> RV["you re-run the load-bearing gate yourself<br/>(a workflow saying 'done' is a claim, not a result)"]
     RV --> GC["git-guard: agent emits commit commands,<br/>the human runs them"]
     GC --> VE["shipped irreversibly? verify-the-effect:<br/>probe + negative control on the resulting state"]
@@ -163,25 +223,6 @@ failure that leaves the pipeline green while the data is wrong:
 Deliberately **not** shipped: an automated validator that runs these checks
 for you — see ADR-0002 above. The skills ship the attack moves and the
 claim-calibration language; the agent applies them against your schema.
-
-## Model-tier dispatch
-
-Which model runs a judgment node is an architectural decision enforced by a
-gate, not a per-call accident. `judgment-dispatch` routes verifiers across two
-tiers — a premium **judgment tier** (shipped default: Claude Fable 5) and a
-**cheap tier** — via an explicit stakes rubric the orchestrator must apply
-*and log* before every dispatch.
-
-The hazard it contains: stakes are inferred by the same agent whose claims are
-being checked, so an agent that under-rates stakes buys itself cheap
-verification exactly where the strong skeptic matters most. Two mechanical
-answers: the inference is itself a logged, refutable claim (`check-dispatch`
-fails closed on an unlogged one), and floored nodes — `verify-the-effect`'s
-verdict cross-check, the pre-publish honesty check — always get the judgment
-tier, beyond inference's reach. Model *strings* live in exactly two places
-(`config/models.json` and agent frontmatter, held together by
-`check-tier-sync`); everywhere else speaks in tiers, so model churn is a
-config edit, not a prose hunt.
 
 ## Status: what's proven, what isn't
 
@@ -252,6 +293,7 @@ node scripts/check-tier-sync.mjs                   # agent frontmatter agrees wi
 ## Going deeper
 
 - Design rationale: [`docs/specs/2026-06-25-rigor-plugin-design.md`](docs/specs/2026-06-25-rigor-plugin-design.md)
+- Model-tier dispatch design + build record: [`docs/specs/2026-07-05-judgment-dispatch-design.md`](docs/specs/2026-07-05-judgment-dispatch-design.md), [`docs/plans/2026-07-07-judgment-dispatch-plan.md`](docs/plans/2026-07-07-judgment-dispatch-plan.md)
 - Build order and task plan: [`docs/plans/2026-06-25-rigor-plugin-phase1.md`](docs/plans/2026-06-25-rigor-plugin-phase1.md)
 - ADRs: [`docs/adr/`](docs/adr/) — including why there is no universal data validator (ADR-0002)
 - Self-audit (37 findings, fixes independently verified): [`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25-spine-audit.md)
