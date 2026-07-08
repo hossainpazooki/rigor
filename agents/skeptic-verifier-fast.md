@@ -2,7 +2,7 @@
 name: skeptic-verifier-fast
 description: Cheap-tier variant of skeptic-verifier, dispatched by judgment-dispatch for low-stakes claims and additional medium-stakes votes. Same adversarial refuter — recomputes empirical numbers from raw sources and actively tries to falsify a claim before it gets trusted. Read-only; never edits code or touches git.
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
-model: claude-haiku-4-5-20251001
+model: claude-sonnet-5
 status: provisional
 provenance: body is a verbatim copy of agents/skeptic-verifier.md — edit the canonical body there, never here; check-tier-sync flags divergence
 ---

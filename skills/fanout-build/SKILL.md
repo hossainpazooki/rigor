@@ -27,13 +27,19 @@ Run in order; only **Build** and **Verify** fan out.
 4. **Build (fan out).** One agent per file. Each prompt carries the contract
    verbatim and an explicit ownership line: "you own ONLY <these files>; code
    against the contract, not each other's files." Disjoint ownership is the whole
-   game — two agents on one file is the drift hazard.
+   game — two agents on one file is the drift hazard. Builders run on the
+   **build tier** (`config/models.json`) — pass it per call (the workflow
+   runtime's per-call model option, live-verified 2026-07-07); don't burn the
+   judgment tier writing code it will later have to judge.
 5. **Integrate.** One `integration-runner` runs the **real, named gate** to green
    (build + test + lint + a live probe), fixes only the cross-file drift the
    authors could not (they owned only their files), and returns the **verbatim**
-   command output — evidence, not a self-certification.
+   command output — evidence, not a self-certification. It's a worker, not a
+   judgment node: build tier (its frontmatter pins it).
 6. **Verify (fan out).** `skeptic-verifier`s refute the **load-bearing claim** —
    one per claim, default refuted unless proven, recomputing from raw output.
+   Verifier tier is `judgment-dispatch`'s call, not the builder's — the claim
+   gating the merge earns the judgment tier.
 
 ## The contract — what prevents drift
 

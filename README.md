@@ -93,9 +93,12 @@ cross-checks) from **mechanical nodes** (the deterministic `check-*` gates,
 which need no model at all). `judgment-dispatch` finishes the thought: which
 model runs a judgment node is an architectural decision enforced by a gate,
 not a per-call accident. Verifiers route across two tiers — a premium
-**judgment tier** (shipped default: Claude Fable 5) and a **cheap tier** — via
-an explicit stakes rubric the orchestrator must apply *and log* before every
-dispatch.
+**judgment tier** (shipped default: Claude Fable 5) and a **cheap tier**
+(shipped default: Claude Sonnet 5) — via an explicit stakes rubric the
+orchestrator must apply *and log* before every dispatch. Workers get a third
+lane: builders, the integration closer, and mappers run on the **build tier**
+(also Sonnet 5 by default) — the judgment tier is never spent writing the code
+it will later have to judge.
 
 ```mermaid
 flowchart LR

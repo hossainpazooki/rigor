@@ -74,6 +74,48 @@ stay mechanical (no agent names or criterion ids hard-coded in scripts).
   flagged** (fox-and-henhouse, floor, unlogged inference, silent downgrade),
   exit 1.
 
+## Amendment — 2026-07-07 (same day): build tier + Sonnet 5
+
+Operator decision (from three options; "build tier + cheap verifier" chosen):
+optimize for Claude Sonnet 5 in local builds. Changes:
+
+- `config/models.json`: new **`build` tier → `claude-sonnet-5`**, for workers;
+  **`cheap` tier repointed `claude-haiku-4-5-20251001` → `claude-sonnet-5`**
+  (Haiku retired from the map — one config edit restores it);
+  `fallback_order` now `judgment → build → cheap`; `tier_agents` gains
+  `integration-runner: build`, `repo-cartographer: build`.
+- Frontmatter synced: `skeptic-verifier-fast`, `integration-runner`,
+  `repo-cartographer` → their tier's model. All 5 shipped agents are now
+  pinned; `model: inherit` no longer appears in `agents/`.
+- Guidance: `orchestrate` guardrail #11 (model placement is part of the
+  dispatch), `fanout-build` steps 4–6 (builders on the build tier per call;
+  integration closer is a worker; verifier tier is `judgment-dispatch`'s
+  call), `judgment-dispatch` (workers are not judgment nodes).
+- The verifier dispatch stays two-tier (judgment/cheap) — no `check-dispatch`
+  schema or gate change; `check-tier-sync` needed no code change (the new
+  tier and agents are config entries — the gates stayed mechanical as designed).
+
+**Empirical evidence (both mechanisms probed before any pin):**
+
+| Probe | Mechanism | Result | Discrimination |
+|---|---|---|---|
+| pin C | `model: claude-sonnet-5` frontmatter, fresh headless session (`--model opus`) | reported `Sonnet 5 \| claude-sonnet-5` | session model opus ≠ sonnet → non-vacuous |
+| override | Agent-tool per-call `model: sonnet` (this session) | reported `Sonnet 5 \| claude-sonnet-5` | control below diverges |
+| override control | same agent type, no model param | reported `Fable 5 \| claude-fable-5` | ≠ sonnet → override probe discriminates |
+
+Same oracle caveat as Task 1: runtime-asserted identity, not billing metadata.
+
+**Wrinkle, logged:** the no-param control answered **Fable 5** while the
+dispatching session's own loop reports **Opus 4.8** — the inherit lane and the
+main loop can disagree (session-configured default vs. a substitution on the
+main loop). This is exactly the `requested`/`answered` gap the verdict fields
+exist to record; treat `inherit` as "unspecified", never as "same model as me".
+
+**Phase-C consequence:** the "per-call model override — adopt if/when the
+runtime grows one" roadmap item is no longer hypothetical: the runtime has
+one and it is now live-verified. The two-variant skeptic pattern is kept for
+frontmatter-only dispatch contexts, but a future phase may collapse it.
+
 ## Not done (deliberately)
 
 Phase C roadmap items (usage ledger, availability probing, exported checkpoint

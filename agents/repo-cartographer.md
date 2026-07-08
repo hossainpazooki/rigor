@@ -2,7 +2,7 @@
 name: repo-cartographer
 description: Read-only codebase explorer. Maps an unfamiliar or recently-changed repository — module layout, entry points, route/command maps, import conventions, build/test/deploy commands — and produces or refreshes the structure section of its CLAUDE.md. Use when onboarding to a repo or after a refactor has left the docs stale. Never edits source code.
 tools: Read, Grep, Glob, Bash
-model: inherit
+model: claude-sonnet-5
 status: provisional
 ---
 

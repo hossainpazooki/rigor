@@ -13,6 +13,12 @@ tier → model mapping lives in exactly two places — `config/models.json` and 
 agent variants' frontmatter — never in prose. `check-tier-sync` enforces that
 the two places agree.
 
+Workers are not judgment nodes. Builders, the integration closer, and mappers
+run on the **build tier** (`orchestrate` guardrail #11, `fanout-build` step 4)
+— this rubric governs only who *verifies*, and a worker never inherits the
+judgment tier just because the session model is expensive. The claims workers
+produce still route through the rubric below.
+
 **The hazard this skill exists to contain:** stakes are inferred by the
 orchestrating agent — the same agent whose claims are being checked. An agent
 that under-rates stakes buys itself cheap verification on exactly the claims

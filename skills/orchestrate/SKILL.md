@@ -42,6 +42,10 @@ contract and no verification, and report green. The guardrails are rigor's job:
 9. **Git stays commands-for-the-human** — agents never write history.
 10. **Survive the fan-out:** null-safe aggregation (errored agents return null),
     stall-retry, and a token budget — long fan-outs stall and hit limits.
+11. **Model placement is part of the dispatch.** Workers (builders, the
+    integration closer, mappers) run on the **build tier**; verifiers route
+    through `judgment-dispatch`'s stakes rubric. Tier → model lives in
+    `config/models.json`, never in the prompt.
 
 ## The shapes
 

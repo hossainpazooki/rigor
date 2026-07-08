@@ -40,7 +40,7 @@ would run *alongside* either.
 |---|---|---|---|---|
 | Skills | 12 · 37.1 KB · max 8.4 KB *(re-measured 2026-07-07)* | 14 · 128.5 KB · max 26.9 KB (`writing-skills`) | 7 · 175.8 KB · max 44.8 KB (`ml-plan`) | 10 · 106.6 KB · max 26 KB (`build-dashboard`) |
 | Slash commands | 6 (thin callers into skills) | 0 | 0 | 7 (skills doubling as commands via `user-invocable` + `argument-hint`) |
-| Agents | 5 — 3 model-pinned to a judgment tier, 1 cheap-tier variant *(2026-07-07)* | 0 | 1 (`ml-expert`, 17.5 KB, persistent memory) | 0 |
+| Agents | 5 — all model-pinned: 2 judgment-tier, 2 build-tier, 1 cheap-tier variant *(2026-07-07)* | 0 | 1 (`ml-expert`, 17.5 KB, persistent memory) | 0 |
 | Hooks | 2 — git-guard (hard block) + 463 B session pointer *(re-measured 2026-07-07 as the injected `additionalContext` payload — the earlier 516 B included the JSON envelope; the pointer also grew 2 command names)* | 1 — injects full `using-superpowers` (5.9 KB) on startup/clear/**compact** | 1 — injects full `using-superml` (23.6 KB) + verbatim upsell notice in keyless mode | 0 |
 | Always-on cost / session | **~120 tokens** *(re-measured 2026-07-07)* | ~1,500 tokens | **~6,000 tokens** | ~0 beyond frontmatter |
 | MCP requirement | none | none | 1 proprietary server (Leeroopedia; degraded without account) | 8 optional connectors, tool-agnostic `~~category` placeholders |
