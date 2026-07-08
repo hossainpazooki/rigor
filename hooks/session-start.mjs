@@ -13,7 +13,7 @@ const POINTER =
   'dispatch skeptics); keep built-vs-planned honest; never write git history ' +
   '(output the command for the human); for multi-agent work default to the ' +
   "Workflow tool with rigor's guardrails (`orchestrate`), not ad-hoc dispatch. " +
-  'Commands: /verify-claim, /honesty-check, /recon, /handoff, /fanout.';
+  'Commands: /verify-claim, /honesty-check, /recon, /verify-effect, /fanout, /handoff, /pickup.';
 
 export function buildContext({ homeRulesPresent, vendoredRules }) {
   let out = POINTER;

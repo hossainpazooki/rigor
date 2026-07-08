@@ -50,7 +50,8 @@ Two terms, defined once and used throughout:
 | a question too big for one pass | `/rigor:recon` | `fanout-recon-synthesize`: split into disjoint parallel research, refute the findings, synthesize only the survivors |
 | a build too big for one pass | `/rigor:fanout` | `fanout-build`: contract-first multi-agent build with an integration gate and a skeptic pass (diagram below) |
 | a deploy / migration / publish that "succeeded" | `/rigor:verify-effect` | `verify-the-effect`: probe the state the action left behind, paired with a negative control — never the action's own exit log |
-| the next session (or person) picking this up | `/rigor:handoff` | emits a fixed "read this first" brief: state, locked decisions, invariants |
+| the next session (or person) picking this up | `/rigor:handoff` | emits a fixed "read this first" brief: state, locked decisions, invariants — every built claim carrying a `re-verify:` line for the pick-up at the other end |
+| a handoff brief you've just been handed | `/rigor:pickup` | `pick-up`: refute the brief's load-bearing claims against the current repo, detect drift since it was written, re-run the entry gate — build only on what verified *now* |
 
 Two hooks run without being asked:
 
@@ -76,7 +77,7 @@ Worth being precise about, because it kills the most likely misread:
   downgrades), `check-tier-sync` (agent frontmatter agrees with
   `config/models.json`; tier variants share one canonical body). All run under
   `node --test`.
-- **Applied as judgment:** the 12 skills, 6 commands, and 5 agents are
+- **Applied as judgment:** the 13 skills, 7 commands, and 5 agents are
   discipline the agent applies *inside your repo*, against *your* gates. rigor
   deliberately ships no turnkey pipeline validator — a shipped checker that
   certified pipelines whose schema it can't know would itself be a
@@ -242,8 +243,9 @@ settled *for the named scope only*, with unproven reach kept visible.
 | `implemented-vs-planned`, `gate-discipline`, `verify-the-effect`, `fanout-recon-synthesize`, `orchestrate` | skills | provisional (each has 1 independent domain logged except `gate-discipline`: 0) |
 | `data-quality-fail-closed`, `no-lookahead`, `idempotent-restatement`, `lineage-replay` | skills | provisional — built 2026-07-02, no independent data-eng domain survived yet |
 | `judgment-dispatch` | skill | provisional — built 2026-07-07; its frontmatter pin mechanism is live-verified (non-vacuous probe, [plan](docs/plans/2026-07-07-judgment-dispatch-plan.md)), but no independent domain has run through the rubric yet |
+| `pick-up` | skill | provisional — built 2026-07-07 as `handoff`'s receiving end (briefs now carry `re-verify:` lines for it); no independent pick-up survived yet |
 | `integration-runner`, `repo-cartographer`, `skeptic-verifier-fast` | agents | provisional (`skeptic-verifier-fast` shares the settled canonical body, but its cheap-tier verdict quality is unproven) |
-| all 6 commands, both hooks, all 6 check scripts | commands / hooks / gates | provisional (`check-citation-fidelity` carries a logged limit: insufficient for numeric provenance) |
+| all 7 commands, both hooks, all 6 check scripts | commands / hooks / gates | provisional (`check-citation-fidelity` carries a logged limit: insufficient for numeric provenance) |
 
 The misfires stay in the table on purpose — a verification toolkit that hides
 its own false refutations would be its own counterexample. Full dated entries:
@@ -259,8 +261,8 @@ This repo is its own local plugin marketplace. In a Claude Code session:
 ```
 
 Commands are namespaced: `/rigor:verify-claim`, `/rigor:honesty-check`,
-`/rigor:recon`, `/rigor:handoff`, `/rigor:fanout`, `/rigor:verify-effect`.
-Skills and agents auto-activate with the plugin.
+`/rigor:recon`, `/rigor:handoff`, `/rigor:pickup`, `/rigor:fanout`,
+`/rigor:verify-effect`. Skills and agents auto-activate with the plugin.
 
 For cross-repo availability, register it in `~/.claude/settings.json`:
 
