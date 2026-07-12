@@ -141,6 +141,6 @@ written to make honest negatives count.
 *Related: ADR-0001 (self-contained beats elegant), ADR-0002 (judgment, not a universal gate),
 ADR-0003 (anchored records; the schema this pilot's run log uses), `docs/feedback/FEEDBACK.md`
 (promotion rules the chassis must not touch),
-`docs/feedback/provisional-backlog-recon-audit_07-08-2026.md` (the run this formalizes).
+`docs/feedback/2026-07-08-provisional-backlog-recon-audit.md` (the run this formalizes).
 Prior art: cobusgreyling/loop-engineering (STATE.md spine, run logs, budgets, autonomy ladder) —
 composition, not adoption; its trust-the-gate verifier and L3 are deliberately excluded.*

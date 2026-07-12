@@ -48,7 +48,7 @@ being built on. Sources examined 2026-07-09:
   negative controls, proof the audit can fail, or an independent oracle. **WAP supplies the slot
   where a conscience could go; it does not supply the conscience.** The in-house specimen of why
   this matters: VANTAGE's committed suite was green on the one input distribution that hid a
-  real defect (`docs/feedback/no-lookahead-vantage-origin-firing_07-08-2026.md`) — a WAP audit
+  real defect (`docs/feedback/2026-07-08-no-lookahead-vantage-origin-firing.md`) — a WAP audit
   running that suite would have published wrong data at full history, atomically and with
   confidence.
 - **Claim 2 survives.** Both fetched sources confirm audit is a one-time pre-publish step with no

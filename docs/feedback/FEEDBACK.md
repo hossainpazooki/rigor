@@ -35,5 +35,11 @@ Format: `<date> · <component> · <helped|misfired> · <domain> · <one-line not
 ## Entries
 
 Individual feedback entries now live as dated markdown files in this folder —
-`docs/feedback/<topic>_MM-DD-YYYY.md`. This file keeps only the promotion-ledger
-summary above; open the dated files for the full record behind each row.
+`docs/feedback/YYYY-MM-DD-<topic>.md` (ISO prefix, so a plain listing sorts
+chronologically). This file keeps only the promotion-ledger summary above; open
+the dated files for the full record behind each row.
+
+Renamed 2026-07-12 from the original `<topic>_MM-DD-YYYY.md` scheme (history
+preserved via `git mv`). Entries written before then are immutable and may still
+cite the old-style names in their text; resolve one as
+`YYYY-MM-DD-<topic>.md` — same topic, date moved to an ISO prefix.
