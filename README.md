@@ -252,7 +252,8 @@ settled *for the named scope only*, with unproven reach kept visible.
 
 The misfires stay in the table on purpose — a verification toolkit that hides
 its own false refutations would be its own counterexample. Full dated entries:
-[`docs/feedback/`](docs/feedback/).
+[`docs/feedback/`](docs/feedback/) — filenames are `YYYY-MM-DD-<topic>.md`, so
+the listing reads oldest-first; scroll to the bottom for the newest entries.
 
 ## Install
 
@@ -302,5 +303,5 @@ node scripts/check-tier-sync.mjs                   # agent frontmatter agrees wi
 - Build order and task plan: [`docs/plans/2026-06-25-rigor-plugin-phase1.md`](docs/plans/2026-06-25-rigor-plugin-phase1.md)
 - ADRs: [`docs/adr/`](docs/adr/) — including why there is no universal data validator (ADR-0002)
 - Self-audit (37 findings, fixes independently verified): [`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25-spine-audit.md)
-- Promotion ledger + dated feedback entries: [`docs/feedback/`](docs/feedback/)
+- Promotion ledger + dated feedback entries: [`docs/feedback/`](docs/feedback/) (chronological — newest at the bottom)
 - Measured comparison vs. superpowers / SuperML / Anthropic's Data plugin: [`docs/comparisons/2026-07-03-plugin-landscape-scorecard.md`](docs/comparisons/2026-07-03-plugin-landscape-scorecard.md)
