@@ -12,6 +12,31 @@ Write for a skeptical reader: the receiving session runs `/rigor:pickup`
 against this brief, which re-verifies your claims instead of trusting them —
 so every claim should carry the means of its own re-verification.
 
+Where the brief lands:
+
+- **Single-repo session:** write the filled template to
+  `docs/handoff/YYYY-MM-DD-<topic>.md` in that repo and append a pointer row
+  to the `docs/handoff/HANDOFF.md` index (create both on first use — confirm
+  with the human once per repo; the files sit untracked until the human
+  commits them). Entries are immutable once written: a later session writes a
+  new entry, never edits an old one. The index holds pointers only, never
+  evidence.
+- **Multi-repo session** (no single repo owns the work): fall back to the
+  operator's shared local briefs folder outside any repo.
+
+This command is also the **sole writer of the repo's learnings ledger**
+(`docs/learnings/`, same index-plus-dated-entries shape). Before writing the
+brief, curate the session's surviving non-obvious findings — one fact per
+`YYYY-MM-DD-<topic>.md` file — each carrying the required record fields:
+`ts:` (RFC 3339 UTC from the system clock at capture, never reconstructed),
+`commit:` (the repo's HEAD at capture), `session:` (transcript pointer),
+`status:` (`verified` | `refuted-assumption` | `suspected`), `fact:`,
+`basis:` (the command and output quoted at capture), `re-verify:` (one
+executable line). Append a pointer row per entry to
+`docs/learnings/LEARNINGS.md`. Never backfill from memory: a finding without
+a captured basis is not an entry. A wrong entry is superseded by a new dated
+entry with a `kills:` reference, never edited.
+
 Topic: $ARGUMENTS
 
 --- TEMPLATE ---

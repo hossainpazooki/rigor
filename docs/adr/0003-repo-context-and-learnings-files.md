@@ -1,7 +1,8 @@
 # ADR-0003 — Repo context + learnings files (CLAUDE.md / AGENTS.md / LEARNINGS.md)
 
 **Status:** Accepted (2026-07-08) — reviewed; all seven pending decisions resolved (see
-"Decisions resolved" below). The implementation plan is the next artifact; nothing is built yet.
+"Decisions resolved" below). Implemented 2026-07-12 with a revised folder layout — see the
+Amendment at the end and [`docs/plans/2026-07-12-ledger-kit-plan.md`](../plans/2026-07-12-ledger-kit-plan.md).
 
 ## Context
 
@@ -150,6 +151,29 @@ surface small. **Not a hook** (too automatic; conflicts with confirm-first). Cap
   reintroduced if we instead duplicate content (rejected).
 - **Cost.** One extended agent + one skill touch-up + one new check script
   (`check-learnings.mjs`). No new hook, no new always-on surface.
+
+## Amendment — 2026-07-12 (implemented; folder layout revised)
+
+Implemented per [`docs/plans/2026-07-12-ledger-kit-plan.md`](../plans/2026-07-12-ledger-kit-plan.md),
+which records the full decision set (locked 2026-07-10, operator-affirmed). Three revisions to
+the letter of this ADR, none to its record schema or triggers:
+
+- **Learnings are a folder, not a single file.** Dated immutable entries in
+  `docs/learnings/YYYY-MM-DD-<topic>.md` plus a pointer-only `LEARNINGS.md` index — the shape
+  proven by `docs/feedback/`. The Decision §2 record schema is unchanged; append-only is now
+  enforced as "prior entry files byte-unchanged" rather than "file only grew."
+- **Handoff briefs live in-repo.** A companion `docs/handoff/` + `HANDOFF.md` index holds
+  single-repo session briefs (locality: the next session starts in that repo). A shared local
+  briefs folder outside any repo remains the fallback for genuinely multi-repo sessions only.
+- **§7 dogfooding revised.** rigor now hosts both folders itself. The shadowing concern is
+  resolved by scope, not avoidance: `docs/feedback/` holds verdicts about rigor's *components*
+  (rigor-only), `docs/learnings/` holds anchored facts about the *repo*. §7's back-port clause
+  is satisfied differently than written — the feedback entries kept their prose form; the
+  anchored-record schema is enforced forward via `docs/learnings/` instead. Both new ledgers
+  start empty and earn entries forward (§6 no-backfill stands).
+
+`check-learnings.mjs` + tests ship with this amendment. `/rigor:handoff` remains the sole
+writer of both ledgers.
 
 ---
 *Supersedes nothing. Related: ADR-0001 (vendor for portability), ADR-0002 (ship discipline not

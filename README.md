@@ -248,7 +248,7 @@ settled *for the named scope only*, with unproven reach kept visible.
 | `judgment-dispatch` | skill | provisional — built 2026-07-07; its frontmatter pin mechanism is live-verified (non-vacuous probe, [plan](docs/plans/2026-07-07-judgment-dispatch-plan.md)), but no independent domain has run through the rubric yet |
 | `pick-up` | skill | provisional — built 2026-07-07 as `handoff`'s receiving end (briefs now carry `re-verify:` lines for it); no independent pick-up survived yet |
 | `integration-runner`, `repo-cartographer`, `skeptic-verifier-fast` | agents | provisional (`skeptic-verifier-fast` shares the settled canonical body, but its cheap-tier verdict quality is unproven) |
-| all 7 commands, both hooks, all 6 check scripts | commands / hooks / gates | provisional (`check-citation-fidelity` carries a logged limit: insufficient for numeric provenance) |
+| all 7 commands, both hooks, all 7 check scripts | commands / hooks / gates | provisional (`check-citation-fidelity` carries a logged limit: insufficient for numeric provenance) |
 
 The misfires stay in the table on purpose — a verification toolkit that hides
 its own false refutations would be its own counterexample. Full dated entries:
@@ -287,14 +287,19 @@ commands work either way.
 ## Tests
 
 ```
-node --test                                  # hooks + all 6 check scripts, auto-discovered from tests/
+node --test                                  # hooks + all 7 check scripts, auto-discovered from tests/
 node scripts/check-surface-scrub.mjs         # shipped examples carry no project fingerprints
 node scripts/check-citation-fidelity.mjs <claims.json>
 node scripts/check-effect-probe.mjs <probes.json>
 node scripts/check-fanout.mjs <workflow.mjs>
 node scripts/check-dispatch.mjs <verdicts.jsonl>   # verifier dispatches logged, floored, no silent downgrades
 node scripts/check-tier-sync.mjs                   # agent frontmatter agrees with config/models.json
+node scripts/check-learnings.mjs docs/learnings    # ledger entries anchored, append-only, index↔folder consistent
 ```
+
+Also in `scripts/` (a utility, not a gate): `extract-tails.mjs` emits a
+per-session routing index from local harness transcripts — its output is a
+regenerable cache that belongs *outside* any repo.
 
 ## Going deeper
 
@@ -302,6 +307,7 @@ node scripts/check-tier-sync.mjs                   # agent frontmatter agrees wi
 - Model-tier dispatch design + build record: [`docs/specs/2026-07-05-judgment-dispatch-design.md`](docs/specs/2026-07-05-judgment-dispatch-design.md), [`docs/plans/2026-07-07-judgment-dispatch-plan.md`](docs/plans/2026-07-07-judgment-dispatch-plan.md)
 - Build order and task plan: [`docs/plans/2026-06-25-rigor-plugin-phase1.md`](docs/plans/2026-06-25-rigor-plugin-phase1.md)
 - ADRs: [`docs/adr/`](docs/adr/) — including why there is no universal data validator (ADR-0002)
+- Ledger kit (learnings + handoff folders, tails index): [`docs/plans/2026-07-12-ledger-kit-plan.md`](docs/plans/2026-07-12-ledger-kit-plan.md)
 - Self-audit (37 findings, fixes independently verified): [`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25-spine-audit.md)
 - Promotion ledger + dated feedback entries: [`docs/feedback/`](docs/feedback/) (chronological — newest at the bottom)
 - Measured comparison vs. superpowers / SuperML / Anthropic's Data plugin: [`docs/comparisons/2026-07-03-plugin-landscape-scorecard.md`](docs/comparisons/2026-07-03-plugin-landscape-scorecard.md)

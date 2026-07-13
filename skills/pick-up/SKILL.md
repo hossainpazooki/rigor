@@ -15,11 +15,14 @@ prevent. Pick-up is `refute` scoped to a brief.
 
 ## The five moves
 
-1. **Read the brief whole, and date it.** Locate the brief (given path or
-   topic; otherwise the newest handoff brief in the repo's convention —
-   `briefs/`, `docs/`, `HANDOFF-*.md`). Fix its write date and the newest
-   commit it references. An undated brief gets no benefit of recency: treat
-   every state claim in it as stale until re-verified.
+1. **Read in order, and date the brief.** Repo context first (CLAUDE.md /
+   AGENTS.md), then the live effort's STATE.md if one exists, then the
+   `docs/handoff/HANDOFF.md` index — its newest row points at the brief you
+   are picking up. (A given path or topic overrides; older conventions —
+   `briefs/`, `HANDOFF-*.md` at the root — are the fallback when the folder
+   does not exist.) Read the brief whole, and fix its write date and the
+   newest commit it references. An undated brief gets no benefit of recency:
+   treat every state claim in it as stale until re-verified.
 2. **Drift check.** The brief was true — at best — at write time. List what
    the author could not know: commits since the brief's date
    (`git log --oneline --since=...`), the current working tree (`git status`),
