@@ -1,7 +1,11 @@
 # ADR-0005 — WAP is the chassis at pipeline scale, not the conscience; and the catalog drifts
 
-**Status:** Proposed (2026-07-09) — awaiting operator review. The four resolutions below are
-recommendations; nothing here changes plugin surface, promotion rules, or ADR-0004's pilot.
+**Status:** Proposed (2026-07-09) — **still awaiting operator review**; the four resolutions remain
+recommendations. Nothing here changes plugin surface or promotion rules. **Resolution 2's blocker
+lifted 2026-07-14:** ADR-0004's pilot was evaluated and settled, so the standing-catalog sweep is
+no longer gated (criterion 2 asked that the unblock itself be a recorded event — this is that
+record). It is *unblocked, not started*: opening it still needs operator ratification of the
+resolutions below.
 
 ## Context
 

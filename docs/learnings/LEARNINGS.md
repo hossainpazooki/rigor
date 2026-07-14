@@ -36,5 +36,4 @@ learnings folder of their own; they never get a feedback folder.
 
 | Date | Entry | Status | Fact |
 |---|---|---|---|
-
-*(none yet — the first entry lands at the next session boundary)*
+| 2026-07-14 | [2026-07-14-form-gate-passed-a-record-whose-basis-was-fiction.md](2026-07-14-form-gate-passed-a-record-whose-basis-was-fiction.md) | verified | `check-learnings` passed a ledger green whose quoted basis did not exist at its own commit anchor — a form gate is a floor, never a verdict |

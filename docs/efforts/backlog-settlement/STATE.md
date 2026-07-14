@@ -2,9 +2,9 @@
 
 paused: false
 budget: L1 sweep ≤ 150k subagent tokens; recon-scale runs need an explicit operator go, recorded in run-log.jsonl
-governed-by: ../../adr/0004-loop-chassis-rigor-conscience.md · run log: run-log.jsonl (append-only)
-last-run: 1 (2026-07-08, recon + gate re-runs + orchestrate promotion — see run-log.jsonl)
-last-updated: 2026-07-09T03:43:17Z · session 495274ae
+governed-by: ../../adr/0004-loop-chassis-rigor-conscience.md (**pilot SETTLED 2026-07-14** — chassis kept) · run log: run-log.jsonl (append-only)
+last-run: 3 (2026-07-14, L2 — ledger-flaw fix + live tic loop probe; 3 promotions, 1 misfire — see run-log.jsonl)
+last-updated: 2026-07-14T14:55:15Z · session 495274ae
 
 **This file is a mutable spine, not evidence.** Pick-up refutes it on every entry; the run log
 and `docs/feedback/` entries are the record. Every write here passes `implemented-vs-planned`.
@@ -17,21 +17,22 @@ manufactured to feed this loop** — items move when real work happens in real r
 Every provisional rigor component reaches an honest terminal state: settled (evidence), or
 provisional-with-named-gap, or a recorded misfire. Honest negatives count as progress.
 
-## Backlog (as verified by run 1 — recon `wf_1955b9bb-7f9` + operator gate re-runs, 2026-07-08)
+## Backlog (verified by run 1 2026-07-08; **runs 2–3 2026-07-14** moved the starred rows)
 
 | Component | Verified standing | What moves it |
 |---|---|---|
 | `orchestrate` | **settled (scoped) 2026-07-08** — done | — (off backlog) |
+| ★ `verify-the-effect` | **settled (scoped) 2026-07-14** — done. 2 domains (cldd PyPI probe; **tic live payment loop**), and the standing live-end-to-end-probe gap is CLOSED: 2 paired negative controls, each red on a one-input delta, non-vacuity proven by recovery | — (off backlog). Residual, tracked under `effect-prober`: an oracle independent of the gate's own implementation; a genuinely irreversible external action |
+| ★ `pick-up` | **settled (scoped) 2026-07-14** — done. 2 domains (passed-vs-true-demo; **tic** — where it *killed* a claim: refuted "39 passed" against the same commit, actual 46) | — (off backlog). Unproven: picking up someone *else's* brief (same operator throughout) |
+| ★ `gate-discipline` | 1 (ATLAS ADR-0023, 2026-07-14 — verdict: BUILT + self-reported green, **not accepted**; zero open PRs while its own rule says acceptance = PR merge) | 2nd independent domain. Live candidate: the same ADR when its PR opens — does the merge gate actually run the harness? |
+| ★ ledger kit (`docs/learnings/`+`docs/handoff/`, `check-learnings`) | 1 domain (tic) + **1 logged misfire** — first non-origin adoption produced a record whose basis did not reproduce; form gate passed it green, a pick-up re-run killed it. Gate hardened, verified red on the real defect | 2nd repo adopting the kit, ideally one whose entries are written by a session I don't run |
 | `integration-runner` | 1 clean (tic, gate re-run green) + 1 partial (ulc: lint+Go green; CI `test` job **unverifiable-here** — requires Postgres via `DATABASE_URL` + `pip install -e ".[dev,ml,gcp,dspy]"`) | Close the ulc pytest leg against Postgres, or a new clean second domain |
-| `pick-up` | 1 clean (passed-vs-true-demo: raw-CSV invariants recomputed) | A second genuine pickup whose gate gets *re-run*, not consulted |
 | `fanout-recon-synthesize` | 1 clean (correct-shaped-lies: pytest 67/1 re-run in-run) | 2nd domain; strongest candidate = a clean cldd re-run (its prior run crashed mid-recon) |
-| `verify-the-effect` | 1 clean (cldd PyPI 0.1.0 fresh-venv install probe) | 2nd non-origin domain; the live-end-to-end-probe gap stands |
-| `implemented-vs-planned` | 1 clean (cldd: refused to restate "90 passed", re-ran it) | 2nd domain |
+| `implemented-vs-planned` | 1 clean (cldd: refused to restate "90 passed", re-ran it) | 2nd domain. **Candidate not yet credited:** tic's 07-13 brief tags built/PR-open/not-run/planned consistently — but the same brief carried an unreproducible number, so crediting it would reward the tag while ignoring the basis. Needs a clean firing |
 | `no-lookahead` | origin-only (VANTAGE, n=1 doctrine) | First non-origin firing; candidates: regulatory-rule-engine, treasury |
 | `idempotent-restatement` | origin-only (VANTAGE) | Same |
 | `lineage-replay` | origin-only (VANTAGE; weakest — even origin firing unconfirmed as true replay-diff) | Same, plus confirm a real replay-and-diff anywhere |
 | `data-quality-fail-closed` | origin-only (VANTAGE; strongest origin evidence of the four) | First non-origin repo with a real DQ gate |
-| `gate-discipline` | no genuine firing (never invoked as a Skill) | First genuine invocation in a staged/gated effort |
 | `judgment-dispatch` | no genuine firing (zero external application since 2026-07-07 build) | First external verifier dispatch through the stakes rubric, verdict log through `check-dispatch` |
 | `skeptic-verifier-fast` | never dispatched | First cheap-tier dispatch (via judgment-dispatch routing) |
 | `repo-cartographer` | never dispatched; **structurally gateless** — "gate-rerunnable firing" unachievable by construction | Needs its own success criterion (brief produced *and used*); ties into ADR-0003 implementation |
@@ -43,7 +44,16 @@ either firms several at once — legitimate (credit is per-component), noted so 
 
 ## Next candidates (when real work exists there)
 
-- ADR-0003 implementation in a target repo → natural first genuine firing for `gate-discipline`
-  and a `judgment-dispatch`-routed verifier dispatch.
-- VANTAGE Gate B / treasury Stage C / regulatory-rule-engine → non-origin data-eng candidates.
-- Any next real pickup → `pick-up` domain 2 (re-run the gate, don't consult it).
+- **ADR-0005 resolution 2 is now UNBLOCKED** — it was gated on ADR-0004's pilot evaluation, which
+  settled 2026-07-14. The standing-catalog sweep may open as the second L1 sweep class.
+- ATLAS ADR-0023's PR, when it opens → `gate-discipline` domain 2 (does the merge gate actually
+  re-run the differential harness, or does the non-gating script stay non-gating?).
+- A second repo adopting the ledger kit → its domain 2, ideally with entries written by a session
+  the orchestrator did not run (the current 1 domain shares an operator).
+- VANTAGE Gate B / treasury KV-ledger slice / regulatory-rule-engine → non-origin data-eng
+  candidates for `no-lookahead` / `idempotent-restatement` / `data-quality-fail-closed`, all still
+  origin-only. **Not credited from the 07-13 treasury work:** its restatement claim lives in COMPASS
+  on an open PR with no run-twice-and-diff output, and its as-of instant is plumbed but never probed
+  across a validity boundary. Crediting either would be a manufactured domain.
+- `judgment-dispatch` + `skeptic-verifier-fast`: still zero firings. Neither was dispatched in
+  runs 2–3 — the verifications were run by the orchestrator directly.

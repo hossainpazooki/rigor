@@ -1,8 +1,8 @@
 # ADR-0004 — Loop chassis + rigor conscience (pilot: the provisional-backlog effort)
 
-**Status:** Accepted (2026-07-08) — pilot operator-authorized ("let's pilot the composition on
-the backlog effort"); all four parameters resolved same day (see "Decisions resolved"). Nothing
-ships into the plugin surface from this ADR until the pilot's success criteria are met.
+**Status:** Accepted (2026-07-08) — pilot operator-authorized; all four parameters resolved same
+day. **Pilot SETTLED 2026-07-14** (operator: "ADR 4 is settled") — evaluated against the five
+success criteria below; see "Pilot evaluation" at the end. The chassis is kept.
 
 ## Context
 
@@ -136,6 +136,34 @@ written to make honest negatives count.
   recorded per run from the Workflow usage block; criterion 3 audits it.
 - **Risk — pilot success pressure** (Goodhart). Named above; honest negatives satisfy criterion 4.
 - **Cost.** Two files and a discipline; zero plugin surface, zero new hooks, zero always-on tokens.
+
+## Pilot evaluation — 2026-07-14 (SETTLED)
+
+Three runs, two sessions (run 1: 2026-07-08, session `e1f4be0`-era; runs 2–3: 2026-07-14,
+session `495274ae`) — the ≥3-runs/≥2-sessions threshold is met. Against the five criteria:
+
+| # | Criterion | Verdict |
+|---|---|---|
+| 1 | STATE.md caught a drift or cheapened a pick-up | **MET.** The spine's backlog table is what made run 2's sweep targeted rather than archaeological — it named which components needed which evidence, so the sweep re-ran six gates instead of re-reading 1.05M tokens of transcript. And the *brief-plus-spine* pairing is what caught the ledger defect: the brief's `re-verify:` line was executable, so re-running it refuted "39 passed" (actual 46). |
+| 2 | Every run-log record passes a form check | **MET, manually.** 3/3 records parse, fields present, timestamps monotonic, file append-only via git. Still a manual check — no `check-runlog` gate was earned; recorded honestly as such. |
+| 3 | Budget respected | **MET.** Run 2 spent 123,807 subagent tokens against the 150k L1 cap (within). Run 3 spent zero (no fan-out). Kill switch never needed. |
+| 4 | At least one status legitimately moved — **honest negatives count** | **MET, in both directions.** Promotions: `verify-the-effect` → settled (scoped), its live-probe gap closed by an orchestrator-run probe with two paired negative controls; `pick-up` → settled (scoped); `gate-discipline` 0 → 1 domain. Honest negative, and the more valuable half: the **ledger kit's own misfire** — its first non-origin use produced a record whose quoted basis did not reproduce, the form gate passed it green, and a `pick-up` re-run killed it. Nothing was manufactured to feed the loop. |
+| 5 | No STATE.md write contradicted `implemented-vs-planned` | **MET.** The spine records candidates and their required gates, never a status the gate had not moved. Run 2's own record says `status_moves: none — a sweep indexes candidates`. |
+
+**The Goodhart guard held.** The pilot's metric was honest records per run, not components settled
+per run — and its single most valuable output is a *defect in rigor's own ledger kit*, found because
+a claim was re-executed rather than read. The standing standard is what produced it: **logs index
+candidate firings; only a gate re-run moves a status.**
+
+**Exit, per the ADR:** what survived folds into the plugin. The chassis (STATE.md spine +
+append-only run log + L1/L2/never-L3 + budget-with-kill-switch) is **kept and generalized** — it is
+now the shape the ledger kit (ADR-0003, as amended) instantiates per repo. The one thing not
+earned: a `check-runlog` form gate. Criterion 2 was met by hand three times; a fourth hand-check
+would be the point to mechanize it, not sooner.
+
+**Unblocked by this evaluation:** ADR-0005 resolution 2 (the standing-catalog sweep), which was
+deliberately blocked on this outcome. It may now be opened as the second L1 sweep class — the
+unblock itself being a recorded event, per that ADR's criterion 2.
 
 ---
 *Related: ADR-0001 (self-contained beats elegant), ADR-0002 (judgment, not a universal gate),
