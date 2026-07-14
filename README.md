@@ -309,7 +309,7 @@ regenerable cache that belongs *outside* any repo.
 - Design rationale: [`docs/specs/2026-06-25-rigor-plugin-design.md`](docs/specs/2026-06-25-rigor-plugin-design.md)
 - Model-tier dispatch design + build record: [`docs/specs/2026-07-05-judgment-dispatch-design.md`](docs/specs/2026-07-05-judgment-dispatch-design.md), [`docs/plans/2026-07-07-judgment-dispatch-plan.md`](docs/plans/2026-07-07-judgment-dispatch-plan.md)
 - Build order and task plan: [`docs/plans/2026-06-25-rigor-plugin-phase1.md`](docs/plans/2026-06-25-rigor-plugin-phase1.md)
-- ADRs: [`docs/adr/`](docs/adr/) — including why there is no universal data validator (ADR-0002)
+- ADRs + status table (decided vs. as-built): [`docs/adr/README.md`](docs/adr/README.md) — including why there is no universal data validator (ADR-0002)
 - Ledger kit (learnings + handoff folders, tails index): [`docs/plans/2026-07-12-ledger-kit-plan.md`](docs/plans/2026-07-12-ledger-kit-plan.md)
 - Self-audit (37 findings, fixes independently verified): [`docs/audits/2026-06-25-spine-audit.md`](docs/audits/2026-06-25-spine-audit.md)
 - Promotion ledger + dated feedback entries: [`docs/feedback/`](docs/feedback/) (chronological — newest at the bottom)
