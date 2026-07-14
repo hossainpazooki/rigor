@@ -175,6 +175,45 @@ the letter of this ADR, none to its record schema or triggers:
 `check-learnings.mjs` + tests ship with this amendment. `/rigor:handoff` remains the sole
 writer of both ledgers.
 
+## Amendment — 2026-07-14 (capture-time anchoring; found by the kit's first non-origin use)
+
+The first target-repo adoption (treasury-intent-controller, 6 entries, 2026-07-13) produced a
+**defective record**, and the defect was in this ADR's implementation, not the adopter's
+discipline. All six entries carried an identical `ts:` and an identical `commit:` — the instant
+the batch was written at session close. One entry's basis (`39 passed in 2.22s`, zero skips)
+was captured mid-session against a tree that did not yet contain `test_main_config.py`, then
+stamped with the commit that *added* that file. Re-run at the anchored commit: **46 passed**.
+The number is 7 short — exactly that file's test count. The qualitative claim (the wheel lane
+executes) survived; the anchor did not.
+
+Root cause: Decision §6 makes `/rigor:handoff` the sole **writer**, and the shipped command text
+silently let that become the sole **observer** — dropping §5's continuous scratch-buffer capture
+(*"machine-stamped as they land … carrying their original timestamps"*). Sole-writer-at-close and
+capture-time anchoring cannot both hold unless the buffer sits between them.
+
+Resolved, forward-only:
+
+1. **`commands/handoff.md` states the rule and both failure modes it prevents** — write-time
+   stamping (one `ts:` for every entry) and anchor drift (a basis captured against a tree the
+   named commit does not contain). A basis whose tree has since changed is **re-captured** now,
+   or the entry says so explicitly.
+2. **`check-learnings.mjs` flags identical `ts:` across entries** — distinct findings do not land
+   in the same second, so a shared timestamp is the mechanical fingerprint of a batch stamp. This
+   check was written against the real defective ledger and **verified red on it** before being
+   trusted (it had passed that ledger green the day before).
+3. **A ledger predating the rule cannot be repaired in place** — its entries are immutable. The
+   *index* (a mutable pointer file, never a record) may declare `anchor-rule-since: YYYY-MM-DD`
+   once; entries older than that date are exempt from the distinctness check, entries from it on
+   must comply. It is not a per-entry excuse — you cannot silently forgive one bad anchor, only
+   date the rule's start, in the open.
+4. **The wrong entry is superseded, never edited** (§2 unchanged): a new dated entry with a
+   `kills:` reference carries the corrected number and its re-captured basis.
+
+Standing limit, restated because this proves it: the gate verifies fields, ordering, and
+append-onlyness. It **cannot verify that a basis is genuine** — a green ledger is "anchored and
+re-executable," never "true." Only re-running the `re-verify:` line does that, and here it took
+exactly that to find the defect.
+
 ---
 *Supersedes nothing. Related: ADR-0001 (vendor for portability), ADR-0002 (ship discipline not
 content), `docs/using-rigor-on-a-new-repo.md` (the spine this slots into), `docs/feedback/FEEDBACK.md`

@@ -32,7 +32,13 @@ const REQUIRED = [
 
 export function findLedgerViolations({ entries, index, changes = [] }) {
   const bad = [];
-  let prevTs = '';
+  const seenTs = new Map();
+  // A ledger that predates the capture-time-anchoring rule cannot be fixed in place — its entries
+  // are immutable. The index (a mutable pointer file, not a record) may declare ONCE when the rule
+  // took effect; entries older than that are exempt from the ts-distinctness check, entries from
+  // that date on must comply. Forward-only, stated in the open, and not per-entry — you cannot
+  // silently excuse one bad anchor, only date the rule's start.
+  const since = (index.match(/^anchor-rule-since:\s*(\d{4}-\d{2}-\d{2})/m) || [])[1] ?? '';
   for (const e of entries) {
     if (!ENTRY_NAME.test(e.file)) {
       bad.push({ file: e.file, reason: 'filename must be YYYY-MM-DD-<topic>.md (lowercase, hyphens)' });
@@ -42,10 +48,22 @@ export function findLedgerViolations({ entries, index, changes = [] }) {
       if (!re.test(e.content)) bad.push({ file: e.file, reason: `missing or malformed required field: ${field}` });
     }
     const ts = (e.content.match(/^(?:- )?`?ts:`?\s*(\S+)/m) || [])[1] ?? '';
-    if (ts && prevTs && ts < prevTs) {
-      bad.push({ file: e.file, reason: `timestamps not monotonic: ${ts} precedes prior entry's ${prevTs}` });
+    // The entry's capture instant must fall on the date its filename claims. This is the real
+    // anchor-consistency invariant; a cross-entry "monotonic ts" rule is NOT — within one date,
+    // filenames sort by topic alphabetically, not by capture time, so two same-day findings
+    // legitimately appear out of clock order. (That rule's false positive is what taught us this.)
+    // With this check, sorted filenames give non-decreasing dates for free.
+    if (/^\d{4}-\d{2}-\d{2}T/.test(ts) && ts.slice(0, 10) !== e.file.slice(0, 10)) {
+      bad.push({ file: e.file, reason: `ts ${ts} does not fall on the date in its filename (${e.file.slice(0, 10)})` });
     }
-    if (ts) prevTs = ts;
+    // Distinct findings do not land in the same second. An identical ts across entries is the
+    // fingerprint of a batch stamp applied at WRITE time — the entry looks anchored to the moment
+    // its basis was captured, and is not. (Learned the hard way: a mid-session test count stamped
+    // with the session's closing commit described a tree that commit did not contain.)
+    if (ts && seenTs.has(ts) && ts.slice(0, 10) >= since) {
+      bad.push({ file: e.file, reason: `ts identical to ${seenTs.get(ts)} — entries stamped at write time, not at capture (anchor each to when its basis landed)` });
+    }
+    if (ts) seenTs.set(ts, e.file);
     if (!index.includes(e.file)) {
       bad.push({ file: e.file, reason: 'entry has no pointer row in the index' });
     }

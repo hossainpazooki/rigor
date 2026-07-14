@@ -28,14 +28,34 @@ This command is also the **sole writer of the repo's learnings ledger**
 (`docs/learnings/`, same index-plus-dated-entries shape). Before writing the
 brief, curate the session's surviving non-obvious findings — one fact per
 `YYYY-MM-DD-<topic>.md` file — each carrying the required record fields:
-`ts:` (RFC 3339 UTC from the system clock at capture, never reconstructed),
-`commit:` (the repo's HEAD at capture), `session:` (transcript pointer),
-`status:` (`verified` | `refuted-assumption` | `suspected`), `fact:`,
-`basis:` (the command and output quoted at capture), `re-verify:` (one
-executable line). Append a pointer row per entry to
-`docs/learnings/LEARNINGS.md`. Never backfill from memory: a finding without
-a captured basis is not an entry. A wrong entry is superseded by a new dated
-entry with a `kills:` reference, never edited.
+`ts:` (RFC 3339 UTC), `commit:`, `session:` (transcript pointer), `status:`
+(`verified` | `refuted-assumption` | `suspected`), `fact:`, `basis:` (the
+command and its output, quoted), `re-verify:` (one executable line). Append a
+pointer row per entry to `docs/learnings/LEARNINGS.md`.
+
+**Anchor each entry to the moment its basis was captured, not to the moment
+you write it.** `ts:` is when the finding *landed* and `commit:` is what HEAD
+*was then* — both read off the clock and the repo as the finding happens, and
+carried unchanged into the entry at curation. Being the sole writer at session
+close does not make you the sole *observer*: keep findings in a per-run scratch
+buffer as they land, stamped there, and curate the survivors at the end. Two
+failure modes this exists to prevent, both of which produce a record that looks
+anchored and is not:
+
+- **Write-time stamping.** Every entry receives the same `ts:` and the same
+  `commit:` — the instant you happened to write them. Distinct findings do not
+  land in the same second; identical timestamps across entries are the
+  fingerprint of a batch stamp, and `check-learnings` flags them.
+- **Anchor drift.** A basis captured mid-session (a test count, a probe output)
+  is stamped with the commit that *closed* the session. The quoted output then
+  describes a tree that the named commit does not contain. If a basis was
+  captured against a tree that has since changed, either **re-capture it now**
+  against the commit you are about to name, or say so in the entry
+  (`basis: … (captured at <sha>, pre-dates this entry's anchor)`).
+
+Never backfill from memory: a finding without a captured basis is not an entry.
+A wrong entry is superseded by a new dated entry with a `kills:` reference,
+never edited.
 
 Topic: $ARGUMENTS
 
