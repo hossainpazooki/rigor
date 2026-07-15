@@ -37,3 +37,4 @@ learnings folder of their own; they never get a feedback folder.
 | Date | Entry | Status | Fact |
 |---|---|---|---|
 | 2026-07-14 | [2026-07-14-form-gate-passed-a-record-whose-basis-was-fiction.md](2026-07-14-form-gate-passed-a-record-whose-basis-was-fiction.md) | verified | `check-learnings` passed a ledger green whose quoted basis did not exist at its own commit anchor — a form gate is a floor, never a verdict |
+| 2026-07-15 | [2026-07-15-check-fanout-has-no-tier-pin-check.md](2026-07-15-check-fanout-has-no-tier-pin-check.md) | verified | `check-fanout.mjs` checks contract/schema/integration/verify but has no check for a build-tier `model:`/`agentType:` pin on `agent()` calls — the gap ADR-0006 proposes to close |

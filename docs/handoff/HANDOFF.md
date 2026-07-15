@@ -22,7 +22,7 @@ evidence.
 
 | Date | Entry | Topic / next step |
 |---|---|---|
+| 2026-07-15 | [2026-07-15-rigor-loop-engineering-conclusion.md](2026-07-15-rigor-loop-engineering-conclusion.md) | Session conclusion — ledger kit + ADR-0004 pilot settled + ADR status index + ADR-0006 proposed. Next: ratify ADR-0005/0006, re-verify the tic-Fable-throughout claim before building ADR-0006 resolution 1 |
 
-*(none yet — folder created 2026-07-12; prior sessions' briefs live in
-`~/dev/briefs/`, the pre-ADR local convention, which remains the fallback for
-genuinely multi-repo sessions)*
+Prior sessions' briefs live in `~/dev/briefs/`, the pre-ADR local convention, which remains the
+fallback for genuinely multi-repo sessions.
