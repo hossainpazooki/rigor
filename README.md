@@ -181,7 +181,8 @@ flowchart TD
     SP{"Spike: does the<br/>riskiest unknown build?"} -->|no| H["HALT — fix the base first"]
     SP -->|yes| C["Contract: one shared source of truth<br/>(exact interfaces + file→owner map)"]
     C --> SC["Scaffold: shared files compile as stubs"]
-    SC --> B1["agent: file A"] & B2["agent: file B"] & B3["agent: file C"]
+    SC --> PIN["every builder pinned to the build tier, and every builder<br/>returns a receipt naming the model that actually answered<br/>(an unpinned call inherits the SESSION model — silent tier collapse;<br/>check-tier-placement gates the script, check-dispatch lints receipts)"]
+    PIN --> B1["agent: file A"] & B2["agent: file B"] & B3["agent: file C"]
     B1 & B2 & B3 --> IG["integration-runner runs the real gate to green<br/>returns verbatim output, not a self-report"]
     IG --> SKV["skeptics refute the CLAIM, not the gate:<br/>is the feature wired and reachable, or merely present?<br/>(dispatched at the tier the stakes rubric earns)"]
     SKV --> RV["you re-run the load-bearing gate yourself<br/>(a workflow saying 'done' is a claim, not a result)"]
@@ -190,7 +191,7 @@ flowchart TD
 
     classDef p3 fill:#ecdfff,stroke:#a371f7,color:#3a1060;
     classDef halt fill:#ffe0e0,stroke:#f85149,color:#6a0d0d;
-    class SP,C,SC,B1,B2,B3,IG,SKV,RV,GC,VE p3;
+    class SP,C,SC,PIN,B1,B2,B3,IG,SKV,RV,GC,VE p3;
     class H halt;
 ```
 
@@ -199,7 +200,16 @@ drifting apart; **disjoint file ownership** is what keeps them from colliding;
 the **integration gate** produces evidence instead of a summary; the **skeptic
 pass** catches the green-gate-but-unwired case; and the final **re-run by you**
 exists because a workflow's self-reported success is exactly the kind of claim
-this plugin refuses to trust.
+this plugin refuses to trust. The **tier pins and receipts** are what make the
+swarm *real* rather than apparent: an unpinned `agent()` call inherits the
+session model — and `agentType:` alone does not pin (an agent whose frontmatter
+says `model: inherit` still collapses) — so a fan-out can look like a swarm of
+cheap specialized workers while the expensive orchestrating model silently does
+all the work. Every builder is pinned to the build tier (sourced from
+`config/models.json`, never a hardcoded literal), `check-tier-placement` gates
+the script before it runs, and each worker's receipt makes a collapse a
+**logged event** in the run's own artifact instead of post-hoc transcript
+archaeology (ADR-0006, verified against a real collapsed run).
 
 ## Data-engineering layer
 
@@ -223,6 +233,13 @@ failure that leaves the pipeline green while the data is wrong:
 - **`refute` move 5: test-path fidelity** — a green test that exercised a
   bypass fixture (a stub path the production flow never takes) validates
   nothing. The refutation is to trace what the test actually ran.
+
+Known limit, kept visible on purpose: every check above fires **at a moment**
+— nothing here yet owns re-auditing *standing* published data as upstream
+reality drifts after the publish. That gap is named, not hidden
+([ADR-0005](docs/adr/0005-wap-composition-and-catalog-drift.md), proposed —
+not ratified); the re-audit sweep it proposes stays out of this list until it
+has actually fired.
 
 Deliberately **not** shipped: an automated validator that runs these checks
 for you — see ADR-0002 above. The skills ship the attack moves and the
@@ -248,10 +265,10 @@ settled *for the named scope only*, with unproven reach kept visible.
 | `implemented-vs-planned`, `fanout-recon-synthesize`, `orchestrate` | skills | provisional (1 independent domain each) |
 | `gate-discipline` | skill | provisional — 1 domain (first firing 2026-07-14: refused to credit a built-but-unmerged ADR as accepted) |
 | ledger kit (`docs/learnings/` + `docs/handoff/`) | convention + gate | provisional — 1 domain, **1 logged misfire**: its first non-origin use produced a record whose basis did not reproduce, and the form gate passed it green. Hardened; the limit stands — a form gate never verifies that a basis is genuine |
-| `data-quality-fail-closed`, `no-lookahead`, `idempotent-restatement`, `lineage-replay` | skills | provisional — built 2026-07-02, no independent data-eng domain survived yet |
+| `data-quality-fail-closed`, `no-lookahead`, `idempotent-restatement`, `lineage-replay` | skills | provisional — built 2026-07-02, no independent data-eng domain survived yet. A publish-boundary firing was designated 2026-07-18 to their **origin** repo (ADR-0005 addendum): it exercises the discipline but cannot count as the independent domain |
 | `judgment-dispatch` | skill | provisional — built 2026-07-07; its frontmatter pin mechanism is live-verified (non-vacuous probe, [plan](docs/plans/2026-07-07-judgment-dispatch-plan.md)), but no independent domain has run through the rubric yet |
 | `integration-runner`, `repo-cartographer`, `skeptic-verifier-fast` | agents | provisional (`skeptic-verifier-fast` shares the settled canonical body, but its cheap-tier verdict quality is unproven) |
-| all 7 commands, both hooks, all 7 check scripts | commands / hooks / gates | provisional (`check-citation-fidelity` carries a logged limit: insufficient for numeric provenance) |
+| all 7 commands, both hooks, all 8 check scripts | commands / hooks / gates | provisional (`check-citation-fidelity` carries a logged limit: insufficient for numeric provenance; `check-tier-placement` built 2026-07-18, non-vacuity verified red on a real collapsed run, no independent domain yet) |
 
 The misfires stay in the table on purpose — a verification toolkit that hides
 its own false refutations would be its own counterexample. Full dated entries:
