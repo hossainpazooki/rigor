@@ -34,7 +34,11 @@ stdlib-only (`node:test`).
   tier→agent map); two gates enforce agreement with agent frontmatter.
 - `rules/` — working-agreement modules vendored for self-containment
   (point-in-time copy; see `rules/PROVENANCE.md`).
-- `docs/` — the repo's records: `adr/` (decisions), `plans/` + `specs/`
+- `docs/` — indexed by `docs/README.md` (authoritative vs ledger vs
+  point-in-time). Authoritative current-state: `SYSTEM.md` (how the layers
+  fit), `STATUS.md` (component status table), `DEVELOPMENT.md` (tests +
+  install) — all three moved out of the README 2026-07-18, which is now a
+  skimmer-first page. Records: `adr/` (decisions), `plans/` + `specs/`
   (build records and designs), `feedback/` (component promotion ledger:
   provisional → settled after ≥2 independent domains; pointer-only index +
   dated immutable entries), `learnings/` + `handoff/` (same
