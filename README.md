@@ -8,6 +8,41 @@ or the feature compiles but was never wired in. rigor calls this a
 against it: before "tests pass", "deployed", or "done" is believed, the agent
 must try to **break** the claim.
 
+```mermaid
+flowchart LR
+    C["agent: 'done — tests pass,<br/>deployed, 46/46 green'"] --> D{"believe it?"}
+    D -->|default| P["merged —<br/>the test exercised a stub, the number<br/>was remembered, the feature was never wired.<br/>Found out later, downstream"]
+    D -->|rigor| R{"refute first:<br/>re-run the real gate ·<br/>recompute from the raw source ·<br/>demand a negative control"}
+    R -->|survives| T["trusted — written down"]
+    R -->|breaks| F["caught now, not in prod"]
+
+    classDef ok fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
+    classDef bad fill:#ffe0e0,stroke:#f85149,color:#6a0d0d;
+    classDef n fill:#ecdfff,stroke:#a371f7,color:#3a1060;
+    class C,D,R n;
+    class T,F ok;
+    class P bad;
+```
+
+Why believe the premise? Three specimens from this repo's **own ledger** — the
+toolkit applied to itself, misfires kept visible:
+
+- A handoff brief recorded **"39 tests passed"** at its own commit anchor;
+  re-running the suite gave **46**. Every required field was present and the
+  form gate was green — the basis was still fiction. A form gate is a floor,
+  never a verdict.
+  ([the kill](docs/feedback/2026-07-14-pick-up-tic-brief-killed-a-claim.md))
+- rigor's own skeptic once returned **2 false refutations out of 4** on a
+  fan-out — caught only because the orchestrator re-ran the gates itself.
+  Verifier verdicts are claims too. ([STATUS](docs/STATUS.md))
+- A multi-agent build that looked like a swarm of cheap specialized workers
+  answered **505 of 505** turns on the expensive orchestrating model — every
+  call was unpinned and silently inherited the session model. Invisible in the
+  run's own artifacts; found by transcript archaeology; now a gate.
+  ([ADR-0006](docs/adr/0006-silent-tier-collapse.md))
+
+## What ships
+
 - **Refute, don't accept** — the one move under everything: recompute from raw
   sources, re-run the real gate, dispatch adversarial skeptics, demand a
   negative control (a probe that would pass either way proves nothing).
