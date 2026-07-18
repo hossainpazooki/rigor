@@ -1,7 +1,7 @@
 # ADR-0006 — Silent tier collapse: an unpinned swarm is Fable doing all the work, and nothing catches it
 
-**Status:** Proposed (2026-07-15) — awaiting operator ratification. Zero plugin surface changed by
-this ADR itself; it documents a gap and proposes the mechanism that closes it.
+**Status:** **Accepted 2026-07-18** — operator ratified the three resolutions in-session and
+resolved both pending calls (addendum below); resolutions 1–3 are **built**. Proposed 2026-07-15.
 
 ## Context
 
@@ -136,6 +136,53 @@ should ship as a small patch to those three files once ratified, not a new skill
 - **Cost.** One ADR now. If ratified: a warning-class addition to one existing gate, a doc change to
   one example script, and a field addition to an existing verdict-log schema — no new skill, no new
   command, no new agent.
+
+## Addendum — 2026-07-18: ratification, re-verification outcome, as built
+
+**Ratification.** The operator ratified the three resolutions in-session and resolved pending
+decision 2: resolution 1 ships as a **separate gate**, `scripts/check-tier-placement.mjs` — not a
+warning class inside `check-fanout.mjs`. (This revises resolution 1's letter — "extend
+`check-fanout.mjs`" — placement only; the check's substance is as proposed.)
+
+**Pending decision 3 resolved — the tic finding was independently re-verified, and the ADR's
+carried mechanism clause did not fully survive.** A judgment-tier skeptic re-derived the claim from
+the raw transcripts (`wf_5e8bf6e5-9df`, session `943d1e81`), and the orchestrator recomputed the
+load-bearing numbers first-hand:
+
+- **Empirical part CONFIRMED, stronger than carried:** all 13 workflow agents, **505/505**
+  assistant-turn model fields `claude-fable-5`, zero `claude-sonnet-5`; the script carried no
+  `model:` anywhere.
+- **Mechanism clause PARTIALLY REFUTED:** the Context sentence "a tier pin engages only when the
+  call explicitly sets `agentType` or `model`" is wrong about `agentType` — 7 of the 13 agents
+  *were* `agentType`-typed (`rigor:integration-runner`, `rigor:skeptic-verifier`) and still
+  answered on the session model, because the agent frontmatter said `model: inherit` until commit
+  `8ba7d8f` (2026-07-07). **`agentType:` is a pin only when the named agent's frontmatter pins
+  `model:`** — so the built gate credits `agentType:` only for agents tier-mapped in
+  `config/models.json` `tier_agents` (`check-tier-sync` enforces the frontmatter agreement). A
+  gate that accepted bare `agentType:` as a pin would have passed the exact script that motivated
+  this ADR.
+- **Scope caveat:** "ran on Fable-5 *throughout*" is literally false across all tic work — the
+  Jun-30 tic workflows answered `claude-opus-4-8`, matching *that* session's model. This is not a
+  counterexample but a second independent demonstration of session-model inheritance.
+- Anchored record: `docs/learnings/2026-07-18-agenttype-is-not-a-tier-pin.md`.
+
+**As built (2026-07-18):**
+
+- Resolution 1: `scripts/check-tier-placement.mjs` + `tests/tier-placement.test.mjs` (12 tests,
+  incl. the agentType regression by name). **Success criterion 1 met against a real collapse, not
+  a synthetic one**: run on the actual tic durability script it goes red with exactly the 3
+  unpinned build-stage calls and no false positive on the two tier-mapped `agentType:` calls;
+  record: `docs/learnings/2026-07-18-tier-pin-gate-red-on-real-collapse.md`.
+- Resolution 2: `fanout-build/example.mjs` now takes tiers from `config/models.json` via
+  `args.tiers` and **halts fail-closed** when `args.tiers.build` is absent; the gate flags
+  hardcoded model literals as a separate warning class. `fanout-build` step 4 documents the
+  pattern.
+- Resolution 3: workers return a `model` receipt field (required in their schemas); receipts are
+  logged `role: "worker"` to the judgment-dispatch verdict log, and `check-dispatch.mjs` lints
+  worker records (missing receipt = fail-closed; `answered != requested` without `downgraded` =
+  silent downgrade). `judgment-dispatch` documents the shared-log shape.
+- **Success criterion 2 remains open** — no real fan-out build has yet run with receipts in place;
+  the next tic/ATLAS build is the test. Criterion 3 untouched (promotion rules unchanged).
 
 ---
 *Related: `orchestrate` (guardrail #11, the rule this mechanizes), `fanout-build` (step 4, the same

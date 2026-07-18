@@ -5,7 +5,8 @@ recommendations. Nothing here changes plugin surface or promotion rules. **Resol
 lifted 2026-07-14:** ADR-0004's pilot was evaluated and settled, so the standing-catalog sweep is
 no longer gated (criterion 2 asked that the unblock itself be a recorded event — this is that
 record). It is *unblocked, not started*: opening it still needs operator ratification of the
-resolutions below.
+resolutions below. **Operator direction 2026-07-18 (addendum at bottom): the WAP workstream
+proceeds against VANTAGE.**
 
 ## Context
 
@@ -165,6 +166,24 @@ evidence.
   2026-07-09, and resolution 3's requirement has fired once, in the origin repo. The
   implemented-vs-planned line in resolution 3 exists so this ADR cannot be quoted as practice.
 - **Cost.** One ADR. Zero surface, zero always-on tokens, zero new gates.
+
+## Addendum — 2026-07-18: operator direction — the WAP workstream uses VANTAGE
+
+Asked to choose between ratify-as-written, amend-and-ship-surface-now, or mechanize resolution 3,
+the operator answered: **"use vantage."** Recorded as direction, honestly scoped:
+
+- The first WAP-shaped firing — the resolution-3 publish-credit rule applied end-to-end (audit
+  green on the candidate, the same audit demonstrably red on a mutated twin, post-publish probe on
+  the consumer path with a paired negative control) — is **designated to VANTAGE**, whose Gate B
+  (Databricks) publish boundary is the natural site. The standing-catalog sweep (resolution 2)
+  likewise targets VANTAGE's catalog when opened.
+- **What this does not change:** VANTAGE is the origin repo for every data-eng skill, so a VANTAGE
+  firing exercises the discipline but cannot serve as the non-origin domain that criterion 1 and
+  resolution 4 gate the bridge doc and promotions on. Those unlocks still wait for a non-origin
+  firing; promotion rules (criterion 3) untouched.
+- The four resolutions themselves remain as proposed; no plugin surface ships from this ADR. The
+  status stays **Proposed with recorded direction** — designating the firing domain is an operator
+  action short of ratifying the resolutions, and this ledger keeps that distinction visible.
 
 ---
 *Related: ADR-0002 (the boundary: judgment, not a universal gate — unchanged here), ADR-0003
