@@ -28,9 +28,21 @@ Run in order; only **Build** and **Verify** fan out.
    verbatim and an explicit ownership line: "you own ONLY <these files>; code
    against the contract, not each other's files." Disjoint ownership is the whole
    game — two agents on one file is the drift hazard. Builders run on the
-   **build tier** (`config/models.json`) — pass it per call (the workflow
-   runtime's per-call model option, live-verified 2026-07-07); don't burn the
-   judgment tier writing code it will later have to judge.
+   **build tier** — an unpinned `agent()` call inherits the SESSION model, so a
+   swarm with no pins silently collapses onto whatever model is orchestrating
+   (silent tier collapse, ADR-0006). Three rules make the tier real:
+   - **Pin every non-verify call** with `model:` — the orchestrator reads the
+     tier from `config/models.json` and passes it via `args` (a workflow script
+     has no filesystem; a hardcoded model literal is drift the gate flags).
+     `agentType:` pins a tier only if that agent's frontmatter pins `model:` —
+     an `inherit` agent still collapses (live-verified 2026-07-18).
+   - **Demand a receipt**: every worker reports the model that actually answered
+     (a `model` field in its schema); a mismatch is a **logged** collapse, never
+     a silent one — record it `role: "worker"` in the run's verdict log
+     (`judgment-dispatch`'s schema; `check-dispatch` lints it).
+   - **Gate the script**: `node scripts/check-tier-placement.mjs <script>`
+     before running it; don't burn the judgment tier writing code it will later
+     have to judge.
 5. **Integrate.** One `integration-runner` runs the **real, named gate** to green
    (build + test + lint + a live probe), fixes only the cross-file drift the
    authors could not (they owned only their files), and returns the **verbatim**

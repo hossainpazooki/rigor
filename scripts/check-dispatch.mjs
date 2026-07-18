@@ -19,13 +19,34 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
  *           inferred_stakes, rubric_criteria_hit, downgraded }
  * config: needs floored_nodes and high_stakes_criteria (config/models.json shape).
  * No fs in the matcher; the caller loads records and config at the CLI boundary.
+ *
+ * Worker receipts (ADR-0006 res 3) share this log, tagged role: "worker":
+ * { role: "worker", node, label?, verifier_model: { requested, answered }, downgraded? }.
+ * Workers have no stakes rubric, so classes 1–3's rubric fields are not required
+ * of them — but the receipt itself is (fail-closed), and class 4 applies as-is:
+ * a worker answering on a model it did not request is a silent tier collapse.
  */
 export function findDispatchViolations(records, config) {
   const floored = config.floored_nodes ?? [];
   const highMarkers = config.high_stakes_criteria ?? [];
   const bad = [];
   for (const r of records) {
-    const id = r.claim ?? r.node ?? '<unidentified record>';
+    const id = r.claim ?? r.label ?? r.node ?? '<unidentified record>';
+
+    if (r.role === 'worker') {
+      const missing = [];
+      if (typeof r.node !== 'string') missing.push('node');
+      if (typeof r.verifier_model?.requested !== 'string') missing.push('verifier_model.requested');
+      if (typeof r.verifier_model?.answered !== 'string') missing.push('verifier_model.answered');
+      if (missing.length) {
+        bad.push({ claim: id, reason: `unlogged worker receipt — missing ${missing.join(', ')}; treated as a silent collapse, fail-closed` });
+        continue;
+      }
+      if (r.verifier_model.answered !== r.verifier_model.requested && r.downgraded !== true) {
+        bad.push({ claim: id, reason: `silent downgrade — worker answered ${r.verifier_model.answered} != requested ${r.verifier_model.requested} without downgraded: true` });
+      }
+      continue;
+    }
 
     // 3. unlogged inference — fail-closed before anything else is judged.
     const missing = [];

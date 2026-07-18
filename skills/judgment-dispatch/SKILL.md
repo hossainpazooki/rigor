@@ -94,6 +94,14 @@ addition; the canonical agent bodies stay untouched. Note the honest limit:
 `answered` is runtime-asserted (read from the subagent's system prompt), not
 API billing metadata.
 
+**Worker receipts share this log** (ADR-0006): build-tier workers append
+`{ role: "worker", node, label, verifier_model: { requested, answered },
+downgraded }` — no stakes rubric (workers aren't judgment nodes), but the
+receipt itself is required fail-closed, and `answered != requested` without
+`downgraded: true` is the same silent-downgrade violation. This is what makes
+a silent tier collapse visible inside the run's own artifact instead of
+requiring post-hoc transcript archaeology.
+
 Before the run's claims are trusted, lint the log:
 
 ```

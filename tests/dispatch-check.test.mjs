@@ -112,6 +112,39 @@ test('a mixed log returns only the bad subset', () => {
   assert.equal(bad[0].claim, 'floored-cheap');
 });
 
+// Worker receipts (ADR-0006 res 3): role: "worker" records share the verdict log.
+// Workers have no stakes rubric — only the receipt is linted, fail-closed.
+const worker = (over = {}) => ({
+  role: 'worker',
+  node: 'fanout-build.build',
+  label: 'build:src/server.go',
+  verifier_model: { requested: 'model-b', answered: 'model-b' },
+  ...over,
+});
+
+test('a worker receipt with matching requested/answered and no rubric fields is clean', () => {
+  assert.deepEqual(findDispatchViolations([worker()], CONFIG), []);
+});
+
+test('a worker answering on a different model than requested without downgraded: true is a silent collapse', () => {
+  const r = worker({ verifier_model: { requested: 'model-b', answered: 'model-j' } });
+  const bad = findDispatchViolations([r], CONFIG);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].reason, /silent downgrade/);
+});
+
+test('a worker record missing its receipt is unlogged, fail-closed', () => {
+  const bad = findDispatchViolations([{ role: 'worker', node: 'fanout-build.build' }], CONFIG);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].reason, /missing .*verifier_model/);
+});
+
+test('a worker record is exempt from verifier-only rubric requirements but not from node identity', () => {
+  const bad = findDispatchViolations([{ role: 'worker', verifier_model: { requested: 'model-b', answered: 'model-b' } }], CONFIG);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].reason, /missing node/);
+});
+
 test('empty log is clean', () => {
   assert.deepEqual(findDispatchViolations([], CONFIG), []);
 });

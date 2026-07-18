@@ -24,10 +24,11 @@ stdlib-only (`node:test`).
 - `hooks/` — `hooks.json` wires two hooks: `git-guard.mjs` (PreToolUse on
   Bash — blocks `git commit`/`git push` and compound git commands) and
   `session-start.mjs` (delivers the toolkit pointer).
-- `scripts/` — 7 check gates (`check-*.mjs`: surface-scrub,
-  citation-fidelity, effect-probe, fanout, dispatch, tier-sync, learnings)
-  plus `extract-tails.mjs`, a non-gate utility whose output stays out of
-  every repo. House style: pure exported matcher, fs only at the CLI boundary.
+- `scripts/` — 8 check gates (`check-*.mjs`: surface-scrub,
+  citation-fidelity, effect-probe, fanout, tier-placement, dispatch,
+  tier-sync, learnings) plus `extract-tails.mjs`, a non-gate utility whose
+  output stays out of every repo. House style: pure exported matcher, fs only
+  at the CLI boundary.
 - `tests/` — `node --test` suite, auto-discovered; green is the merge floor.
 - `config/models.json` — single source of model-tier truth (tiers, floors,
   tier→agent map); two gates enforce agreement with agent frontmatter.
