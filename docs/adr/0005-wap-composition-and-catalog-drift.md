@@ -1,12 +1,11 @@
 # ADR-0005 — WAP is the chassis at pipeline scale, not the conscience; and the catalog drifts
 
-**Status:** Proposed (2026-07-09) — **still awaiting operator review**; the four resolutions remain
-recommendations. Nothing here changes plugin surface or promotion rules. **Resolution 2's blocker
-lifted 2026-07-14:** ADR-0004's pilot was evaluated and settled, so the standing-catalog sweep is
-no longer gated (criterion 2 asked that the unblock itself be a recorded event — this is that
-record). It is *unblocked, not started*: opening it still needs operator ratification of the
-resolutions below. **Operator direction 2026-07-18 (addendum at bottom): the WAP workstream
-proceeds against VANTAGE.**
+**Status:** **Settled (scoped) 2026-07-19** — success criterion 1 satisfied on the operator's
+two-domain basis (addenda 2–3: origin exemplar fired + credited at VANTAGE Gate B; non-origin
+adjudicating firing executed at CLDD's v3 sweep publish, verdict **clarified**); the bridge doc
+is earned and built (`docs/wap-bridge.md` + data-eng skill cross-links). Proposed 2026-07-09;
+operator direction 2026-07-18 (addendum 1). Resolution 2's standing-catalog sweep remains
+**not started** — settlement of the framing does not open it.
 
 ## Context
 
@@ -184,6 +183,59 @@ the operator answered: **"use vantage."** Recorded as direction, honestly scoped
 - The four resolutions themselves remain as proposed; no plugin surface ships from this ADR. The
   status stays **Proposed with recorded direction** — designating the firing domain is an operator
   action short of ratifying the resolutions, and this ledger keeps that distinction visible.
+
+## Addendum 2 — 2026-07-19: operator settlement directive; VANTAGE fired, CLDD designated
+
+Operator directive (in-session goal, 2026-07-19): **settle the WAP framing on two domains — the
+origin exemplar plus one separate, non-origin domain.** Recorded here as the settlement basis:
+
+- **Origin exemplar: FIRED and credited.** VANTAGE Gate B ran resolution 3's three-part rule
+  end-to-end at a genuine external publish boundary (audit green on candidate and published
+  state; same audit red on a mutated twin at exactly the planted count; post-publish
+  consumer-path probe with a pre-publish negative control, `check-effect-probe` clean). Evidence:
+  `vantage/docs/GATE-B-WAP-EVIDENCE.md`; rigor-side record with the orchestrator's own gate
+  re-runs: `docs/feedback/2026-07-19-wap-firing-vantage-origin-gate-b.md`. Origin status
+  unchanged: exemplar, not adjudicator.
+- **Non-origin adjudicating domain: CLDD v3 sweep publish, designated.** The v3 build (spec Rev
+  2.1) built the audit machinery the slot requires — H4 integrity control (seen red on a real
+  defect at the pilot gate before going exactly-zero), byte-identity and column-identity gates,
+  recompute-from-CSV stats — and the 450-run sweep is in flight. The firing applies resolution 3
+  at the sweep-publish boundary; its feedback entry carries criterion 1's clarified-vs-confused
+  verdict.
+- **Settlement lands when the CLDD entry is written** — not before. This addendum authorizes the
+  path; it does not pre-claim the outcome. Promotion rules (criterion 3) remain untouched — the
+  framing settles on the operator's two-domain basis, component promotion does not. *(Scope
+  corrected before publication, same day: the CLDD firing gives `data-quality-fail-closed` its
+  first non-origin domain — the boundary it fired at is a three-outcome fail-closed audit gate.
+  The other three data-eng skills did not genuinely fire at CLDD and gain nothing from it.)*
+
+## Addendum 3 — 2026-07-19: settlement executed; criterion 1 verdict = clarified
+
+The designated non-origin firing ran at CLDD's v3 sweep publish boundary, all three parts of
+resolution 3, orchestrated and re-verified from this session:
+
+1. **Audit green on the candidate:** 450/450 runs, `feedback_sweep_stats.py` exit 0, H4
+   integrity identity ≤ 1e-10 on all 900 checked rows, H1 confirmed / H2–H3 honestly not.
+2. **The same audit demonstrably red on a mutated twin:** +0.001 planted on 11 frozen-arm
+   rows → H4 FAIL at exactly the planted magnitude and severity, exit 1, publication
+   mechanically blocked. Beyond the staged twin, the audit was seen red on **two real
+   defects** during the firing itself: the pilot gate caught a pricing-basis non-additivity
+   (spec Rev 2.1), and the full-matrix gate caught artifact precision below its own tolerance
+   (Rev 2.2 — precision raised, tolerance never loosened).
+3. **Consumer-path probe with negative control:** headline numbers recomputed from the
+   published CSV as a reader would; effect-absent control exits non-zero;
+   `check-effect-probe: clean`.
+
+**Criterion 1 verdict: CLARIFIED** — recorded with its evidence and one honest nuance (the
+"publish" of a research artifact is the operator's commit, so the post-publish probe runs on
+the staged artifact with the commit as the atomic final step) in
+`docs/feedback/2026-07-19-wap-firing-cldd-nonorigin-v3-sweep.md`. The framing's load-bearing
+claim — real WAP supplies the audit *slot*, rigor supplies the *conscience* — was operative,
+not decorative: a producer-authored green-only audit would have shipped both real defects.
+
+**Settled (scoped)** on the operator's directed basis: one origin exemplar + one non-origin
+adjudicating domain, same operator across both (caveat carried). Component promotions are
+untouched; `data-quality-fail-closed` records domain 1 of 2.
 
 ---
 *Related: ADR-0002 (the boundary: judgment, not a universal gate — unchanged here), ADR-0003

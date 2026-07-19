@@ -208,9 +208,10 @@ failure that leaves the pipeline green while the data is wrong:
 Known limit, kept visible on purpose: every check above fires **at a moment**
 — nothing here yet owns re-auditing *standing* published data as upstream
 reality drifts after the publish. That gap is named, not hidden
-([ADR-0005](adr/0005-wap-composition-and-catalog-drift.md), proposed —
-not ratified); the re-audit sweep it proposes stays out of this list until it
-has actually fired.
+([ADR-0005](adr/0005-wap-composition-and-catalog-drift.md), settled (scoped)
+2026-07-19 — the mapping to write-audit-publish is bridged in
+[`wap-bridge.md`](wap-bridge.md)); the re-audit sweep it proposes stays out of
+this list until it has actually fired.
 
 Deliberately **not** shipped: an automated validator that runs these checks
 for you — see ADR-0002 above. The skills ship the attack moves and the

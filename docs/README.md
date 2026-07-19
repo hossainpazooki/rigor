@@ -12,6 +12,7 @@ skimmer-first page and its content moved here.)
 | [`STATUS.md`](STATUS.md) | The component status table — settled vs provisional, misfires kept visible. Tracks the promotion ledger. |
 | [`DEVELOPMENT.md`](DEVELOPMENT.md) | Tests, the 8 check gates, install (marketplace + cross-repo + session-start fallback). |
 | [`adr/`](adr/README.md) | All decisions + the decided-vs-as-built index. |
+| [`wap-bridge.md`](wap-bridge.md) | The earned reader's bridge to write-audit-publish (ADR-0005, settled 2026-07-19): the mapping, the polarity upgrade, both firing records. |
 | [`../AGENTS.md`](../AGENTS.md) | The canonical repo brief: structure, operation, invariants (CLAUDE.md is a stub that imports it, ADR-0003). |
 
 ## Append-only ledgers (immutable entries; corrections are new dated entries)

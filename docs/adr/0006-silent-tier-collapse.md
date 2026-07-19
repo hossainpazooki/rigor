@@ -184,6 +184,17 @@ load-bearing numbers first-hand:
 - **Success criterion 2 remains open** — no real fan-out build has yet run with receipts in place;
   the next tic/ATLAS build is the test. Criterion 3 untouched (promotion rules unchanged).
 
+**2026-07-19 — success criterion 2 ANSWERED YES.** Two independent live runs: (a) VANTAGE's Gate B
+skeptic fan-out (`wf_b9a4cbdb-895`, 5 tier-pinned verifiers) — every `answered:` named the pinned
+tier, `check-dispatch` clean over the run's dispatch log, re-run from this session; (b) rigor's own
+CLDD recon + v3 build fan-outs (16 + 11 agents) — all worker receipts answered the pinned build
+tier, all skeptics the judgment tier. Standing caveat: `build == cheap` in the shipped config, so
+only a judgment-vs-build substitution was observable. One receipt-format defect logged: verifiers
+echo display names (`Fable 5 (claude-fable-5)`) unless the prompt demands the bare id —
+`check-dispatch` then false-positives silent-downgrade; prompt-side fix proven in the later runs,
+gate-side normalization still open. Ledger record:
+`docs/feedback/2026-07-19-wap-firing-vantage-origin-gate-b.md`.
+
 ---
 *Related: `orchestrate` (guardrail #11, the rule this mechanizes), `fanout-build` (step 4, the same
 rule with the worked example), `judgment-dispatch` (the `requested`/`answered` receipt pattern
