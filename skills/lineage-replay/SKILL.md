@@ -24,3 +24,5 @@ reproducibility or replay claim is **executed and diffed**, never asserted.
 
 A "byte-equivalent replay" line in the docs that no test ever re-executes. The
 reproducibility is asserted; the diff never runs.
+
+*Write-audit-publish readers: this skill occupies the **audit slot** of the WAP pattern — the mapping, its polarity upgrade (an audit never seen red on known-bad input is unevaluable, and unevaluable halts), and its honest limits live in the plugin repo at `docs/wap-bridge.md` (ADR-0005).*

@@ -61,7 +61,10 @@ const spike = await agent(
   A.spikePrompt || 'Prove the riskiest unknown builds before any fan-out. If it cannot build, say HALT.',
   { label: 'spike', phase: 'Spike', model: TIERS.build }
 );
-if (/\bHALT\b|cannot build/i.test(String(spike))) { log('spike halted the build'); return { halted: true, spike }; }
+// Affirmative halt markers only: a spike reporting "No HALT" (or echoing the
+// instruction "say HALT") must not trip this — live false-positive 2026-07-19.
+const spikeText = String(spike);
+if (/\bHALT:/.test(spikeText) || /^\s*HALT\b/m.test(spikeText) || /cannot build/i.test(spikeText)) { log('spike halted the build'); return { halted: true, spike }; }
 
 phase('Contract');
 // The single source of truth, prepended verbatim to every build agent.

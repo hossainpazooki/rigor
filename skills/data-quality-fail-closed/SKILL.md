@@ -35,3 +35,5 @@ real; the experiment is self-referential.
 pipeline halted (`refute` moves 1–2: recompute a metric from raw output,
 re-execute the gate). Green means the tests ran; it does not mean the
 unevaluable branch was one of them.
+
+*Write-audit-publish readers: this skill occupies the **audit slot** of the WAP pattern — the mapping, its polarity upgrade (an audit never seen red on known-bad input is unevaluable, and unevaluable halts), and its honest limits live in the plugin repo at `docs/wap-bridge.md` (ADR-0005).*

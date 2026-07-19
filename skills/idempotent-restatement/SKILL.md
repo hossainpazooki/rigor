@@ -26,3 +26,5 @@ must not double-count and must resolve same-key records deterministically.
 A merge that assumes last-writer-wins by arrival order, tested only with distinct
 keys, so the same-key collision path is never executed. The test suite is green
 on the one input distribution that hides the defect.
+
+*Write-audit-publish readers: this skill occupies the **audit slot** of the WAP pattern — the mapping, its polarity upgrade (an audit never seen red on known-bad input is unevaluable, and unevaluable halts), and its honest limits live in the plugin repo at `docs/wap-bridge.md` (ADR-0005).*

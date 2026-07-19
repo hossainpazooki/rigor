@@ -34,3 +34,5 @@ Say "the final transform is order-invariant," not "the load order cannot leak,"
 until a same-key restatement test lands. The stronger claim is unearned until the
 seam is exercised. When the claim is "no lookahead," apply `refute`'s data-claim
 moves — gate-green is not claim-true.
+
+*Write-audit-publish readers: this skill occupies the **audit slot** of the WAP pattern — the mapping, its polarity upgrade (an audit never seen red on known-bad input is unevaluable, and unevaluable halts), and its honest limits live in the plugin repo at `docs/wap-bridge.md` (ADR-0005).*
