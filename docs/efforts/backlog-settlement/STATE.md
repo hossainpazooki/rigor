@@ -3,8 +3,8 @@
 paused: false
 budget: L1 sweep ≤ 150k subagent tokens; recon-scale runs need an explicit operator go, recorded in run-log.jsonl
 governed-by: ../../adr/0004-loop-chassis-rigor-conscience.md (**pilot SETTLED 2026-07-14** — chassis kept) · run log: run-log.jsonl (append-only)
-last-run: 3 (2026-07-14, L2 — ledger-flaw fix + live tic loop probe; 3 promotions, 1 misfire — see run-log.jsonl)
-last-updated: 2026-07-14T14:55:15Z · session 495274ae
+last-run: 3 (2026-07-14, L2 — ledger-flaw fix + live tic loop probe; 3 promotions, 1 misfire — see run-log.jsonl) · run queue added 2026-07-22 (ADR-0008), runs 4–5 queued
+last-updated: 2026-07-22T18:41:46Z · session 10d1e5e1
 
 **This file is a mutable spine, not evidence.** Pick-up refutes it on every entry; the run log
 and `docs/feedback/` entries are the record. Every write here passes `implemented-vs-planned`.
@@ -16,6 +16,31 @@ manufactured to feed this loop** — items move when real work happens in real r
 
 Every provisional rigor component reaches an honest terminal state: settled (evidence), or
 provisional-with-named-gap, or a recorded misfire. Honest negatives count as progress.
+
+## Run queue (planned — consumed top-down by /rigor:fanout-loop, ADR-0008)
+
+Standing authorization for this instantiation, recorded here and in the
+first run-log entry the loop writes: L1 per iteration (≤150k subagent
+tokens), total ceiling 1M, terminate on 2 consecutive dry passes. Queue
+entries are PLANNED work; nothing below is done until its run-log entry
+and gate evidence exist.
+
+1. **Run 4 — adjudication.** (a) Build `check-runlog` red-first (runs 1–3
+   entries as green fixtures, a mutated twin red) BEFORE appending this
+   run's entry — discharges ADR-0004's "mechanize on the 4th" condition;
+   (b) adjudicate RRE PR #16's merge gate for `gate-discipline` domain 2 —
+   did CI actually run the differential harness at merge?; (c) write the
+   ADR-0006 criterion-2 FEEDBACK pointer entry (VANTAGE Gate B receipts);
+   (d) refresh this file's stale backlog rows (dq-fail-closed 1/2;
+   ADR-0005 settled).
+2. **Run 5 — ledger-kit domain 2.** Verify passed-vs-true-demo's and
+   CLDD's ledger adoptions: run `check-learnings` on each ledger,
+   reproduce one entry's quoted basis at its own anchor (the run-2
+   lesson); note pvt-demo's build is RED-by-design pending its re-pin.
+   Credit ledger kit domain 2 (same-operator caveat) or record a misfire.
+
+After the queue drains: sweep mode (derive items from the backlog rows
+below), until dry.
 
 ## Backlog (verified by run 1 2026-07-08; **runs 2–3 2026-07-14** moved the starred rows)
 
