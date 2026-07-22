@@ -26,6 +26,25 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
  * of them — but the receipt itself is (fail-closed), and class 4 applies as-is:
  * a worker answering on a model it did not request is a silent tier collapse.
  */
+/** A receipt matches when answered IS the requested id, or unambiguously contains it
+ * as a whole token (display-name echo). Any other configured tier model also present
+ * makes the receipt ambiguous — fail-closed. Complements, never replaces, the bare-id
+ * prompt discipline (learnings 2026-07-19). */
+export function receiptMatches(requested, answered, config = {}) {
+  const req = (requested ?? '').trim();
+  const ans = (answered ?? '').trim();
+  if (req !== '' && req === ans) return true;
+  const token = (hay, needle) => {
+    const esc = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(^|[^A-Za-z0-9-])${esc}($|[^A-Za-z0-9-])`).test(hay);
+  };
+  if (req === '' || !token(ans, req)) return false;
+  const others = ['judgment', 'mid', 'build', 'cheap']
+    .map((t) => config[t])
+    .filter((m) => typeof m === 'string' && m !== req);
+  return !others.some((m) => token(ans, m));
+}
+
 export function findDispatchViolations(records, config) {
   const floored = config.floored_nodes ?? [];
   const highMarkers = config.high_stakes_criteria ?? [];
@@ -42,7 +61,7 @@ export function findDispatchViolations(records, config) {
         bad.push({ claim: id, reason: `unlogged worker receipt — missing ${missing.join(', ')}; treated as a silent collapse, fail-closed` });
         continue;
       }
-      if (r.verifier_model.answered !== r.verifier_model.requested && r.downgraded !== true) {
+      if (!receiptMatches(r.verifier_model.requested, r.verifier_model.answered, config) && r.downgraded !== true) {
         bad.push({ claim: id, reason: `silent downgrade — worker answered ${r.verifier_model.answered} != requested ${r.verifier_model.requested} without downgraded: true` });
       }
       continue;
@@ -74,7 +93,7 @@ export function findDispatchViolations(records, config) {
     }
 
     // 4. silent downgrade — a substitution is a logged downgrade, never a silent one.
-    if (r.verifier_model.answered !== r.verifier_model.requested && r.downgraded !== true) {
+    if (!receiptMatches(r.verifier_model.requested, r.verifier_model.answered, config) && r.downgraded !== true) {
       bad.push({ claim: id, reason: `silent downgrade — answered ${r.verifier_model.answered} != requested ${r.verifier_model.requested} without downgraded: true` });
     }
   }

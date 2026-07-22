@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { findDispatchViolations, parseVerdictLog } from '../scripts/check-dispatch.mjs';
+import { findDispatchViolations, parseVerdictLog, receiptMatches } from '../scripts/check-dispatch.mjs';
 
 const CONFIG = {
   judgment: 'model-j',
@@ -179,6 +179,38 @@ test('a worker record is exempt from verifier-only rubric requirements but not f
   const bad = findDispatchViolations([{ role: 'worker', verifier_model: { requested: 'model-b', answered: 'model-b' } }], CONFIG);
   assert.equal(bad.length, 1);
   assert.match(bad[0].reason, /missing node/);
+});
+
+// Gate-side receipt normalization (ADR-0006 open item; learnings 2026-07-19-receipt-
+// answered-needs-bare-model-id): display-name echoes that CONTAIN the requested id are
+// not downgrades; anything ambiguous or genuinely different still fails closed.
+test('a worker display-name echo containing the requested id is not a downgrade', () => {
+  const r = worker({ verifier_model: { requested: 'model-b', answered: 'Builder 5 (model-b)' } });
+  assert.deepEqual(findDispatchViolations([r], CONFIG), []);
+});
+
+test('a verifier display-name echo containing the requested id is not a downgrade', () => {
+  const r = clean({ verifier_model: { requested: 'model-j', answered: 'Judgment 5 (model ID: model-j)' } });
+  assert.deepEqual(findDispatchViolations([r], CONFIG), []);
+});
+
+test('normalization never matches an extended id (token boundary, not substring)', () => {
+  assert.equal(receiptMatches('model-j', 'model-j2', CONFIG), false);
+  assert.equal(receiptMatches('model-j', 'model-j-mini', CONFIG), false);
+});
+
+test('a display echo of the WRONG id is still a downgrade', () => {
+  const r = worker({ verifier_model: { requested: 'model-b', answered: 'Judgment 5 (model-j)' } });
+  const bad = findDispatchViolations([r], CONFIG);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].reason, /silent downgrade/);
+});
+
+test('an answered echoing a second configured model is ambiguous — fail-closed', () => {
+  const r = clean({ verifier_model: { requested: 'model-j', answered: 'model-j (fallback: model-c)' } });
+  const bad = findDispatchViolations([r], CONFIG);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].reason, /silent downgrade/);
 });
 
 test('empty log is clean', () => {
