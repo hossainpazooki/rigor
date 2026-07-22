@@ -25,7 +25,7 @@ reach kept visible.
 | `data-quality-fail-closed` | skill | provisional — **first non-origin domain 2026-07-19** (a three-outcome fail-closed audit at a real publish boundary, seen red on a staged twin and on two real defects; 1 of the ≥2 promotion needs; same-operator caveat) |
 | `no-lookahead`, `idempotent-restatement`, `lineage-replay` | skills | provisional — built 2026-07-02, still **origin-only** (the 2026-07-19 origin-repo publish firing exercised `no-lookahead`'s A1 check red-on-twin but counts toward nothing) |
 | `judgment-dispatch` | skill | provisional — built 2026-07-07; its frontmatter pin mechanism is live-verified (non-vacuous probe, [plan](plans/2026-07-07-judgment-dispatch-plan.md)), but no independent domain has run through the rubric yet |
-| `integration-runner`, `repo-cartographer`, `skeptic-verifier-fast` | agents | provisional (`skeptic-verifier-fast` shares the settled canonical body, but its cheap-tier verdict quality is unproven) |
+| `integration-runner`, `repo-cartographer`, `skeptic-verifier-fast` | agents | provisional (`skeptic-verifier-fast` shares the settled canonical body, but its below-judgment verdict quality is unproven — never dispatched on either its former cheap-tier pin or its 2026-07-22 mid-tier repin) |
 | all 7 commands, both hooks, all 8 check scripts | commands / hooks / gates | provisional (`check-citation-fidelity` carries a logged limit: insufficient for numeric provenance; `check-tier-placement` built 2026-07-18, non-vacuity verified red on a real collapsed run, no independent domain yet) |
 
 The misfires stay in the table on purpose — a verification toolkit that hides

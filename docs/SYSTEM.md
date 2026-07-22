@@ -63,20 +63,22 @@ exactly what you don't want to spend on a lint note. rigor already separates
 cross-checks) from **mechanical nodes** (the deterministic `check-*` gates,
 which need no model at all). `judgment-dispatch` finishes the thought: which
 model runs a judgment node is an architectural decision enforced by a gate,
-not a per-call accident. Verifiers route across two tiers — a premium
-**judgment tier** (shipped default: Claude Fable 5) and a **cheap tier**
-(shipped default: Claude Sonnet 5) — via an explicit stakes rubric the
-orchestrator must apply *and log* before every dispatch. Workers get a third
-lane: builders, the integration closer, and mappers run on the **build tier**
-(also Sonnet 5 by default) — the judgment tier is never spent writing the code
-it will later have to judge.
+not a per-call accident. Verifiers route across a tier ladder — a premium
+**judgment tier** (shipped default: Claude Fable 5) and a **mid tier**
+(shipped default: Claude Opus 4.8) for routine verification, with a `cheap`
+rung kept in config as the terminal fallback — via an explicit stakes rubric
+the orchestrator must apply *and log* before every dispatch. Workers get their
+own lanes: builders and mappers run on the **build tier** (Claude Sonnet 5 by
+default); the integration closer and a delegated contract author run the
+**mid tier** (judgment-adjacent work) — the judgment tier is never spent
+writing the code it will later have to judge.
 
 ```mermaid
 flowchart LR
     C["claim to verify"] --> RB{"stakes rubric<br/>irreversibility · blast radius ·<br/>downstream decisions · refutation history"}
     RB -->|"high — or a floored node,<br/>which skips inference entirely"| J["judgment tier<br/>skeptic-verifier · effect-prober"]
-    RB -->|medium| M["judgment-tier primary skeptic<br/>+ cheap-tier extra votes"]
-    RB -->|low| CH["cheap tier<br/>skeptic-verifier-fast"]
+    RB -->|medium| M["judgment-tier primary skeptic<br/>+ mid-tier extra votes"]
+    RB -->|low| CH["mid tier<br/>skeptic-verifier-fast"]
     J & M & CH --> L["per-run verdict log<br/>criteria hit · tier · requested vs answered model"]
     L --> CD{"check-dispatch<br/>fail-closed"}
     CD -->|clean| OK["verdicts trusted —<br/>you still re-run one check yourself"]
@@ -97,8 +99,8 @@ exactly where the strong skeptic matters most. Three mechanical answers:
 
 - **The inference is itself a logged, refutable claim.** Every dispatch
   records which rubric criteria fired; `check-dispatch` fails closed on an
-  unlogged one, and a high-stakes marker paired with a cheap-tier verifier is
-  flagged even when the declared stakes say "low".
+  unlogged one, and a high-stakes marker paired with a below-judgment verifier
+  is flagged even when the declared stakes say "low".
 - **Floors are beyond inference's reach.** Floored nodes —
   `verify-the-effect`'s verdict cross-check, the pre-publish honesty check —
   always get the judgment tier, listed in `config/models.json` and enforced by
