@@ -18,7 +18,7 @@ stdlib-only (`node:test`).
   no-lookahead, idempotent-restatement, lineage-replay).
 - `commands/` — 7 slash commands (`/rigor:verify-claim`, `honesty-check`,
   `recon`, `fanout`, `verify-effect`, `handoff`, `pickup`).
-- `agents/` — 5 subagents: skeptic-verifier (+ `-fast` cheap-tier variant,
+- `agents/` — 5 subagents: skeptic-verifier (+ `-fast` mid-tier variant,
   body byte-identical by gate), effect-prober, integration-runner,
   repo-cartographer. `model:` frontmatter is pinned per tier.
 - `hooks/` — `hooks.json` wires two hooks: `git-guard.mjs` (PreToolUse on

@@ -8,15 +8,17 @@ status: provisional
 
 Which model runs a judgment node is an architectural decision, not a per-call
 accident. rigor's judgment nodes (adversarial verification) run on the
-**judgment tier**; routine verification can run on the **cheap tier**. The
-tier → model mapping lives in exactly two places — `config/models.json` and the
-agent variants' frontmatter — never in prose. `check-tier-sync` enforces that
-the two places agree.
+**judgment tier**; routine verification runs on the **mid tier** (a `cheap`
+rung stays in config as the terminal fallback, currently with no agent mapped
+to it). The tier → model mapping lives in exactly two places —
+`config/models.json` and the agent variants' frontmatter — never in prose.
+`check-tier-sync` enforces that the two places agree.
 
-Workers are not judgment nodes. Builders, the integration closer, and mappers
-run on the **build tier** (`orchestrate` guardrail #11, `fanout-build` step 4)
-— this rubric governs only who *verifies*, and a worker never inherits the
-judgment tier just because the session model is expensive. The claims workers
+Workers are not judgment nodes. Builders and mappers run on the **build
+tier** (`orchestrate` guardrail #11, `fanout-build` step 4); the integration
+closer runs on the **mid tier** (judgment-adjacent work — see `fanout-build`
+step 5) — this rubric governs only who *verifies*, and a worker never
+inherits the judgment tier just because the session model is expensive. The claims workers
 produce still route through the rubric below.
 
 **The hazard this skill exists to contain:** stakes are inferred by the
@@ -50,11 +52,11 @@ Stakes derive mechanically from the hits:
 1. **Every dispatch logs which rubric criteria fired.** The inference is a
    claim; it must be refutable like any other. A dispatch with no logged
    inference is treated as **high-stakes, fail-closed** — `check-dispatch`
-   flags missing dispatch fields, and an unlogged cheap-tier dispatch never
-   passes the gate.
+   flags missing dispatch fields, and an unlogged below-judgment dispatch
+   never passes the gate.
 2. **Inference governs the middle band only.** What inferred stakes may
    modulate: skeptic *count*, and whether `refute` move 3 escalates from the
-   cheap tier to the judgment tier. What it may never touch: floored nodes.
+   mid tier to the judgment tier. What it may never touch: floored nodes.
    `floored_nodes` in `config/models.json` (ships with
    `verify-the-effect.verdict-cross-check` and `honesty-check.pre-publish`)
    always dispatch judgment tier regardless of inferred stakes — enforced
@@ -65,8 +67,8 @@ Stakes derive mechanically from the hits:
 | Inferred stakes | Verifier variant | Skeptic count (guide) |
 |---|---|---|
 | high (or floored node) | judgment tier — `skeptic-verifier` / `effect-prober` | 2–3 |
-| medium | judgment tier for the primary skeptic; cheap tier (`skeptic-verifier-fast`) for additional votes | 1–2 |
-| low | cheap tier — `skeptic-verifier-fast` | 1 |
+| medium | judgment tier for the primary skeptic; mid tier (`skeptic-verifier-fast`) for additional votes | 1–2 |
+| low | mid tier — `skeptic-verifier-fast` | 1 |
 
 Dispatch goes through the Workflow tool per `orchestrate` — never ad-hoc.
 
@@ -80,7 +82,7 @@ violations. Fields, on top of the verifier's own verdict:
 | Field | Meaning |
 |---|---|
 | `node` | The judgment node dispatched (e.g. `refute.move-3`, `verify-the-effect.verdict-cross-check`) — matched against `floored_nodes`. |
-| `dispatch_tier` | `"judgment"` \| `"cheap"` — the tier the rubric selected. |
+| `dispatch_tier` | `"judgment"` \| `"mid"` \| `"cheap"` — the tier the rubric selected. |
 | `verifier_model` | `{ requested, answered }` — the pinned model and the model that actually answered. A routing substitution is thereby a **logged** downgrade, never silent. |
 | `inferred_stakes` | `"low"` \| `"medium"` \| `"high"`. |
 | `rubric_criteria_hit` | Array of criterion ids from the rubric above. |
@@ -94,7 +96,7 @@ addition; the canonical agent bodies stay untouched. Note the honest limit:
 `answered` is runtime-asserted (read from the subagent's system prompt), not
 API billing metadata.
 
-**Worker receipts share this log** (ADR-0006): build-tier workers append
+**Worker receipts share this log** (ADR-0006): workers (build or mid tier) append
 `{ role: "worker", node, label, verifier_model: { requested, answered },
 downgraded }` — no stakes rubric (workers aren't judgment nodes), but the
 receipt itself is required fail-closed, and `answered != requested` without

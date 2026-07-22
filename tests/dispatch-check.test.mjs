@@ -4,6 +4,7 @@ import { findDispatchViolations, parseVerdictLog } from '../scripts/check-dispat
 
 const CONFIG = {
   judgment: 'model-j',
+  mid: 'model-m',
   cheap: 'model-c',
   floored_nodes: ['verify-the-effect.verdict-cross-check', 'honesty-check.pre-publish'],
   high_stakes_criteria: ['irreversibility', 'blast-radius'],
@@ -32,6 +33,41 @@ test('a low-stakes cheap-tier dispatch is clean', () => {
     rubric_criteria_hit: [],
   });
   assert.deepEqual(findDispatchViolations([r], CONFIG), []);
+});
+
+test('a medium-stakes mid-tier extra vote is clean', () => {
+  const r = clean({
+    dispatch_tier: 'mid',
+    verifier_model: { requested: 'model-m', answered: 'model-m' },
+    inferred_stakes: 'medium',
+    rubric_criteria_hit: ['downstream-decisions'],
+  });
+  assert.deepEqual(findDispatchViolations([r], CONFIG), []);
+});
+
+test('inferred high stakes on the mid tier is still the fox-and-henhouse case', () => {
+  const r = clean({
+    dispatch_tier: 'mid',
+    verifier_model: { requested: 'model-m', answered: 'model-m' },
+    inferred_stakes: 'high',
+    rubric_criteria_hit: ['irreversibility'],
+  });
+  const bad = findDispatchViolations([r], CONFIG);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].reason, /high-stakes dispatch on the mid tier/);
+});
+
+test('a floored node on the mid tier is still a floor violation', () => {
+  const r = clean({
+    node: 'honesty-check.pre-publish',
+    dispatch_tier: 'mid',
+    verifier_model: { requested: 'model-m', answered: 'model-m' },
+    inferred_stakes: 'low',
+    rubric_criteria_hit: [],
+  });
+  const bad = findDispatchViolations([r], CONFIG);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].reason, /floored node honesty-check.pre-publish dispatched below judgment tier/);
 });
 
 test('seed 1a: inferred high stakes on the cheap tier is the fox-and-henhouse case', () => {

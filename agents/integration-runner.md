@@ -2,7 +2,7 @@
 name: integration-runner
 description: End-of-build closer. Runs the project's real test/validate pipeline and iterates until it is genuinely green, then reports the evidence instead of self-certifying. Use as the terminal step of a multi-file build or workflow, or whenever something claims to be "done" and the actual gate hasn't been run.
 tools: Read, Grep, Glob, Bash, Edit
-model: claude-sonnet-5
+model: claude-opus-4-8
 status: provisional
 ---
 

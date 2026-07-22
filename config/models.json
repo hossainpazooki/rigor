@@ -1,15 +1,16 @@
 {
   "judgment": "claude-fable-5",
+  "mid": "claude-opus-4-8",
   "build": "claude-sonnet-5",
   "cheap": "claude-sonnet-5",
-  "fallback_order": ["judgment", "build", "cheap"],
+  "fallback_order": ["judgment", "mid", "build", "cheap"],
   "floored_nodes": ["verify-the-effect.verdict-cross-check", "honesty-check.pre-publish"],
   "high_stakes_criteria": ["irreversibility", "blast-radius"],
   "tier_agents": {
     "skeptic-verifier": "judgment",
-    "skeptic-verifier-fast": "cheap",
+    "skeptic-verifier-fast": "mid",
     "effect-prober": "judgment",
-    "integration-runner": "build",
+    "integration-runner": "mid",
     "repo-cartographer": "build"
   },
   "synced_bodies": [["skeptic-verifier", "skeptic-verifier-fast"]]

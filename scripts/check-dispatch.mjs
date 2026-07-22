@@ -10,7 +10,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
  * Four violation classes, per the design (docs/specs/2026-07-05-judgment-dispatch-design.md):
  *
  *   1. fox-and-henhouse — a high-stakes dispatch (inferred_stakes: "high", or any
- *      rubric marker from config.high_stakes_criteria) ran on the cheap tier.
+ *      rubric marker from config.high_stakes_criteria) ran below the judgment tier.
  *   2. floor violation — a node in config.floored_nodes dispatched below judgment tier.
  *   3. unlogged inference — missing dispatch fields; treated as high-stakes, fail-closed.
  *   4. silent downgrade — verifier_model.answered != requested without downgraded: true.
@@ -51,7 +51,7 @@ export function findDispatchViolations(records, config) {
     // 3. unlogged inference — fail-closed before anything else is judged.
     const missing = [];
     if (typeof r.node !== 'string') missing.push('node');
-    if (r.dispatch_tier !== 'judgment' && r.dispatch_tier !== 'cheap') missing.push('dispatch_tier');
+    if (!['judgment', 'mid', 'cheap'].includes(r.dispatch_tier)) missing.push('dispatch_tier');
     if (!['low', 'medium', 'high'].includes(r.inferred_stakes)) missing.push('inferred_stakes');
     if (!Array.isArray(r.rubric_criteria_hit)) missing.push('rubric_criteria_hit');
     if (typeof r.verifier_model?.requested !== 'string') missing.push('verifier_model.requested');
@@ -65,7 +65,7 @@ export function findDispatchViolations(records, config) {
     const markersHit = r.rubric_criteria_hit.filter((c) => highMarkers.includes(c));
     if (r.dispatch_tier !== 'judgment' && (r.inferred_stakes === 'high' || markersHit.length)) {
       const why = r.inferred_stakes === 'high' ? 'inferred_stakes: high' : `high-stakes markers hit: ${markersHit.join(', ')}`;
-      bad.push({ claim: id, reason: `high-stakes dispatch on the cheap tier (${why})` });
+      bad.push({ claim: id, reason: `high-stakes dispatch on the ${r.dispatch_tier} tier (${why})` });
     }
 
     // 2. floor violation — floors ignore inference entirely.

@@ -20,7 +20,9 @@ Run in order; only **Build** and **Verify** fan out.
    fails, **halt**; do not let build agents diverge on an unbuildable base.
 2. **Contract.** One read-only agent produces the **single source of truth**: the
    exact types, signatures, file→owner map, and reuse points every build agent
-   codes against. Emit it as a structured schema.
+   codes against. Emit it as a structured schema. When delegated, this agent
+   earns the **mid tier** — a wrong contract is the most expensive defect a
+   fan-out can produce.
 3. **Scaffold.** One agent owns the **shared files** (manifests, shared types,
    module wiring) and makes the project **compile** with stubbed bodies — so the
    parallel build agents never touch a shared declaration.
@@ -47,7 +49,9 @@ Run in order; only **Build** and **Verify** fan out.
    (build + test + lint + a live probe), fixes only the cross-file drift the
    authors could not (they owned only their files), and returns the **verbatim**
    command output — evidence, not a self-certification. It's a worker, not a
-   judgment node: build tier (its frontmatter pins it).
+   judgment node — but judgment-adjacent (diagnosing cross-file drift without
+   weakening an assertion), so it runs the **mid tier**, not a builder's
+   (its frontmatter pins it).
 6. **Verify (fan out).** `skeptic-verifier`s refute the **load-bearing claim** —
    one per claim, default refuted unless proven, recomputing from raw output.
    Verifier tier is `judgment-dispatch`'s call, not the builder's — the claim
