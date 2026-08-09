@@ -23,6 +23,7 @@ evidence.
 | Date | Entry | Topic / next step |
 |---|---|---|
 | 2026-07-15 | [2026-07-15-rigor-loop-engineering-conclusion.md](2026-07-15-rigor-loop-engineering-conclusion.md) | Session conclusion — ledger kit + ADR-0004 pilot settled + ADR status index + ADR-0006 proposed. Next: ratify ADR-0005/0006, re-verify the tic-Fable-throughout claim before building ADR-0006 resolution 1 |
+| 2026-07-22 | [2026-07-22-fanout-loop-first-iterations.md](2026-07-22-fanout-loop-first-iterations.md) | Mid tier (ADR-0007) + fanout-loop (ADR-0008) built; runs 4–5 executed — two honest negatives, kit misfire #2, loop HALTED on budget breach. Next: three operator decisions (budget policy, cldd serialization, commit pvt-demo ledger), then sweep mode |
 
 Prior sessions' briefs live in `~/dev/briefs/`, the pre-ADR local convention, which remains the
 fallback for genuinely multi-repo sessions.
