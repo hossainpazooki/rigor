@@ -17,7 +17,9 @@ export const meta = {
 }
 
 // args: { tiers, spikePrompt, contractPrompt, scaffoldPrompt, files:[{path,prompt}], gate, claims:[...] }
-const A = args || {};
+// args can arrive JSON-ENCODED as a string; without the parse, args.tiers is
+// undefined and the tier pins silently vanish (live failure, run 4 2026-07-22).
+const A = (typeof args === 'string' ? JSON.parse(args) : args) || {};
 
 // Tiers are read from config/models.json by the ORCHESTRATOR and passed via args —
 // a workflow script has no filesystem, and an unpinned agent() call inherits the
