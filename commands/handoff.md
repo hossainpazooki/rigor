@@ -30,8 +30,17 @@ brief, curate the session's surviving non-obvious findings — one fact per
 `YYYY-MM-DD-<topic>.md` file — each carrying the required record fields:
 `ts:` (RFC 3339 UTC), `commit:`, `session:` (transcript pointer), `status:`
 (`verified` | `refuted-assumption` | `suspected`), `fact:`, `basis:` (the
-command and its output, quoted), `re-verify:` (one executable line). Append a
-pointer row per entry to `docs/learnings/LEARNINGS.md`.
+command and its output, quoted), `re-verify:` (one executable line — and it
+must be READ-ONLY: a verifier will execute it). Append a pointer row per entry
+to `docs/learnings/LEARNINGS.md`.
+
+**Emit each field label as plain lowercase text at the start of its line** —
+`fact: …`, never `**fact:**` or other markdown dress. The form gate tolerates
+bulleted, backticked, and bold labels (so adopters' entries are judged on
+substance), but the writer emits the bare canonical form: every serialization
+flourish is a future gate-dialect mismatch waiting to happen (13
+substance-complete entries once failed a repo's gate on bold labels alone).
+The `status:` VALUE is strictly one of the three words — no qualifiers.
 
 **Anchor each entry to the moment its basis was captured, not to the moment
 you write it.** `ts:` is when the finding *landed* and `commit:` is what HEAD
