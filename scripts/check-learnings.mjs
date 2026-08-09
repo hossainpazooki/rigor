@@ -20,15 +20,20 @@ import { pathToFileURL } from 'node:url';
  * changes — [{status, file}] from git name-status vs HEAD for the folder
  */
 const ENTRY_NAME = /^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*\.md$/;
+// A label may be bare, bulleted, backticked, or bold (`**fact:**` — the dialect
+// that failed 13 substance-complete cldd entries, run 5 2026-07-22). The gate
+// judges substance; serialization variants of the label are all one dialect.
+const LABEL = (name) => `^(?:- )?(?:\\*\\*)?\`?${name}:\`?(?:\\*\\*)?`;
 const REQUIRED = [
-  ['ts', /^(?:- )?`?ts:`?\s*\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\s*$/m],
-  ['commit', /^(?:- )?`?commit:`?\s*\S+/m],
-  ['session', /^(?:- )?`?session:`?\s*\S+/m],
-  ['status', /^(?:- )?`?status:`?\s*(?:verified|refuted-assumption|suspected)\s*$/m],
-  ['fact', /^(?:- )?`?fact:`?\s*\S/m],
-  ['basis', /^(?:- )?`?basis:`?/m],
-  ['re-verify', /^(?:- )?`?re-verify:`?\s*\S/m],
+  ['ts', new RegExp(LABEL('ts') + String.raw`\s*\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\s*$`, 'm')],
+  ['commit', new RegExp(LABEL('commit') + String.raw`\s*\S+`, 'm')],
+  ['session', new RegExp(LABEL('session') + String.raw`\s*\S+`, 'm')],
+  ['status', new RegExp(LABEL('status') + String.raw`\s*(?:verified|refuted-assumption|suspected)\s*$`, 'm')],
+  ['fact', new RegExp(LABEL('fact') + String.raw`\s*\S`, 'm')],
+  ['basis', new RegExp(LABEL('basis'), 'm')],
+  ['re-verify', new RegExp(LABEL('re-verify') + String.raw`\s*\S`, 'm')],
 ];
+const TS_VALUE = new RegExp(LABEL('ts') + String.raw`\s*(\S+)`, 'm');
 
 export function findLedgerViolations({ entries, index, changes = [] }) {
   const bad = [];
@@ -47,7 +52,7 @@ export function findLedgerViolations({ entries, index, changes = [] }) {
     for (const [field, re] of REQUIRED) {
       if (!re.test(e.content)) bad.push({ file: e.file, reason: `missing or malformed required field: ${field}` });
     }
-    const ts = (e.content.match(/^(?:- )?`?ts:`?\s*(\S+)/m) || [])[1] ?? '';
+    const ts = (e.content.match(TS_VALUE) || [])[1] ?? '';
     // The entry's capture instant must fall on the date its filename claims. This is the real
     // anchor-consistency invariant; a cross-entry "monotonic ts" rule is NOT — within one date,
     // filenames sort by topic alphabetically, not by capture time, so two same-day findings

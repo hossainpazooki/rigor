@@ -49,6 +49,35 @@ test('bullet-prefixed fields are accepted', () => {
   assert.deepEqual(findLedgerViolations({ entries: [entry(NAME, content)], index: indexWith(NAME) }), []);
 });
 
+test('bold-label fields are accepted — the cldd dialect (kit misfire #2)', () => {
+  // 13 substance-complete entries failed the gate on `**fact:**` serialization
+  // alone (run 5, 2026-07-22). Substance-complete must not fail on typography.
+  const content = GOOD.replace(/^(ts|commit|session|status|fact|basis|re-verify):/gm, '**$1:**');
+  assert.deepEqual(findLedgerViolations({ entries: [entry(NAME, content)], index: indexWith(NAME) }), []);
+});
+
+test('bulleted bold-label fields are accepted', () => {
+  const content = GOOD.replace(/^(ts|commit|session|status|fact|basis|re-verify):/gm, '- **$1:**');
+  assert.deepEqual(findLedgerViolations({ entries: [entry(NAME, content)], index: indexWith(NAME) }), []);
+});
+
+test('a bold-label ts still participates in the date-consistency check', () => {
+  const f = '2026-07-12-topic.md';
+  const content = GOOD
+    .replace(/^(ts|commit|session|status|fact|basis|re-verify):/gm, '**$1:**')
+    .replace('2026-07-12T15:00:00Z', '2026-07-10T09:00:00Z');
+  const bad = findLedgerViolations({ entries: [entry(f, content)], index: indexWith(f) });
+  assert.deepEqual(bad, [{ file: f, reason: 'ts 2026-07-10T09:00:00Z does not fall on the date in its filename (2026-07-12)' }]);
+});
+
+test('bold does not smuggle in a bad status value', () => {
+  const content = GOOD
+    .replace(/^(ts|commit|session|status|fact|basis|re-verify):/gm, '**$1:**')
+    .replace('verified', 'done');
+  const bad = findLedgerViolations({ entries: [entry(NAME, content)], index: indexWith(NAME) });
+  assert.deepEqual(bad, [{ file: NAME, reason: 'missing or malformed required field: status' }]);
+});
+
 test('a bad filename is flagged and field checks are skipped for it', () => {
   const bad = findLedgerViolations({ entries: [entry('notes_07-12-2026.md', 'no fields')], index: '' });
   assert.deepEqual(bad, [{ file: 'notes_07-12-2026.md', reason: 'filename must be YYYY-MM-DD-<topic>.md (lowercase, hyphens)' }]);
