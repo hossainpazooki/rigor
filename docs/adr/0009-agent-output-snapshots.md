@@ -1,7 +1,10 @@
 # ADR-0009 — Snapshots ledger: verbatim agent-output exhibits
 
-**Status:** Proposed (2026-08-02). Not ratified; per the index rule, do not quote
-these resolutions as practice.
+**Status:** **Accepted 2026-08-18** (Proposed 2026-08-02). Pending decision 1 is
+resolved by the ADR's own strict reading: **no backfill** — the folder starts
+empty everywhere, including the motivating tic report. Pending decisions 2–3
+(run-log citations; gate placement) are deferred to build time and remain open;
+nothing is built yet.
 
 ## Context
 
@@ -32,7 +35,7 @@ of raw agent output sitting beside two refutation-grounded ledgers will, over
 time, get read as a third ledger of facts. Any design that does not make
 exhibit-status structural is worse than the status quo.
 
-## Decision (proposed)
+## Decision
 
 Add a third folder to the ADR-0003 kit: **`docs/snapshots/`** — dated,
 immutable, *verbatim* agent-output exhibits, plus a pointer-only
