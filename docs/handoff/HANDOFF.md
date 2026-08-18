@@ -24,6 +24,7 @@ evidence.
 |---|---|---|
 | 2026-07-15 | [2026-07-15-rigor-loop-engineering-conclusion.md](2026-07-15-rigor-loop-engineering-conclusion.md) | Session conclusion — ledger kit + ADR-0004 pilot settled + ADR status index + ADR-0006 proposed. Next: ratify ADR-0005/0006, re-verify the tic-Fable-throughout claim before building ADR-0006 resolution 1 |
 | 2026-07-22 | [2026-07-22-fanout-loop-first-iterations.md](2026-07-22-fanout-loop-first-iterations.md) | Mid tier (ADR-0007) + fanout-loop (ADR-0008) built; runs 4–5 executed — two honest negatives, kit misfire #2, loop HALTED on budget breach. Next: three operator decisions (budget policy, cldd serialization, commit pvt-demo ledger), then sweep mode |
+| 2026-08-18 | [2026-08-18-three-extensions-adrs-and-learn-loop.md](2026-08-18-three-extensions-adrs-and-learn-loop.md) | Three extension ADRs proposed (0010 LEARN loop, 0011 verifier calibration, 0012 re-audit sweep); LEARN loop built ahead of ratification — skill + `check-misfire-closure` (3 outcomes, 21 tests) + empty closure ledger + self-application audit (5 pinned / 0 declined / 8 open). Next: four operator decisions — ratify 0010, 0011's demotion scope, the 0012/ADR-0005 go, and how a committed run-log entry gets corrected |
 
 Prior sessions' briefs live in `~/dev/briefs/`, the pre-ADR local convention, which remains the
 fallback for genuinely multi-repo sessions.
