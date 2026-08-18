@@ -25,8 +25,13 @@ steps in order; halting early is a recorded outcome, not a failure.
    only a gate re-run moves a status.
 5. **Ledger writes.** Append the run to `run-log.jsonl` (the first entry
    this loop writes records the standing L1 authorization and the
-   instantiation's total token ceiling); refresh STATE.md through
-   `implemented-vs-planned`; write dated feedback entries for real firings.
+   instantiation's total token ceiling), then **gate what you just wrote**:
+   run `node scripts/check-runlog.mjs <effort>/run-log.jsonl` and fix the
+   record until it is clean before emitting commit commands — the gate, not
+   memory, owns the field dialect. A committed entry is never edited; a
+   correction is a new record carrying `supersedes: <run>` and the same run
+   number. Refresh STATE.md through `implemented-vs-planned`; write dated
+   feedback entries for real firings.
 6. **Emit commit commands** for the operator. Never write git history.
 7. **Terminate or continue.** End the loop (tell the host loop to stop) on:
    two consecutive dry passes, the instantiation's total ceiling, or

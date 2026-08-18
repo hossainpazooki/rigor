@@ -8,47 +8,79 @@ import { pathToFileURL } from 'node:url';
  * core every hand-validated entry shares: required fields, parseable capture-time
  * timestamps in order, a numeric budget spend, +1 monotonic run numbering, and a
  * non-empty re-verify pointer ('re-verify', or run 1's legacy 'reverify').
+ *
+ * Supersession (ADR-0004 amendment 2026-08-18, operator ruling): a committed entry is
+ * never edited — a correction is a NEW record carrying `supersedes: N` and the same
+ * `run: N` as the record it corrects. The superseding record must pass every check
+ * itself; the superseded record(s) are skipped for field checks but keep anchoring the
+ * +1 numbering chain. Append-only and a strict schema both survive.
+ *
  * HONEST LIMIT: form only — it cannot verify a basis is genuine (see the 2026-07-14
  * learnings entry: a form gate is a floor, never a verdict).
  */
 export function findRunlogViolations(records) {
   const bad = [];
+
+  // Supersession pre-pass: resolve which earlier records are corrected before
+  // validating fields, so a corrected entry's stale dialect no longer fails the file.
+  const superseded = new Set();
+  records.forEach((r, i) => {
+    if (r?.supersedes === undefined) return;
+    const id = `run ${r?.run ?? '<unnumbered>'}`;
+    if (!Number.isInteger(r.supersedes) || r.supersedes < 1) {
+      bad.push({ entry: id, reason: 'supersedes must be a positive run number' });
+      return;
+    }
+    if (r.run !== r.supersedes) {
+      bad.push({ entry: id, reason: `supersedes ${r.supersedes} but carries run ${r.run} — a correction keeps the number of the run it corrects` });
+    }
+    let found = false;
+    for (let j = 0; j < i; j++) {
+      if (records[j]?.run === r.supersedes) { superseded.add(j); found = true; }
+    }
+    if (!found) bad.push({ entry: id, reason: `supersedes run ${r.supersedes}, but no earlier record carries that number` });
+  });
+
   let prevRun = null;
-  for (const r of records) {
+  records.forEach((r, idx) => {
     const id = `run ${r?.run ?? '<unnumbered>'}`;
 
-    const missing = [];
-    if (!Number.isInteger(r.run) || r.run < 1) missing.push('run');
-    for (const f of ['kind', 'session', 'rigor_commit']) {
-      if (typeof r[f] !== 'string' || r[f].trim() === '') missing.push(f);
-    }
-    if (typeof r.recorded_same_session !== 'boolean') missing.push('recorded_same_session');
-    if (typeof r.budget?.cap !== 'string') missing.push('budget.cap');
-    if (typeof r.budget?.spent_subagent_tokens !== 'number') missing.push('budget.spent_subagent_tokens');
-    if (!Array.isArray(r.gates_rerun_by_orchestrator)) missing.push('gates_rerun_by_orchestrator');
-    if (missing.length) bad.push({ entry: id, reason: `missing or malformed: ${missing.join(', ')}` });
-
-    for (const f of ['ts_executed', 'ts_recorded']) {
-      if (typeof r[f] !== 'string' || Number.isNaN(Date.parse(r[f]))) {
-        bad.push({ entry: id, reason: `${f} is not a parseable RFC 3339 timestamp` });
+    if (!superseded.has(idx)) {
+      const missing = [];
+      if (!Number.isInteger(r.run) || r.run < 1) missing.push('run');
+      for (const f of ['kind', 'session', 'rigor_commit']) {
+        if (typeof r[f] !== 'string' || r[f].trim() === '') missing.push(f);
       }
-    }
-    if (!Number.isNaN(Date.parse(r.ts_executed)) && !Number.isNaN(Date.parse(r.ts_recorded)) &&
-        Date.parse(r.ts_recorded) < Date.parse(r.ts_executed)) {
-      bad.push({ entry: id, reason: 'ts_recorded is before ts_executed — capture-time anchoring violated (batch-stamping shape)' });
+      if (typeof r.recorded_same_session !== 'boolean') missing.push('recorded_same_session');
+      if (typeof r.budget?.cap !== 'string') missing.push('budget.cap');
+      if (typeof r.budget?.spent_subagent_tokens !== 'number') missing.push('budget.spent_subagent_tokens');
+      if (!Array.isArray(r.gates_rerun_by_orchestrator)) missing.push('gates_rerun_by_orchestrator');
+      if (missing.length) bad.push({ entry: id, reason: `missing or malformed: ${missing.join(', ')}` });
+
+      for (const f of ['ts_executed', 'ts_recorded']) {
+        if (typeof r[f] !== 'string' || Number.isNaN(Date.parse(r[f]))) {
+          bad.push({ entry: id, reason: `${f} is not a parseable RFC 3339 timestamp` });
+        }
+      }
+      if (!Number.isNaN(Date.parse(r.ts_executed)) && !Number.isNaN(Date.parse(r.ts_recorded)) &&
+          Date.parse(r.ts_recorded) < Date.parse(r.ts_executed)) {
+        bad.push({ entry: id, reason: 'ts_recorded is before ts_executed — capture-time anchoring violated (batch-stamping shape)' });
+      }
+
+      const rv = r['re-verify'] ?? r.reverify;
+      const rvOk = (typeof rv === 'string' && rv.trim() !== '') || (Array.isArray(rv) && rv.length > 0);
+      if (!rvOk) bad.push({ entry: id, reason: 're-verify pointer missing or empty (re-verify / legacy reverify)' });
     }
 
-    const rv = r['re-verify'] ?? r.reverify;
-    const rvOk = (typeof rv === 'string' && rv.trim() !== '') || (Array.isArray(rv) && rv.length > 0);
-    if (!rvOk) bad.push({ entry: id, reason: 're-verify pointer missing or empty (re-verify / legacy reverify)' });
-
-    if (Number.isInteger(r.run)) {
+    // Superseding records re-use an earlier number by construction, so they are
+    // exempt from the +1 chain; superseded originals still anchor it.
+    if (Number.isInteger(r.run) && r?.supersedes === undefined) {
       if (prevRun !== null && r.run !== prevRun + 1) {
         bad.push({ entry: id, reason: `run ${r.run} follows run ${prevRun} — numbering must be +1 monotonic, append-only` });
       }
       prevRun = r.run;
     }
-  }
+  });
   return bad;
 }
 
@@ -68,7 +100,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   const bad = findRunlogViolations(records);
   if (bad.length) {
     for (const b of bad) console.error(`RUNLOG FAIL ${b.entry}: ${b.reason}`);
-    console.error('Fix: every entry carries the invariant core; numbering is +1 monotonic; a form pass is a floor, never a verdict.');
+    console.error('Fix: every entry carries the invariant core; numbering is +1 monotonic; a correction is a new record with supersedes, never an edit; a form pass is a floor, never a verdict.');
     process.exit(1);
   }
   console.log(`runlog: clean (${records.length} entr${records.length === 1 ? 'y' : 'ies'})`);

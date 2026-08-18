@@ -1,6 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { findRunlogViolations, parseRunlog } from '../scripts/check-runlog.mjs';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Green fixtures mirror the real runs 1–3 shape (ADR-0004): the invariant core is
 // what all three hand-validated entries share, not any one run's optional fields.
@@ -91,4 +94,65 @@ test('empty log is clean (a new effort starts at zero entries)', () => {
 
 test('parseRunlog reads JSONL with blank lines', () => {
   assert.deepEqual(parseRunlog('{"a":1}\n\n{"a":2}\n'), [{ a: 1 }, { a: 2 }]);
+});
+
+// ---------- supersession (ADR-0004 amendment 2026-08-18) ----------
+// A committed entry is never edited; a correction is a NEW record with
+// supersedes: N and the same run number. Modeled on the real payment-loop
+// run-1 dialect incident.
+
+const malformedOriginal = () => {
+  // the real defect shape: invented keys, object where an array is required, no re-verify
+  const e = entry();
+  delete e.budget;
+  delete e['re-verify'];
+  e.cap_tokens = 150000;
+  e.gates_rerun_by_orchestrator = { 'check-dispatch': 'clean' };
+  return e;
+};
+
+const correction = (over = {}) => ({ ...entry(), supersedes: 1, ...over });
+
+test('a malformed entry corrected by a valid superseding record is clean', () => {
+  assert.deepEqual(findRunlogViolations([malformedOriginal(), correction()]), []);
+});
+
+test('a superseding record does not break the +1 chain', () => {
+  const log = [malformedOriginal(), entry({ run: 2 }), correction()];
+  assert.deepEqual(findRunlogViolations(log), []);
+});
+
+test('RED: supersedes with no earlier matching run is flagged', () => {
+  const bad = findRunlogViolations([entry(), correction({ run: 5, supersedes: 5 })]);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].reason, /no earlier record/);
+});
+
+test('RED: a correction whose run differs from its supersedes target is flagged', () => {
+  const bad = findRunlogViolations([entry(), correction({ run: 2, supersedes: 1 })]);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].reason, /keeps the number/);
+});
+
+test('RED: a superseding record must itself pass every field check', () => {
+  const c = correction();
+  delete c.budget;
+  const bad = findRunlogViolations([malformedOriginal(), c]);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].reason, /budget/);
+});
+
+test('RED: a non-integer supersedes is flagged', () => {
+  const bad = findRunlogViolations([entry(), correction({ supersedes: '1' })]);
+  assert.ok(bad.some((b) => /positive run number/.test(b.reason)));
+});
+
+// PIN (ADR-0010 closure record check-runlog-built-but-never-invoked): the gate
+// existed for 22 days with no writer invoking it, and a new effort's first entry
+// invented its own dialect and sat red through its own commit. The command that
+// writes the run log must name the gate that validates it.
+test('fanout-loop names check-runlog on the log it appends to (misfire pin)', () => {
+  const cmd = readFileSync(
+    resolve(dirname(fileURLToPath(import.meta.url)), '../commands/fanout-loop.md'), 'utf8');
+  assert.match(cmd, /check-runlog/);
 });
