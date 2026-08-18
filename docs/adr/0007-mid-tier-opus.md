@@ -49,5 +49,18 @@ acceptance with 3 tests written red-first; prose synced in `judgment-dispatch`,
 - The receipt ladder becomes genuinely three-way observable (fable / opus / sonnet), which
   strengthens future ADR-0006-style receipt evidence for free — the `build == cheap` caveat
   no longer blinds the mid rung.
-- Honest status: **no mid-tier dispatch has ever run.** `skeptic-verifier-fast` has never
-  been dispatched on any tier; this ADR changes its pin, not its provisional standing.
+- Honest status *(as written 2026-07-22)*: **no mid-tier dispatch has ever run.**
+  `skeptic-verifier-fast` has never been dispatched on any tier; this ADR changes its pin,
+  not its provisional standing.
+  - **Amended 2026-08-18.** Half of that has since changed, and the halves must not be
+    conflated. The mid **tier** has run: backlog-settlement runs 4–6 and the payment-loop
+    run-1 vote stage all pinned `TIERS.mid`, receipts came back three-way, and
+    `check-dispatch` was clean each time. The **agent** claim stands exactly as written —
+    `skeptic-verifier-fast` has still never been dispatched. Evidence: no verdict record in
+    either effort carries an `agentType` field, and the one committed workflow script
+    (`docs/efforts/payment-loop-randomized/runs/run-1-workflow.mjs`) dispatches generic
+    workflow agents with a `model:` pin and no `agentType`. `check-dispatch` has no
+    agent-identity field in its record schema, so it cannot distinguish the two cases — a
+    blind spot of the same class as `check-learnings`' history-blind append-only leg.
+    Anything crediting this agent on the strength of those runs would be crediting a
+    component that never ran.

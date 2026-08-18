@@ -34,7 +34,7 @@ Two terms, defined once and used throughout:
 Worth being precise about, because it kills the most likely misread:
 **rigor is not an automated validator for your project.**
 
-- **Executes as code:** the 2 hooks (`git-guard`, `session-start`), plus 8
+- **Executes as code:** the 2 hooks (`git-guard`, `session-start`), plus 10
   check scripts — `check-surface-scrub` (no project-specific fingerprints leak
   into shipped examples), `check-citation-fidelity` (every cited
   identifier/quote exists in its named source), `check-effect-probe` (an
@@ -47,8 +47,13 @@ Worth being precise about, because it kills the most likely misread:
   silent model downgrades — worker receipts share the same log),
   `check-tier-sync` (agent frontmatter agrees with `config/models.json`; tier
   variants share one canonical body), `check-learnings` (ledger entries
-  anchored, append-only, index↔folder consistent). All run under `node --test`.
-- **Applied as judgment:** the 13 skills, 7 commands, and 5 agents are
+  anchored, append-only, index↔folder consistent), `check-runlog` (an effort
+  run-log entry carries the invariant core — required fields, capture-time
+  timestamps in order, +1 monotonic numbering, a non-empty re-verify pointer),
+  `check-misfire-closure` (a misfire's closure state carries the evidence it
+  claims — a pin needs a red-proof, a decline needs a dated decision; `open`
+  exits 2 as unevaluable). All run under `node --test`.
+- **Applied as judgment:** the 14 skills, 8 commands, and 5 agents are
   discipline the agent applies *inside your repo*, against *your* gates. rigor
   deliberately ships no turnkey pipeline validator — a shipped checker that
   certified pipelines whose schema it can't know would itself be a

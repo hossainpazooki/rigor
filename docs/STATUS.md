@@ -1,6 +1,7 @@
 # Status: what's proven, what isn't
 
-State as of 2026-07-18. (Moved out of the README 2026-07-18.) The source of
+State as of 2026-08-18 (rows refreshed by that day's pick-up; prior stamp
+2026-07-18, when this table moved out of the README). The source of
 truth this table tracks is the promotion ledger,
 [`feedback/FEEDBACK.md`](feedback/FEEDBACK.md) — dated entries in
 [`feedback/`](feedback/), chronological, newest at the bottom.
@@ -24,11 +25,19 @@ reach kept visible.
 | ledger kit (`docs/learnings/` + `docs/handoff/`) | convention + gate | provisional — 1 domain, **1 logged misfire**: its first non-origin use produced a record whose basis did not reproduce, and the form gate passed it green. Hardened; the limit stands — a form gate never verifies that a basis is genuine |
 | `data-quality-fail-closed` | skill | provisional — **first non-origin domain 2026-07-19** (a three-outcome fail-closed audit at a real publish boundary, seen red on a staged twin and on two real defects; 1 of the ≥2 promotion needs; same-operator caveat) |
 | `no-lookahead`, `idempotent-restatement`, `lineage-replay` | skills | provisional — built 2026-07-02, still **origin-only** (the 2026-07-19 origin-repo publish firing exercised `no-lookahead`'s A1 check red-on-twin but counts toward nothing) |
-| `judgment-dispatch` | skill | provisional — built 2026-07-07; its frontmatter pin mechanism is live-verified (non-vacuous probe, [plan](plans/2026-07-07-judgment-dispatch-plan.md)), but no independent domain has run through the rubric yet |
-| `integration-runner`, `repo-cartographer`, `skeptic-verifier-fast` | agents | provisional (`skeptic-verifier-fast` shares the settled canonical body, but its below-judgment verdict quality is unproven — never dispatched on either its former cheap-tier pin or its 2026-07-22 mid-tier repin) |
-| all 7 commands, both hooks, all 8 check scripts | commands / hooks / gates | provisional (`check-citation-fidelity` carries a logged limit: insufficient for numeric provenance; `check-tier-placement` built 2026-07-18, non-vacuity verified red on a real collapsed run, no independent domain yet) |
+| `judgment-dispatch` | skill | provisional — built 2026-07-07; its frontmatter pin mechanism is live-verified (non-vacuous probe, [plan](plans/2026-07-07-judgment-dispatch-plan.md)). **Candidate firings, uncredited:** tier routing ran in backlog runs 4–6 and payment-loop run 1, receipts three-way and `check-dispatch` clean each time — but no adjudication has moved it, and per the standing rule a log indexes a candidate while only a gate re-run moves a status |
+| `integration-runner`, `repo-cartographer`, `skeptic-verifier-fast` | agents | provisional (`skeptic-verifier-fast` shares the settled canonical body, but its below-judgment verdict quality is unproven — **still never dispatched**, re-confirmed 2026-08-18: no verdict record in either effort carries an `agentType`, and the one committed workflow script dispatches generic agents with a `model:` pin. A mid *tier* running is not this *agent* running) |
+| all 8 commands, both hooks, all 10 check scripts | commands / hooks / gates | provisional (`check-citation-fidelity` carries a logged limit: insufficient for numeric provenance; `check-tier-placement` built 2026-07-18, non-vacuity verified red on a real collapsed run, no independent domain yet; `check-runlog` built 2026-07-22 on ADR-0004's 4th-run condition, 20 tests incl. supersession — its built-but-unwired residual was found and closed 2026-08-18: wired into `fanout-loop` step 5, incident pinned as the first closure-ledger record) |
+| `learn-from-misfire` + `check-misfire-closure` | skill + gate | provisional — **built 2026-08-18, zero firings.** ADR-0010 **Accepted 2026-08-18** (built same day pre-ratification on operator direction, since regularized); the ledger schema is ratified. Red path proven: 21 tests, and all three CLI outcomes demonstrated on real fixtures (exit 0 closed / exit 1 on a pin with no red-proof / exit 2 on an open record), with a negative control showing a fully-closed ledger passes. **First live record 2026-08-18** (same day): the check-runlog wiring incident, forward-captured and closed pinned with a red-first proof — use, not an independent domain. The retrospective survey below remains an audit, not a firing |
+| ADR-0011 verifier-calibration ledger | **accepted 2026-08-18, nothing built** | no folder, no gate, no config yet; demotion scope must be decided before the first control dispatch. Its motivating fact is measured, not assumed: `skeptic-verifier-fast` has never been dispatched (2026-08-18), so the mid-tier rung's verdict quality is entirely unmeasured |
+| ADR-0012 re-audit sweep | **accepted 2026-08-18, nothing built** | design only, sequenced last. Records the ADR-0005 resolution-2 unblock (its precondition, ADR-0004's pilot evaluation, was discharged 2026-07-14); opening the work still needs an explicit operator go |
 
 The misfires stay in the table on purpose — a verification toolkit that hides
-its own false refutations would be its own counterexample. Full dated entries:
+its own false refutations would be its own counterexample. **Their closure is now
+surveyed too** (2026-08-18, [`audits/2026-08-18-misfire-closure-survey.md`](audits/2026-08-18-misfire-closure-survey.md)):
+of 13 recorded misfires, **5 are pinned by a test, 0 are declined on the record,
+and 8 are open** — including two that read as "fixed" in this table but have no
+regression test. Under `check-misfire-closure`'s own rule that shape is
+**unevaluable (exit 2)**, not passing. Full dated entries:
 [`feedback/`](feedback/) — filenames are `YYYY-MM-DD-<topic>.md`, so the
 listing reads oldest-first; scroll to the bottom for the newest entries.

@@ -161,6 +161,28 @@ now the shape the ledger kit (ADR-0003, as amended) instantiates per repo. The o
 earned: a `check-runlog` form gate. Criterion 2 was met by hand three times; a fourth hand-check
 would be the point to mechanize it, not sooner.
 
+**Post-pilot amendment — 2026-07-22: the deferred gate was earned and built.** The fourth
+hand-check arrived at settlement run 4. `scripts/check-runlog.mjs` was written red-first that day
+(`9d5c2f5`, 13 tests) and gates this effort's log clean at 6 entries. The criterion-2 row above
+stands as written on 07-14; this note records what discharged it, not a re-scoring.
+
+**Residual — 2026-08-18: the gate is built but unwired.** `commands/fanout-loop.md` step 5 tells
+the orchestrator to append a run to `run-log.jsonl`; step 4 lists the exit gates and `check-runlog`
+is not among them. So the gate runs only when a human remembers it. The payment-loop instantiation's
+first entry (2026-08-13) consequently invented its own field dialect — `cap_tokens`/`spent_tokens`
+for `budget.cap`/`budget.spent_subagent_tokens`, an object where `gates_rerun_by_orchestrator`
+must be an array, and no `re-verify` pointer at all — and sat RED and unnoticed through its own
+commit. backlog-settlement passes only because its entries were hand-written by sessions that knew
+the dialect. **The lesson generalizes past this gate:** mechanizing a check and mechanizing its
+*invocation* are two separate pieces of work, and ADR-0004's exit only did the first.
+
+**Closed later the same day (operator ruling: supersession).** `check-runlog` gained a
+`supersedes:` record class — a correction is a NEW record carrying the corrected run's
+number, so append-only and the strict schema both survive; the payment-loop entry was
+corrected by supersession and the gate re-run green (2 entries); `fanout-loop` step 5 now
+names the gate on the log it writes; and the incident is pinned by a wiring test seen RED
+before the edit — the first record in the ADR-0010 closure ledger.
+
 **Unblocked by this evaluation:** ADR-0005 resolution 2 (the standing-catalog sweep), which was
 deliberately blocked on this outcome. It may now be opened as the second L1 sweep class — the
 unblock itself being a recorded event, per that ADR's criterion 2.

@@ -4,7 +4,26 @@ paused: true — **HALTED ON BUDGET, pending operator.** Run 1 spent 724,877 sub
 budget: L1 sweep <= 150k subagent tokens per iteration (this instantiation's default; no raise granted). Recon-scale runs need an explicit operator go, recorded in run-log.jsonl
 governed-by: ../../adr/0004-loop-chassis-rigor-conscience.md · run log: run-log.jsonl (append-only)
 last-run: 1 (2026-08-13, fanout-loop iteration 1 — randomized driver built and run over the live loop; **13/13 terminal classes observed live across 4 seeds / 240 intents, 240/240 oracle agreement, 3 planted defects each red for its own reason**; adjudicated by 9 agents, 0 refutations, 2 narrowings; `check-dispatch` clean; see run-log entry 1)
-last-updated: 2026-08-13 · operator-set goal ("run the payment loop with randomness introduced | main possibilities shown to be working")
+last-updated: 2026-08-18 · pick-up (no run dispatched). Prior: 2026-08-13 · operator-set goal
+("run the payment loop with randomness introduced | main possibilities shown to be working")
+
+**ENTRY GATE RED — found 2026-08-18, blocks re-entry independently of the budget halt.**
+`node scripts/check-runlog.mjs docs/efforts/payment-loop-randomized/run-log.jsonl` exits 1 on
+run 1: `budget.cap`, `budget.spent_subagent_tokens` and `gates_rerun_by_orchestrator` are
+missing or malformed, and there is no `re-verify` pointer. The entry is not wrong about the run
+— it recorded the same facts under invented key names (`cap_tokens`/`spent_tokens`, an object
+where the gate requires an array). Cause: `commands/fanout-loop.md` step 5 says append to the
+run log and never says gate it, and step 4's exit-gate list omits `check-runlog`; the run's own
+`gates_rerun_by_orchestrator` confirms it re-ran `check-dispatch` and `check-tier-placement`
+but not `check-runlog`. backlog-settlement passes only because its entries were hand-written in
+the gate's dialect.
+
+**RESOLVED later the same day (operator ruling: supersession).** `check-runlog` gained a
+`supersedes:` record class; run 1's facts were re-recorded in the canonical dialect as a
+superseding record (entry 2 of the log; the original stands, superseded, per append-only);
+the gate is green (`runlog: clean (2 entries)`) and `fanout-loop` step 5 now names the gate.
+The entry gate no longer blocks re-entry. **The budget halt below still does** — `paused: true`
+stands until the operator raises the cap or tightens the shape.
 
 **Why the cap was blown, for whoever raises or refuses it:** nine agents were each allowed to RUN
 the live driver (1-3 minutes per seed) and two of them to copy the module and re-plant defects.

@@ -10,7 +10,7 @@ skimmer-first page and its content moved here.)
 |---|---|
 | [`SYSTEM.md`](SYSTEM.md) | How the layers fit: the refute core move, code-vs-judgment boundary, model-tier dispatch, the fan-out worked example, the data-engineering layer. |
 | [`STATUS.md`](STATUS.md) | The component status table — settled vs provisional, misfires kept visible. Tracks the promotion ledger. |
-| [`DEVELOPMENT.md`](DEVELOPMENT.md) | Tests, the 8 check gates, install (marketplace + cross-repo + session-start fallback). |
+| [`DEVELOPMENT.md`](DEVELOPMENT.md) | Tests, the 10 check gates, install (marketplace + cross-repo + session-start fallback). |
 | [`adr/`](adr/README.md) | All decisions + the decided-vs-as-built index. |
 | [`wap-bridge.md`](wap-bridge.md) | The earned reader's bridge to write-audit-publish (ADR-0005, settled 2026-07-19): the mapping, the polarity upgrade, both firing records. |
 | [`../AGENTS.md`](../AGENTS.md) | The canonical repo brief: structure, operation, invariants (CLAUDE.md is a stub that imports it, ADR-0003). |
@@ -25,6 +25,9 @@ skimmer-first page and its content moved here.)
   `pick-up` at the other end, never trusted as written.
 - [`efforts/`](efforts/) — live effort chassis: a mutable `STATE.md` spine +
   append-only `run-log.jsonl` per effort (ADR-0004).
+- [`learn/`](learn/LEARN.md) — the misfire **closure** ledger: mechanism, pin,
+  and the pin's red-proof (ADR-0010, **Accepted 2026-08-18**).
+  Starts empty; capture stays in `feedback/` and `learnings/`.
 
 ## Point-in-time records (historical; do not "fix" retroactively)
 
@@ -32,7 +35,8 @@ skimmer-first page and its content moved here.)
   (`2026-06-25-rigor-plugin-design.md`), judgment-dispatch
   (`2026-07-05-judgment-dispatch-design.md`).
 - [`plans/`](plans/) — build records: phase 1, judgment-dispatch, ledger kit.
-- [`audits/`](audits/) — the 37-finding spine self-audit and later audits.
+- [`audits/`](audits/) — the 37-finding spine self-audit and later audits,
+  including the 2026-08-18 misfire-closure survey (5 pinned / 0 declined / 8 open).
 - [`comparisons/`](comparisons/) — measured scorecard vs. superpowers /
   SuperML / Anthropic's Data plugin.
 - [`session-start-setup.md`](session-start-setup.md) — manual hook

@@ -4,7 +4,9 @@ paused: false
 budget: L1 sweep ≤ 250k subagent tokens (**raised from 150k by operator 2026-08-08** after run-5 breach — "raise the cap" chosen over agent-count tightening; 250k is the orchestrator's operationalization, covering the observed 185k 4-agent shape); recon-scale runs need an explicit operator go, recorded in run-log.jsonl
 governed-by: ../../adr/0004-loop-chassis-rigor-conscience.md (**pilot SETTLED 2026-07-14** — chassis kept) · run log: run-log.jsonl (append-only)
 last-run: 6 (2026-08-08, fanout-loop iteration 3, operator-authorized single iteration — ledger-kit domain 2 **REFUTED again**, both skeptics independent: pvt-demo's committed ledger has two dated entries edited in-place after commit (immutability breach; no `kills:`), and check-learnings' append-only leg is blind to in-history edits (vacuous pass); cldd non-credit confirmed sound. 172,323 tokens, within the raised 250k cap; see run-log entry 6)
-last-updated: 2026-08-08T18:05:00Z · session fcb0d613 (single-iteration go consumed; loop idle pending operator)
+last-updated: 2026-08-18 · pick-up (no run dispatched) — queue item 2's premise refuted and the
+item split; see the correction in the queue below. Prior: 2026-08-08T18:05:00Z · session fcb0d613
+(single-iteration go consumed; loop idle pending operator)
 
 **This file is a mutable spine, not evidence.** Pick-up refutes it on every entry; the run log
 and `docs/feedback/` entries are the record. Every write here passes `implemented-vs-planned`.
@@ -41,11 +43,30 @@ pvt-demo `kills:` supersessions, a history-aware append-only leg (or
 scoping ADR), cldd entry rewrites, and the handoff-folder gate-scope
 decision (contradiction logged in learnings 2026-08-08).
 
-2. **Adjudicate judgment-dispatch + skeptic-verifier-fast domain
-   credit** — FIRED in runs 4–6 (verdict logs under `runs/`, receipts
-   three-way each run, `check-dispatch` clean ×3) — target-repo claims,
-   unadjudicated. NEXT in queue; needs a fresh operator go (the
-   2026-08-08 go covered one iteration and run 6 consumed it).
+2. ~~**Adjudicate judgment-dispatch + skeptic-verifier-fast domain
+   credit** — FIRED in runs 4–6~~ — **PREMISE REFUTED 2026-08-18 (pick-up);
+   item SPLIT.** "FIRED in runs 4–6" was true of the routing and false of
+   the agent, and the two were bundled into one credit decision.
+
+   2a. **judgment-dispatch** — genuinely fired: tiers config-sourced, the
+   stakes inference logged, receipts three-way, `check-dispatch` clean ×3
+   (plus payment-loop run 1). Adjudicable. Still needs a fresh operator go.
+
+   2b. **skeptic-verifier-fast** — **there is no firing to adjudicate.**
+   No verdict record in either effort carries an `agentType`; the one
+   committed workflow script (payment-loop `runs/run-1-workflow.mjs`)
+   dispatches generic workflow agents with a `model:` pin and no
+   `agentType`. Runs 4–6's scripts were never committed, so for those the
+   status is *unverifiable from the record* rather than refuted — but
+   `docs/STATUS.md` independently says "never dispatched", and nothing
+   contradicts it. Crediting this agent off those runs would credit a
+   component that never ran. Removed from the queue until a real dispatch
+   exists.
+
+   Gate gap behind the confusion: `check-dispatch`'s record schema has no
+   agent-identity field, so it cannot tell a named-agent dispatch from a
+   model-pinned generic one. Same class as the append-only blind spot
+   (learnings 2026-08-08).
 
 After the queue: sweep mode (derive items from the backlog rows below,
 until dry) under the 250k cap — still requires its own explicit
@@ -67,8 +88,8 @@ operator go.
 | `idempotent-restatement` | origin-only (VANTAGE) | Same |
 | `lineage-replay` | origin-only (VANTAGE; weakest — even origin firing unconfirmed as true replay-diff) | Same, plus confirm a real replay-and-diff anywhere |
 | ★ `data-quality-fail-closed` | **1 non-origin domain (CLDD v3 sweep publish gate, 2026-07-19)** — three-outcome fail-closed audit at a real publish boundary, seen red on a staged twin AND two real defects; plus the origin evidence (VANTAGE, strongest of the four) | 2nd non-origin repo with a real DQ gate (1 of ≥2; see 2026-07-19 · wap-firing-cldd-nonorigin-v3-sweep) |
-| `judgment-dispatch` | no genuine firing (zero external application since 2026-07-07 build) | First external verifier dispatch through the stakes rubric, verdict log through `check-dispatch` |
-| `skeptic-verifier-fast` | never dispatched | First cheap-tier dispatch (via judgment-dispatch routing) |
+| `judgment-dispatch` | **candidate firings, uncredited** (2026-08-18): tier routing ran in runs 4–6 + payment-loop run 1, stakes inference logged, `check-dispatch` clean each time — a log indexes a candidate; only an adjudication moves it | Queue item 2a — adjudicate the existing verdict logs; needs an operator go |
+| `skeptic-verifier-fast` | **still never dispatched**, re-confirmed 2026-08-18 — no `agentType` in any verdict record; the mid *tier* running is not this *agent* running | A real dispatch: an `agentType: rigor:skeptic-verifier-fast` call, per the canonical `skills/fanout-build/example.mjs` pattern, which does pin the agent |
 | `repo-cartographer` | never dispatched; **structurally gateless** — "gate-rerunnable firing" unachievable by construction | Needs its own success criterion (brief produced *and used*); ties into ADR-0003 implementation |
 
 ## Cross-repo concentration (from run 1)

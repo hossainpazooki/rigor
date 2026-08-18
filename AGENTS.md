@@ -11,22 +11,24 @@ stdlib-only (`node:test`).
 
 ## Structure
 
-- `skills/` — 13 discipline skills (one folder per skill, `SKILL.md` inside):
+- `skills/` — 14 discipline skills (one folder per skill, `SKILL.md` inside):
   refute, implemented-vs-planned, gate-discipline, verify-the-effect,
   fanout-build, fanout-recon-synthesize, orchestrate, judgment-dispatch,
-  pick-up, and the four data-engineering gates (data-quality-fail-closed,
-  no-lookahead, idempotent-restatement, lineage-replay).
-- `commands/` — 7 slash commands (`/rigor:verify-claim`, `honesty-check`,
-  `recon`, `fanout`, `verify-effect`, `handoff`, `pickup`).
+  pick-up, learn-from-misfire, and the four data-engineering gates
+  (data-quality-fail-closed, no-lookahead, idempotent-restatement,
+  lineage-replay).
+- `commands/` — 8 slash commands (`/rigor:verify-claim`, `honesty-check`,
+  `recon`, `fanout`, `verify-effect`, `handoff`, `pickup`, `fanout-loop`).
 - `agents/` — 5 subagents: skeptic-verifier (+ `-fast` mid-tier variant,
   body byte-identical by gate), effect-prober, integration-runner,
   repo-cartographer. `model:` frontmatter is pinned per tier.
 - `hooks/` — `hooks.json` wires two hooks: `git-guard.mjs` (PreToolUse on
   Bash — blocks `git commit`/`git push` and compound git commands) and
   `session-start.mjs` (delivers the toolkit pointer).
-- `scripts/` — 8 check gates (`check-*.mjs`: surface-scrub,
+- `scripts/` — 10 check gates (`check-*.mjs`: surface-scrub,
   citation-fidelity, effect-probe, fanout, tier-placement, dispatch,
-  tier-sync, learnings) plus `extract-tails.mjs`, a non-gate utility whose
+  tier-sync, learnings, runlog, misfire-closure) plus `extract-tails.mjs`,
+  a non-gate utility whose
   output stays out of every repo. House style: pure exported matcher, fs only
   at the CLI boundary.
 - `tests/` — `node --test` suite, auto-discovered; green is the merge floor.
