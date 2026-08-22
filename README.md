@@ -274,8 +274,7 @@ flowchart TD
     README["README<br/>(this page)"] --> SYS["SYSTEM.md<br/>how the layers fit"]
     README --> ST["STATUS.md<br/>validated vs not, failures included"]
     README --> DEV["DEVELOPMENT.md<br/>tests · gates · install"]
-    README --> DEC["DECISIONS.md<br/>the decision behind each claim here"]
-    DEC --> ADR["adr/<br/>every decision, decided vs as-built"]
+    README --> DEC["DECISIONS.md<br/>the decision behind each claim here<br/>and the full records it links onward to"]
     ST --> FB["feedback/<br/>promotion ledger"]
     README --> IDX["docs/README.md<br/>full index: ledgers · designs · audits"]
     IDX --> LG["learnings/ · handoff/ · learn/<br/>facts · briefs · closure records"]
@@ -284,7 +283,7 @@ flowchart TD
     classDef ok fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
     class README n;
     class SYS,ST,DEV,DEC,IDX ok;
-    class ADR,FB,LG n;
+    class FB,LG n;
 ```
 
 - [docs/SYSTEM.md](docs/SYSTEM.md) — how the layers fit: the verification
