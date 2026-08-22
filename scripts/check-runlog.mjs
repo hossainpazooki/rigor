@@ -18,28 +18,45 @@ import { pathToFileURL } from 'node:url';
  * HONEST LIMIT: form only — it cannot verify a basis is genuine (see the 2026-07-14
  * learnings entry: a form gate is a floor, never a verdict).
  */
+/**
+ * Supersession resolver, shared with check-change-record (ADR-0013 "extend, do not
+ * fork"): given append-only records and the key a correction repeats, return the
+ * indices of records that a later `supersedes:` record corrects, plus any
+ * violations of the supersession rule itself. A superseding record must carry the
+ * same key value as the record it corrects, and that record must appear EARLIER.
+ * `label(r)` names a record in violation messages.
+ */
+export function resolveSupersession(records, { key = 'run', label = (r) => `run ${r?.run ?? '<unnumbered>'}` } = {}) {
+  const superseded = new Set();
+  const violations = [];
+  records.forEach((r, i) => {
+    if (r?.supersedes === undefined) return;
+    const id = label(r);
+    const isRunKey = key === 'run';
+    if (isRunKey ? !(Number.isInteger(r.supersedes) && r.supersedes >= 1)
+                 : !(typeof r.supersedes === 'string' && r.supersedes.trim() !== '')) {
+      violations.push({ entry: id, reason: isRunKey ? 'supersedes must be a positive run number' : `supersedes must be a non-empty ${key}` });
+      return;
+    }
+    if (r[key] !== r.supersedes) {
+      violations.push({ entry: id, reason: `supersedes ${r.supersedes} but carries ${key} ${r[key]} — a correction keeps the ${key === 'run' ? 'number' : key} of the record it corrects` });
+    }
+    let found = false;
+    for (let j = 0; j < i; j++) {
+      if (records[j]?.[key] === r.supersedes) { superseded.add(j); found = true; }
+    }
+    if (!found) violations.push({ entry: id, reason: `supersedes ${key === 'run' ? 'run ' : ''}${r.supersedes}, but no earlier record carries that ${key === 'run' ? 'number' : key}` });
+  });
+  return { superseded, violations };
+}
+
 export function findRunlogViolations(records) {
   const bad = [];
 
   // Supersession pre-pass: resolve which earlier records are corrected before
   // validating fields, so a corrected entry's stale dialect no longer fails the file.
-  const superseded = new Set();
-  records.forEach((r, i) => {
-    if (r?.supersedes === undefined) return;
-    const id = `run ${r?.run ?? '<unnumbered>'}`;
-    if (!Number.isInteger(r.supersedes) || r.supersedes < 1) {
-      bad.push({ entry: id, reason: 'supersedes must be a positive run number' });
-      return;
-    }
-    if (r.run !== r.supersedes) {
-      bad.push({ entry: id, reason: `supersedes ${r.supersedes} but carries run ${r.run} — a correction keeps the number of the run it corrects` });
-    }
-    let found = false;
-    for (let j = 0; j < i; j++) {
-      if (records[j]?.run === r.supersedes) { superseded.add(j); found = true; }
-    }
-    if (!found) bad.push({ entry: id, reason: `supersedes run ${r.supersedes}, but no earlier record carries that number` });
-  });
+  const { superseded, violations } = resolveSupersession(records, { key: 'run' });
+  bad.push(...violations);
 
   let prevRun = null;
   records.forEach((r, idx) => {
