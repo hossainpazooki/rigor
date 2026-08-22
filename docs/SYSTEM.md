@@ -77,7 +77,7 @@ which need no model at all). `judgment-dispatch` finishes the thought: which
 model runs a judgment node is an architectural decision enforced by a gate,
 not a per-call accident. Verifiers route across a tier ladder — a premium
 **judgment tier** (shipped default: Claude Fable 5) and a **mid tier**
-(shipped default: Claude Opus 4.8) for routine verification, with a `cheap`
+(shipped default: Claude Opus 5, re-pinned 2026-08-22 from Opus 4.8) for routine verification, with a `cheap`
 rung kept in config as the terminal fallback — via an explicit stakes rubric
 the orchestrator must apply *and log* before every dispatch. Workers get their
 own lanes: builders and mappers run on the **build tier** (Claude Sonnet 5 by
