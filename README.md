@@ -12,16 +12,16 @@ negative control — and every irreversible step stays with a human.
 
 ```mermaid
 flowchart LR
-    C["agent reports: done —<br/>tests pass, deployed, 46/46 green"] --> D{"accept as reported?"}
-    D -->|default| P["merged — the test ran against a stub,<br/>the figure was remembered, the feature<br/>was never wired. Found downstream"]
-    D -->|rigor| R{"verify first:<br/>re-run the real gate ·<br/>recompute from the raw source ·<br/>demand a negative control"}
-    R -->|holds| T["accepted — with the evidence attached"]
-    R -->|fails| F["rejected before release"]
+    A["agent reports<br/>“done — tests pass, deployed”"] --> Q{"accept the<br/>report?"}
+    Q -->|"as reported"| P["merged<br/>defect found downstream"]
+    Q -->|"with rigor"| V["verify first<br/>re-run the real gate<br/>recompute from source<br/>run a negative control"]
+    V -->|"holds"| T["accepted —<br/>evidence attached"]
+    V -->|"fails"| F["rejected<br/>before release"]
 
+    classDef n fill:#ecdfff,stroke:#a371f7,color:#3a1060;
     classDef ok fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
     classDef bad fill:#ffe0e0,stroke:#f85149,color:#6a0d0d;
-    classDef n fill:#ecdfff,stroke:#a371f7,color:#3a1060;
-    class C,D,R n;
+    class A,Q,V n;
     class T,F ok;
     class P bad;
 ```
@@ -44,6 +44,34 @@ repository**, kept on the record rather than cleaned up —
   ([decision](docs/DECISIONS.md#silent-tier-collapse))
 
 ## What ships
+
+Three roles, kept apart. The agent **proposes** a change and its evidence;
+deterministic gates **decide** whether the evidence is sufficient; a human
+**promotes** anything irreversible. Two hooks hold that last boundary.
+
+```mermaid
+flowchart LR
+    subgraph agent["agent — proposes"]
+        W["does the work"] --> E["attaches evidence<br/>gate output · recomputed figures<br/>negative control"]
+    end
+    subgraph gates["gates — decide (code, in the test floor)"]
+        G["11 check scripts<br/>form · provenance · non-vacuity<br/>tier pins · change records"]
+    end
+    subgraph human["human — promotes"]
+        H["runs the commit<br/>runs the deploy"]
+    end
+    E --> G
+    G -->|"insufficient"| X["refused —<br/>reason returned to the agent"]
+    G -->|"sufficient"| H
+    E -.->|"git-guard · change-guard<br/>block the agent here"| H
+
+    classDef n fill:#ecdfff,stroke:#a371f7,color:#3a1060;
+    classDef ok fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
+    classDef bad fill:#ffe0e0,stroke:#f85149,color:#6a0d0d;
+    class W,E,G n;
+    class H ok;
+    class X bad;
+```
 
 - **Verification before acceptance** — the control under everything:
   recompute from raw sources, re-run the real gate, dispatch independent
@@ -85,9 +113,35 @@ repository.
 
 It sits *upstream* of post-implementation verification — before the
 irreversible step, not after — and answers one question about an agent's
-proposed change: **has it earned the right to proceed?** Six properties, each
-implemented in the control shapes it can make fail (review, preventive,
-detective, evidentiary):
+proposed change: **has it earned the right to proceed?**
+
+```mermaid
+flowchart TD
+    P["proposed change<br/>+ change record"] --> B{"backout ran against<br/>this candidate, exit 0?"}
+    B -->|"no"| R["refused"]
+    B -->|"yes"| I{"artifact hash<br/>recomputed = recorded?"}
+    I -->|"no / unrecomputable"| R
+    I -->|"yes"| S{"health signal<br/>inside the blast radius"}
+    S -->|"unreadable"| HALT["halt —<br/>never coerced to pass or fail"]
+    S -->|"fail"| R
+    S -->|"pass"| C{"change class?"}
+    C -->|"2 · emergency-grade<br/>every new pattern"| HU["human approves<br/>and executes"]
+    C -->|"1 · normal<br/>approval on record"| OK["agent may proceed"]
+    C -->|"0 · standard<br/>earned by a human, on evidence"| OK
+    BG["emergency-change record<br/>who · when · why · exact command<br/>written before the bypass"] -.->|"the one documented exception"| OK
+
+    classDef n fill:#ecdfff,stroke:#a371f7,color:#3a1060;
+    classDef ok fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
+    classDef bad fill:#ffe0e0,stroke:#f85149,color:#6a0d0d;
+    classDef warn fill:#fff4d6,stroke:#d4a017,color:#5a3e00;
+    class P,B,I,S,C,BG n;
+    class OK,HU ok;
+    class R bad;
+    class HALT warn;
+```
+
+Six properties, each implemented in the control shapes it can make fail
+(review, preventive, detective, evidentiary):
 
 | property | what must be true before the change proceeds |
 |---|---|
@@ -107,6 +161,23 @@ nine; what ships is what survived five review rounds
 
 ## Which command, when
 
+```mermaid
+flowchart LR
+    Q{"what are you<br/>about to accept?"}
+    Q -->|"a number, a “tests pass”,<br/>any “done”"| A["/rigor:verify-claim"]
+    Q -->|"a status doc, README,<br/>commit message"| B["/rigor:honesty-check"]
+    Q -->|"a question too big<br/>for one pass"| C["/rigor:recon"]
+    Q -->|"a build too big<br/>for one pass"| D["/rigor:fanout"]
+    Q -->|"a deploy / migration /<br/>publish that “succeeded”"| E["/rigor:verify-effect"]
+    Q -->|"handing work to<br/>the next session"| F["/rigor:handoff"]
+    Q -->|"picking up someone’s<br/>handoff brief"| G["/rigor:pickup"]
+
+    classDef n fill:#ecdfff,stroke:#a371f7,color:#3a1060;
+    classDef ok fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
+    class Q n;
+    class A,B,C,D,E,F,G ok;
+```
+
 | You're about to accept… | Run | What actually happens |
 |---|---|---|
 | a number, a "tests pass", any agent's "done" | `/rigor:verify-claim` | recompute from the raw source, re-run the real gate, dispatch independent reviewers, confirm cited sources say what is claimed |
@@ -124,6 +195,23 @@ emergency-change record — `RIGOR_CHANGE_RECORD`/`RIGOR_CHANGE_ID`, or
 `RIGOR_BREAK_GLASS`; provisional), and **`session-start`** (injects the toolkit
 pointer before the first claim is made).
 
+```mermaid
+flowchart LR
+    S["session starts"] --> SS["session-start<br/>injects the toolkit pointer"]
+    SS --> W["agent works"]
+    W --> CMD{"agent runs a<br/>shell command"}
+    CMD -->|"git commit · push · rebase …"| GG["git-guard<br/>refused — command<br/>handed to the human"]
+    CMD -->|"kubectl apply · helm upgrade ·<br/>terraform apply · gh workflow run …"| CG["change-guard<br/>refused unless a committed<br/>change record carries the evidence"]
+    CMD -->|"anything else"| RUN["runs"]
+
+    classDef n fill:#ecdfff,stroke:#a371f7,color:#3a1060;
+    classDef ok fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
+    classDef bad fill:#ffe0e0,stroke:#f85149,color:#6a0d0d;
+    class S,SS,W,CMD n;
+    class RUN ok;
+    class GG,CG bad;
+```
+
 ## Install
 
 This repository is its own local plugin marketplace. In a Claude Code session:
@@ -131,6 +219,19 @@ This repository is its own local plugin marketplace. In a Claude Code session:
 ```
 /plugin marketplace add <absolute-path-to-this-repo>
 /plugin install rigor@rigor
+```
+
+```mermaid
+flowchart LR
+    A["this repository<br/>(a local marketplace)"] -->|"/plugin marketplace add"| B["marketplace<br/>registered"]
+    B -->|"/plugin install rigor@rigor"| C["plugin installed"]
+    C --> D["skills · commands · agents<br/>available in the session"]
+    C --> E["3 hooks active<br/>from the next command on"]
+
+    classDef n fill:#ecdfff,stroke:#a371f7,color:#3a1060;
+    classDef ok fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
+    class A,B,C n;
+    class D,E ok;
 ```
 
 Cross-repository registration and older-harness fallback:
@@ -142,9 +243,49 @@ Cross-repository registration and older-harness fallback:
 node --test          # hooks + all 11 check gates; stdlib-only, green is the merge floor
 ```
 
+Every gate ships with at least one fixture it passes and at least one
+known-bad input it rejects — a gate that has never been seen to fail is not
+credited.
+
+```mermaid
+flowchart LR
+    T["node --test"] --> H["hook tests<br/>git-guard · change-guard · session-start"]
+    T --> G["gate tests<br/>11 check scripts"]
+    H --> R{"every test green?"}
+    G --> R
+    R -->|"yes"| M["merge floor met"]
+    R -->|"no"| X["not mergeable"]
+    K["each gate: a passing fixture<br/>+ a known-bad input it rejects"] -.-> G
+
+    classDef n fill:#ecdfff,stroke:#a371f7,color:#3a1060;
+    classDef ok fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
+    classDef bad fill:#ffe0e0,stroke:#f85149,color:#6a0d0d;
+    class T,H,G,R,K n;
+    class M ok;
+    class X bad;
+```
+
 The full gate list, one line each: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Where things live
+
+```mermaid
+flowchart TD
+    README["README<br/>(this page)"] --> SYS["SYSTEM.md<br/>how the layers fit"]
+    README --> ST["STATUS.md<br/>validated vs not, failures included"]
+    README --> DEV["DEVELOPMENT.md<br/>tests · gates · install"]
+    README --> DEC["DECISIONS.md<br/>the decision behind each claim here"]
+    DEC --> ADR["adr/<br/>every decision, decided vs as-built"]
+    ST --> FB["feedback/<br/>promotion ledger"]
+    README --> IDX["docs/README.md<br/>full index: ledgers · designs · audits"]
+    IDX --> LG["learnings/ · handoff/ · learn/<br/>facts · briefs · closure records"]
+
+    classDef n fill:#ecdfff,stroke:#a371f7,color:#3a1060;
+    classDef ok fill:#d7f4de,stroke:#2ea043,color:#0f3d1e;
+    class README n;
+    class SYS,ST,DEV,DEC,IDX ok;
+    class ADR,FB,LG n;
+```
 
 - [docs/SYSTEM.md](docs/SYSTEM.md) — how the layers fit: the verification
   control, code-vs-judgment, model-tier dispatch, the multi-agent build
