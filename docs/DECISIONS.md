@@ -22,7 +22,8 @@ gate](adr/0002-dataeng-is-judgment-not-a-universal-gate.md) · **accepted**
 
 **What it binds:** the verified object (a table, a manifest, a plan) lives in
 *your* repo with a schema rigor cannot know, so a shipped validator that
-certified it would be the correct-shaped lie rigor exists to catch. rigor ships
+certified it would itself be an unverified claim of the kind rigor exists to
+refuse. rigor ships
 the attack moves as skills, the fingerprint gate (`check-surface-scrub`), and
 form-only check scripts — never a checker that understands your data. Every
 later layer is held to this: the data-engineering skills (settled, scoped), the
