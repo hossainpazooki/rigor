@@ -64,7 +64,10 @@ now carried unresolved across **five** briefs.
   helped), 10 learnings entries (27 total, gate clean), 3 closure records (1
   pinned, 2 open → exit 2), STATUS re-stamped with provisional counts
   (8/20/5/3/11), AGENTS/SYSTEM/DEVELOPMENT/docs README/ADR index updated;
-  **README left alone** per the seed.
+  README left alone per the seed **at the time this brief was written — then
+  updated on the operator's instruction after the brief** (stale counts fixed;
+  the deployment layer takes the newest-layer slot, labelled proposed; the
+  data-eng layer stays settled (scoped)). Same session, before any commit.
   re-verify: `node scripts/check-learnings.mjs docs/learnings` (clean, 27).
 - **in-progress** Nothing half-built.
 - **planned, not started** A live run in any domain; reviewer-level twins

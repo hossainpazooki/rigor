@@ -11,6 +11,7 @@ skimmer-first page and its content moved here.)
 | [`SYSTEM.md`](SYSTEM.md) | How the layers fit: the refute core move, code-vs-judgment boundary, model-tier dispatch, the fan-out worked example, the data-engineering layer. |
 | [`STATUS.md`](STATUS.md) | The component status table — settled vs provisional, misfires kept visible. Tracks the promotion ledger. |
 | [`DEVELOPMENT.md`](DEVELOPMENT.md) | Tests, the 10 check gates, install (marketplace + cross-repo + session-start fallback). |
+| [`DECISIONS.md`](DECISIONS.md) | The bridge from the README's claims to the decisions behind them (the README carries no ADR numbers; this page does). |
 | [`adr/`](adr/README.md) | All decisions + the decided-vs-as-built index. |
 | [`wap-bridge.md`](wap-bridge.md) | The earned reader's bridge to write-audit-publish (ADR-0005, settled 2026-07-19): the mapping, the polarity upgrade, both firing records. |
 | [`../AGENTS.md`](../AGENTS.md) | The canonical repo brief: structure, operation, invariants (CLAUDE.md is a stub that imports it, ADR-0003). |

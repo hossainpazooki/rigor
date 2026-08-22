@@ -39,25 +39,57 @@ toolkit applied to itself, misfires kept visible:
   answered **505 of 505** turns on the expensive orchestrating model — every
   call was unpinned and silently inherited the session model. Invisible in the
   run's own artifacts; found by transcript archaeology; now a gate.
-  ([ADR-0006](docs/adr/0006-silent-tier-collapse.md))
+  ([the decision](docs/DECISIONS.md#silent-tier-collapse))
 
 ## What ships
 
 - **Refute, don't accept** — the one move under everything: recompute from raw
   sources, re-run the real gate, dispatch adversarial skeptics, demand a
   negative control (a probe that would pass either way proves nothing).
-- **Discipline, not content** — 13 skills, 7 commands, 5 agents applied as
+- **Discipline, not content** — 20 skills, 8 commands, 5 agents applied as
   judgment inside *your* repo against *your* gates; deliberately no turnkey
-  validator ([ADR-0002](docs/adr/0002-dataeng-is-judgment-not-a-universal-gate.md)).
+  validator ([why](docs/DECISIONS.md#no-turnkey-validator)).
+  Six of the twenty are the **deployment layer**, proposed 2026-08-22 and
+  provisional (see below).
 - **The expensive model only where it counts** — verifier dispatch is
   stakes-routed across model tiers, floored for the nodes that matter,
   gate-checked for silent downgrades and silent tier collapse
   ([SYSTEM](docs/SYSTEM.md#model-tier-dispatch-putting-the-expensive-model-where-it-counts)).
 - **Agents never write your git history** — a hook blocks `git commit`/`push`
-  and the agent emits the commands for you to run.
+  (including wrapped, flag-cluster, and remote-side `gh` forms) and the agent
+  emits the commands for you to run. It is friction, not a security boundary,
+  and says so.
+- **Agents never trigger a deployment** — a second hook refuses deploy-shaped
+  commands (`kubectl apply`, `helm upgrade`, `terraform apply`, `gh workflow
+  run`, …) unless a committed change record carries the evidence, or a
+  committed break-glass record names who/when/why
+  ([the deployment layer](docs/DECISIONS.md#deployment-layer), **proposed**).
 - **Self-applied** — every component stays *provisional* until it survives ≥2
   independent domains, and the ledger keeps rigor's own misfires visible
   ([STATUS](docs/STATUS.md)).
+
+## Newest layer: pre-change authorization (proposed)
+
+The deployment layer supersedes the data-engineering layer as rigor's latest
+addition — the four data-eng skills are **settled (scoped)** and unchanged; this
+one is **proposed, fixture-tested, zero domains, zero live runs**, and every
+part of it stays provisional until it has been seen red on a known-bad twin in
+a real repo.
+
+It sits *upstream* of `verify-the-effect` — before the irreversible step, not
+after — and asks one question of an agent's proposed change: **has it earned
+the right to proceed?** Six properties, each a control in the shapes it can
+make go red (review / preventive / detective / evidentiary): a backout that
+**ran against the candidate and exited 0**; artifact bytes attested at review
+and recomputed at the edge; a health signal that **halts** on unevaluable
+instead of coercing it; a post-implementation probe refused until it has a
+negative control; a break-glass record written *before* the bypass; and a
+change class every pattern **enters at 2** and only a human demotes. rigor is
+the control at the change-approval step — never the pipeline, the CAB, or the
+operator. The design's first draft was refuted by three skeptics and its first
+build by nine; what ships is what survived five rounds
+([the decision](docs/DECISIONS.md#deployment-layer) ·
+[build record](docs/plans/2026-08-22-deployment-layer-build.md)).
 
 ## Which command, when
 
@@ -71,9 +103,12 @@ toolkit applied to itself, misfires kept visible:
 | the next session (or person) picking this up | `/rigor:handoff` | emits a fixed "read this first" brief: state, locked decisions, invariants — every built claim carrying a `re-verify:` line |
 | a handoff brief you've just been handed | `/rigor:pickup` | `pick-up`: refute the brief's load-bearing claims against the current repo, detect drift, re-run the entry gate |
 
-Two hooks run without being asked: **`git-guard`** (blocks agent-initiated git
-history writes; per-repo override `RIGOR_GIT_ALLOW=1`) and **`session-start`**
-(injects the toolkit pointer before the first claim is made).
+Three hooks run without being asked: **`git-guard`** (blocks agent-initiated git
+history writes; per-repo override `RIGOR_GIT_ALLOW=1`), **`change-guard`**
+(refuses deploy-shaped commands without a committed change record or
+break-glass record — `RIGOR_CHANGE_RECORD`/`RIGOR_CHANGE_ID`, or
+`RIGOR_BREAK_GLASS`; provisional), and **`session-start`** (injects the toolkit
+pointer before the first claim is made).
 
 ## Install
 
@@ -90,7 +125,7 @@ Cross-repo registration and older-harness fallback:
 ## Tests
 
 ```
-node --test          # hooks + all 8 check gates; stdlib-only, green is the merge floor
+node --test          # hooks + all 11 check gates; stdlib-only, green is the merge floor
 ```
 
 The full gate list, one line each: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
@@ -99,11 +134,13 @@ The full gate list, one line each: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 - [docs/SYSTEM.md](docs/SYSTEM.md) — how the layers fit: the refute move,
   code-vs-judgment, model-tier dispatch, the fan-out pipeline, the
-  data-engineering layer
+  data-engineering layer (settled, scoped), and the deployment layer
+  (proposed)
 - [docs/STATUS.md](docs/STATUS.md) — what's proven and what isn't, misfires
   included
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — tests, gates, install
-- [docs/adr/](docs/adr/README.md) — decisions, decided vs. as-built
+- [docs/DECISIONS.md](docs/DECISIONS.md) — the decisions behind the claims on
+  this page, each with its status and what is actually built
 - [docs/README.md](docs/README.md) — the full docs index: ledgers
   (feedback / learnings / handoff), designs, audits, comparisons
 - [AGENTS.md](AGENTS.md) — the canonical repo brief for sessions working here
