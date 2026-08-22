@@ -1,7 +1,13 @@
 # ADR-0007 — A mid tier: the ladder was three names on two models
 
 **Status:** Accepted 2026-07-22 — operator-directed ("go ahead" on the fourth-tier route),
-built same session.
+built same session. **Amended 2026-08-22 (operator-directed):** the mid tier's model is
+re-pinned from `claude-opus-4-8` to **`claude-opus-5`** in `config/models.json` and in
+both mid-tier agents' frontmatter (`integration-runner`, `skeptic-verifier-fast`),
+`check-tier-sync` green after the re-pin. The decision (a mid tier exists and routes
+judgment-adjacent work) is unchanged; only the model string moves, and every
+2026-08-22 receipt that reads `claude-opus-4-8[1m]` is a record of what answered
+*before* the re-pin. The usage-economics premise remains unmeasured on Opus 5 too.
 
 ## Context
 
