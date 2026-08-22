@@ -11,7 +11,7 @@ No runtime dependencies beyond Node; the suite and all gates are stdlib-only
 (`node:test`). Green is the merge floor.
 
 ```
-node --test                                  # hooks + all 10 check scripts, auto-discovered from tests/
+node --test                                  # hooks + all 11 check scripts, auto-discovered from tests/
 node scripts/check-surface-scrub.mjs         # shipped examples carry no project fingerprints
 node scripts/check-citation-fidelity.mjs <claims.json>
 node scripts/check-effect-probe.mjs <probes.json>
@@ -22,6 +22,7 @@ node scripts/check-tier-sync.mjs                   # agent frontmatter agrees wi
 node scripts/check-learnings.mjs docs/learnings    # ledger entries anchored, append-only, index↔folder consistent
 node scripts/check-runlog.mjs <effort>/run-log.jsonl   # run-log entries carry the invariant core; +1 monotonic; non-empty re-verify pointer
 node scripts/check-misfire-closure.mjs docs/learn/closure-log.jsonl   # exit 0 closed / 1 false closure claim / 2 unevaluable (an open misfire)
+node scripts/check-change-record.mjs <target>/docs/changes/change-log.jsonl [--root <dir>]   # ADR-0013 (Proposed): exit 0 clean / 1 a change-record twin is red / 2 an unevaluable baseline halts; form only
 ```
 
 Also in `scripts/` (a utility, not a gate): `extract-tails.mjs` emits a

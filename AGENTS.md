@@ -11,23 +11,34 @@ stdlib-only (`node:test`).
 
 ## Structure
 
-- `skills/` — 14 discipline skills (one folder per skill, `SKILL.md` inside):
+- `skills/` — 20 discipline skills (one folder per skill, `SKILL.md` inside):
   refute, implemented-vs-planned, gate-discipline, verify-the-effect,
   fanout-build, fanout-recon-synthesize, orchestrate, judgment-dispatch,
-  pick-up, learn-from-misfire, and the four data-engineering gates
+  pick-up, learn-from-misfire, the four data-engineering gates
   (data-quality-fail-closed, no-lookahead, idempotent-restatement,
-  lineage-replay).
+  lineage-replay), and the six deployment-layer properties proposed by
+  ADR-0013 (change-backout-exercised, release-artifact-integrity,
+  health-signal-fail-closed, post-implementation-probe,
+  break-glass-on-record, change-class-earned — **provisional, fixture-tested
+  only, zero domains**).
 - `commands/` — 8 slash commands (`/rigor:verify-claim`, `honesty-check`,
   `recon`, `fanout`, `verify-effect`, `handoff`, `pickup`, `fanout-loop`).
 - `agents/` — 5 subagents: skeptic-verifier (+ `-fast` mid-tier variant,
   body byte-identical by gate), effect-prober, integration-runner,
   repo-cartographer. `model:` frontmatter is pinned per tier.
-- `hooks/` — `hooks.json` wires two hooks: `git-guard.mjs` (PreToolUse on
-  Bash — blocks `git commit`/`git push` and compound git commands) and
-  `session-start.mjs` (delivers the toolkit pointer).
-- `scripts/` — 10 check gates (`check-*.mjs`: surface-scrub,
+- `hooks/` — `hooks.json` wires three hooks: `git-guard.mjs` (PreToolUse on
+  Bash — blocks git-history writes incl. wrapped/`-c`/plumbing forms and
+  remote-side `gh pr merge` / mutating `gh api` calls), `change-guard.mjs`
+  (PreToolUse on Bash — refuses deploy-shaped commands unless a change record
+  on the configured ref carries the ADR-0013 evidence, or a break-glass
+  record exists; provisional), and `session-start.mjs` (delivers the toolkit
+  pointer). Both PreToolUse hooks share `shell-normalize.mjs` (wrapper /
+  subshell / `sh -c` / absolute-path normalization).
+- `scripts/` — 11 check gates (`check-*.mjs`: surface-scrub,
   citation-fidelity, effect-probe, fanout, tier-placement, dispatch,
-  tier-sync, learnings, runlog, misfire-closure) plus `extract-tails.mjs`,
+  tier-sync, learnings, runlog, misfire-closure, and change-record — the
+  ADR-0013 three-outcome gate over a target's change log, provisional) plus
+  `extract-tails.mjs`,
   a non-gate utility whose
   output stays out of every repo. House style: pure exported matcher, fs only
   at the CLI boundary.
@@ -65,7 +76,14 @@ after editing `agents/`, restart the session before dispatching them.
 ## Invariants
 
 - Agents never write git history — emit the commands for the human
-  (`git-guard` enforces it; `git mv` is allowed).
+  (`git-guard` enforces it; `git mv` is allowed). `git-guard` is friction,
+  not a security boundary: `node -e`/`python -c` wrappers and the hook
+  script's own plugin-cache path remain open (ADR-0013 self-refutation 7).
+- Agents never trigger a deployment — `change-guard` refuses deploy-shaped
+  commands (kubectl/helm/terraform/pulumi/gh workflow/argocd/flux mutating
+  verbs) and the human runs them; the authorized path is a committed change
+  record, the emergency path a committed break-glass record (ADR-0013,
+  Proposed).
 - The shipped plugin surface (`skills/`, `agents/`, `commands/`) stays
   domain-neutral and must pass the surface-scrub gate; `docs/` may name
   domains freely.

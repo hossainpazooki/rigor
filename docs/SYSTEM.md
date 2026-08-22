@@ -34,7 +34,8 @@ Two terms, defined once and used throughout:
 Worth being precise about, because it kills the most likely misread:
 **rigor is not an automated validator for your project.**
 
-- **Executes as code:** the 2 hooks (`git-guard`, `session-start`), plus 10
+- **Executes as code:** the 3 hooks (`git-guard`, `change-guard` — provisional,
+  ADR-0013 — and `session-start`), plus 11
   check scripts — `check-surface-scrub` (no project-specific fingerprints leak
   into shipped examples), `check-citation-fidelity` (every cited
   identifier/quote exists in its named source), `check-effect-probe` (an
@@ -52,8 +53,14 @@ Worth being precise about, because it kills the most likely misread:
   timestamps in order, +1 monotonic numbering, a non-empty re-verify pointer),
   `check-misfire-closure` (a misfire's closure state carries the evidence it
   claims — a pin needs a red-proof, a decline needs a dated decision; `open`
-  exits 2 as unevaluable). All run under `node --test`.
-- **Applied as judgment:** the 14 skills, 8 commands, and 5 agents are
+  exits 2 as unevaluable), and — provisional, ADR-0013 Proposed —
+  `check-change-record` (a target's change log carries the form of the six
+  deployment properties: a backout credited only when it ran and exited 0, a
+  content-addressed artifact, a health verdict that equals the fold of its
+  in-radius signals, a non-vacuous probe, a complete break-glass record, and
+  a class citation that resolves; an unevaluable baseline exits 2). All run
+  under `node --test`.
+- **Applied as judgment:** the 20 skills, 8 commands, and 5 agents are
   discipline the agent applies *inside your repo*, against *your* gates. rigor
   deliberately ships no turnkey pipeline validator — a shipped checker that
   certified pipelines whose schema it can't know would itself be a
@@ -223,3 +230,23 @@ this list until it has actually fired.
 Deliberately **not** shipped: an automated validator that runs these checks
 for you — see ADR-0002 above. The skills ship the attack moves and the
 claim-calibration language; the agent applies them against your schema.
+
+## Deployment layer (proposed, ADR-0013 — nothing here is credited)
+
+The same move aimed at the moment *before* an irreversible change, positioned
+as a pre-change authorization gate: the agent proposes a change and its
+evidence, deterministic gates decide whether the evidence is sufficient, and a
+human promotes everything durable. Six properties, each in the control shapes
+it can make go red (review / preventive / detective / evidentiary) — a backout
+that ran against the candidate and exited 0; attested artifact bytes
+recomputed at the edge; a health signal that halts on unevaluable and scopes
+to the declared blast radius; a post-implementation probe that is refused
+until it has a negative control (the handoff to `verify-the-effect`); a
+break-glass record written before the bypass; and a change class every
+pattern enters at 2 and only a human demotes. Units: six skills,
+`check-change-record` (three outcomes), and the `change-guard` hook — which
+is friction, not a boundary, exactly like `git-guard`. **Status:** Proposed
+2026-08-22; fixture-tested; first domain rehearsed at record level only; zero
+live runs; zero domains; the 2026-06-27 caveat applies verbatim. The ADR's
+first draft was refuted by three skeptics the same day; the first build was
+refuted by nine; what stands is what survived round two.

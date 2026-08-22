@@ -34,7 +34,9 @@ skimmer-first page and its content moved here.)
 - [`specs/`](specs/) — designs: the original plugin design
   (`2026-06-25-rigor-plugin-design.md`), judgment-dispatch
   (`2026-07-05-judgment-dispatch-design.md`).
-- [`plans/`](plans/) — build records: phase 1, judgment-dispatch, ledger kit.
+- [`plans/`](plans/) — build records: phase 1, judgment-dispatch, ledger kit,
+  and the 2026-08-22 deployment-layer build (ADR-0013 — its fan-out scripts,
+  verdict log, and the skeptic findings from both rounds).
 - [`audits/`](audits/) — the 37-finding spine self-audit and later audits,
   including the 2026-08-18 misfire-closure survey (5 pinned / 0 declined / 8 open).
 - [`comparisons/`](comparisons/) — measured scorecard vs. superpowers /

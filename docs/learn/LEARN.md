@@ -63,3 +63,9 @@ loud — never quote that pass as evidence of closure.
 | Id | State | Capture → pin |
 |---|---|---|
 | `check-runlog-built-but-never-invoked` | **pinned** 2026-08-18 | [learnings 2026-08-18](../learnings/2026-08-18-check-runlog-built-but-never-invoked.md) → `tests/runlog-check.test.mjs` wiring pin, seen RED before the fanout-loop edit and green after |
+| `git-guard-bypass-forms-2026-08-22` | **pinned** 2026-08-22 | [feedback 2026-08-22](../feedback/2026-08-22-git-guard-bypass-forms-misfire.md) → `tests/git-guard.test.mjs` + `tests/shell-normalize.test.mjs`; current tests vs the pre-session hook: 70 tests, 33 fail; vs working tree 70/70 |
+| `skeptic-provenance-from-commit-date-2026-08-22` | **open** | [learnings 2026-08-22](../learnings/2026-08-22-skeptic-read-commit-date-as-provenance.md) — no pin yet; a pin would be a gate that a provenance claim cites a blob, not a commit date; decline is the operator's call |
+| `fabricated-worker-receipt-2026-08-22` | **open** | [feedback 2026-08-22](../feedback/2026-08-22-check-dispatch-fabricated-receipt.md) — `check-dispatch` caught it by luck of the id; no mechanical pin for a placeholder that echoes the right id; decline is the operator's call |
+
+With two records `open`, this ledger is **unevaluable (exit 2)** as of
+2026-08-22 — by design (ADR-0010 §4).
