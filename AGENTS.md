@@ -21,8 +21,10 @@ stdlib-only (`node:test`).
   health-signal-fail-closed, post-implementation-probe,
   break-glass-on-record, change-class-earned — **provisional, fixture-tested
   only, zero domains**).
-- `commands/` — 8 slash commands (`/rigor:verify-claim`, `honesty-check`,
-  `recon`, `fanout`, `verify-effect`, `handoff`, `pickup`, `fanout-loop`).
+- `commands/` — 9 slash commands (`/rigor:verify-claim`, `honesty-check`,
+  `recon`, `fanout`, `verify-effect`, `handoff`, `pickup`, `fanout-loop`, and
+  `harvest` — one past session per invocation, mined for evidence about rigor's
+  own components; **provisional**, ADR-0014 Proposed).
 - `agents/` — 5 subagents: skeptic-verifier (+ `-fast` mid-tier variant,
   body byte-identical by gate), effect-prober, integration-runner,
   repo-cartographer. `model:` frontmatter is pinned per tier.
@@ -34,12 +36,13 @@ stdlib-only (`node:test`).
   record exists; provisional), and `session-start.mjs` (delivers the toolkit
   pointer). Both PreToolUse hooks share `shell-normalize.mjs` (wrapper /
   subshell / `sh -c` / absolute-path normalization).
-- `scripts/` — 11 check gates (`check-*.mjs`: surface-scrub,
+- `scripts/` — 12 check gates (`check-*.mjs`: surface-scrub,
   citation-fidelity, effect-probe, fanout, tier-placement, dispatch,
-  tier-sync, learnings, runlog, misfire-closure, and change-record — the
-  ADR-0013 three-outcome gate over a target's change log, provisional) plus
-  `extract-tails.mjs`,
-  a non-gate utility whose
+  tier-sync, learnings, runlog, misfire-closure, change-record — the
+  ADR-0013 three-outcome gate over a target's change log, provisional — and
+  harvest, the ADR-0014 three-outcome gate that refuses a credit standing on a
+  transcript rather than a re-run, provisional) plus `extract-tails.mjs` and
+  `index-sessions.mjs`, non-gate utilities whose
   output stays out of every repo. House style: pure exported matcher, fs only
   at the CLI boundary.
 - `tests/` — `node --test` suite, auto-discovered; green is the merge floor.

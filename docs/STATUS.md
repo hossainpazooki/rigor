@@ -13,11 +13,25 @@ domains as a packaged component) until the ledger records the promotion.
 "Settled (scoped)" means settled *for the named scope only*, with unproven
 reach kept visible.
 
-**Claim ceiling (2026-08-22):** 8 commands / **20** skills / 5 agents / **3**
-hooks / **11** check gates — the six skills, one gate, and one hook added by
-ADR-0013 are **provisional, fixture-tested only, zero domains**, and enter the
-ceiling only because each has been seen red on a known-bad twin in `tests/`
-(523 tests, `node --test`). They leave it the moment a twin stops going red.
+**Claim ceiling (2026-09-01):** **9** commands / **20** skills / 5 agents / **3**
+hooks / **12** check gates — the six skills, one gate, and one hook added by
+ADR-0013, plus the command and gate added by ADR-0014, are **provisional,
+fixture-tested only, zero domains**, and enter the ceiling only because each has
+been seen red on a known-bad twin in `tests/` (**585** tests, `node --test`).
+They leave it the moment a twin stops going red.
+
+**ADR-0014 harvest (2026-09-01, Proposed).** `/rigor:harvest` +
+`scripts/check-harvest.mjs` + `scripts/index-sessions.mjs` (indexer, not a gate).
+One session harvested end-to-end. It produced the **first evidence this repo has
+ever taken from its own history**, and the first thing it found was a live
+defect in shipped code: `git-guard` refused an entirely read-only command in a
+non-rigor repo on 2026-08-25 and still did on 2026-09-01, because a redirection
+token (`2>&1`) survived normalization into `argv` and counted as the positional
+argument that makes `symbolic-ref` a write. Fixed in
+`shell-normalize.stripRedirections`, 4 twins pinned including three proving no
+blocked verb was weakened. Both of the indexer's own false-positive classes
+(~50 of 91 silent-skip candidates; 15 foreign-gate runs) were found by reading
+its output, not by its tests.
 
 | Component | Kind | Status |
 |---|---|---|

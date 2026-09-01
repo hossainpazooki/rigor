@@ -29,6 +29,10 @@ skimmer-first page and its content moved here.)
 - [`learn/`](learn/LEARN.md) — the misfire **closure** ledger: mechanism, pin,
   and the pin's red-proof (ADR-0010, **Accepted 2026-08-18**).
   Starts empty; capture stays in `feedback/` and `learnings/`.
+- [`harvest/`](harvest/HARVEST.md) — past sessions mined for evidence about
+  rigor's own components (ADR-0014, **Proposed**). A transcript is a lead; every
+  credited record carries the read-only re-run executed *today* and its observed
+  exit. Proposes rows for `feedback/`; never writes them.
 
 ## Point-in-time records (historical; do not "fix" retroactively)
 
