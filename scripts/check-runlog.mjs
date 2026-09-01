@@ -26,16 +26,17 @@ import { pathToFileURL } from 'node:url';
  * same key value as the record it corrects, and that record must appear EARLIER.
  * `label(r)` names a record in violation messages.
  */
-export function resolveSupersession(records, { key = 'run', label = (r) => `run ${r?.run ?? '<unnumbered>'}` } = {}) {
+export function resolveSupersession(records, { key = 'run', label = (r) => `run ${r?.run ?? '<unnumbered>'}`, numeric = key === 'run' } = {}) {
   const superseded = new Set();
   const violations = [];
   records.forEach((r, i) => {
     if (r?.supersedes === undefined) return;
     const id = label(r);
-    const isRunKey = key === 'run';
-    if (isRunKey ? !(Number.isInteger(r.supersedes) && r.supersedes >= 1)
-                 : !(typeof r.supersedes === 'string' && r.supersedes.trim() !== '')) {
-      violations.push({ entry: id, reason: isRunKey ? 'supersedes must be a positive run number' : `supersedes must be a non-empty ${key}` });
+    // `numeric` is the key's TYPE, which defaults to the historical behaviour (only
+    // `run` was numeric) but is now stateable: check-harvest numbers its records `n`.
+    if (numeric ? !(Number.isInteger(r.supersedes) && r.supersedes >= 1)
+                : !(typeof r.supersedes === 'string' && r.supersedes.trim() !== '')) {
+      violations.push({ entry: id, reason: numeric ? `supersedes must be a positive ${key === 'run' ? 'run number' : key} number` : `supersedes must be a non-empty ${key}` });
       return;
     }
     if (r[key] !== r.supersedes) {
