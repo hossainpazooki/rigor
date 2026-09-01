@@ -410,6 +410,29 @@ export function splitSegments(command) {
     .filter(Boolean);
 }
 
+/**
+ * A redirection is not an argument. Found 2026-09-01 by harvesting a 2026-08-27
+ * session: `git symbolic-ref --short HEAD 2>&1` was REFUSED while the bare form was
+ * allowed, because `2>&1` survived into argv and counted as the second positional
+ * that distinguishes a symbolic-ref write from a read. Any rule that counts
+ * positionals had the same hole.
+ *
+ * Drops a redirection token, plus its target when the operator stands alone
+ * (`> file`). Cannot weaken a rule: it removes only tokens the shell would have
+ * consumed itself, so a blocked verb stays blocked (`git push 2>&1` is still push).
+ */
+export function stripRedirections(argv) {
+  const OP = /^[0-9]*(>>|>&|&>|>|<)/;
+  const OP_ONLY = /^[0-9]*(>>|>&|&>|>|<)$/;
+  const out = [];
+  for (let i = 0; i < argv.length; i++) {
+    const t = argv[i];
+    if (!OP.test(t)) { out.push(t); continue; }
+    if (OP_ONLY.test(t)) i += 1; // the target is a separate token: `> file`
+  }
+  return out;
+}
+
 export function normalizeSegment(seg) {
   let current = String(seg).trim();
   let argv = [];
@@ -440,6 +463,8 @@ export function normalizeSegment(seg) {
     argv = stripped;
     break;
   }
+
+  argv = stripRedirections(argv);
 
   if (argv.length) argv[0] = stripBinaryToken(argv[0]);
 

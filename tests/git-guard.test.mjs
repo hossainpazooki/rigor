@@ -497,3 +497,32 @@ test('blocks gh api merge-upstream, pulls/N/update-branch, and gh repo sync (fix
   assert.equal(decide('gh api -X PUT repos/o/r/pulls/1/update-branch', env).block, true);
   assert.equal(decide('gh repo sync o/r --branch main', env).block, true);
 });
+
+// --- Pinned regression, 2026-09-01: a redirection is not an argument.
+// Found by harvesting session 951cdf1d (2026-08-27, a non-rigor repo): a
+// read-only compound was REFUSED at the time and still was today. The bisect
+// isolated one segment - a read with a trailing redirect, whose `2>&1` survived
+// into argv and counted as the positional that makes symbolic-ref a write.
+// Any rule that counts positionals had the same hole. ---
+test('a read with a trailing redirect is still a read (harvest 951cdf1d)', () => {
+  assert.equal(decide('git symbolic-ref --short HEAD 2>&1', env).block, false);
+  assert.equal(decide('git symbolic-ref --short HEAD', env).block, false, 'the bare form was always allowed');
+});
+test('the redirect fix does NOT weaken the symbolic-ref write rule', () => {
+  assert.equal(decide('git symbolic-ref HEAD refs/heads/other', env).block, true);
+  assert.equal(decide('git symbolic-ref HEAD refs/heads/other 2>&1', env).block, true);
+  assert.equal(decide('git symbolic-ref HEAD refs/heads/other > log.txt', env).block, true);
+});
+test('the redirect fix does NOT weaken any blocked verb', () => {
+  for (const c of ['git push 2>&1', 'git commit -m x > /dev/null', 'git reset --hard HEAD~1 2>&1',
+                   'git tag -f v1 2>&1', 'git branch -D main > out', 'gh pr merge 4 2>&1']) {
+    assert.equal(decide(c, env).block, true, c);
+  }
+});
+test('the whole refused compound from that session is now allowed', () => {
+  const compound = [
+    'cd ~/dev/some-repo',
+    'echo "=== state ==="; git -C . log --oneline -1 2>&1 | head -2; git symbolic-ref --short HEAD 2>&1; git remote -v 2>&1 | head -2',
+  ].join('\n');
+  assert.equal(decide(compound, env).block, false);
+});
