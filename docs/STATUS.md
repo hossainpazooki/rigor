@@ -17,7 +17,7 @@ reach kept visible.
 hooks / **12** check gates — the six skills, one gate, and one hook added by
 ADR-0013, plus the command and gate added by ADR-0014, are **provisional,
 fixture-tested only, zero domains**, and enter the ceiling only because each has
-been seen red on a known-bad twin in `tests/` (**585** tests, `node --test`).
+been seen red on a known-bad twin in `tests/` (**591** tests, `node --test`).
 They leave it the moment a twin stops going red.
 
 **ADR-0014 harvest (2026-09-01, Proposed).** `/rigor:harvest` +

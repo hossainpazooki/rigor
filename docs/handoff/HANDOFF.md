@@ -31,3 +31,4 @@ evidence.
 
 Prior sessions' briefs live in `~/dev/briefs/`, the pre-ADR local convention, which remains the
 fallback for genuinely multi-repo sessions.
+| 2026-09-01 | [2026-09-01-harvest-live-contributions-umbrella.md](2026-09-01-harvest-live-contributions-umbrella.md) | ADR-0014 harvest **Proposed + built + first run** — one live misfire found in shipped git-guard (redirect-as-positional, fixed, 4 twins), check-fanout misfire closed pinned, contributions umbrella opened (`docs/contributions/`, DQX survey absorbed, seven-brief comparisons carry resolved), rigor page re-derived (site `cb2da49`), suite 523→591. Next: three operator rulings (0013, 0014 + claim cards, 2 proposed FEEDBACK rows), the missing git-guard closure record, baseline lane files first |

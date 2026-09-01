@@ -11,7 +11,7 @@ No runtime dependencies beyond Node; the suite and all gates are stdlib-only
 (`node:test`). Green is the merge floor.
 
 ```
-node --test                                  # hooks + all 11 check scripts, auto-discovered from tests/
+node --test                                  # hooks + all 12 check scripts, auto-discovered from tests/
 node scripts/check-surface-scrub.mjs         # shipped examples carry no project fingerprints
 node scripts/check-citation-fidelity.mjs <claims.json>
 node scripts/check-effect-probe.mjs <probes.json>
