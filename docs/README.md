@@ -46,6 +46,11 @@ skimmer-first page and its content moved here.)
   including the 2026-08-18 misfire-closure survey (5 pinned / 0 declined / 8 open).
 - [`comparisons/`](comparisons/) — measured scorecard vs. superpowers /
   SuperML / Anthropic's Data plugin.
+- [`contributions/`](contributions/STRATEGY.md) — the open-source contribution
+  umbrella: `STRATEGY.md` is the mutable working reference (targets, lane
+  rules, claim-card discipline); dated entries beside it are point-in-time
+  evidence records and adjacency surveys (the 2026-07-21 DQX survey moved
+  here from an uncommitted comparisons addendum, provenance stated in-file).
 - [`session-start-setup.md`](session-start-setup.md) — manual hook
   registration for older harness versions.
 - [`using-rigor-on-a-new-repo.md`](using-rigor-on-a-new-repo.md) — onboarding
