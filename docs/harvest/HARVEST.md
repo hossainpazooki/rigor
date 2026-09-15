@@ -24,35 +24,40 @@ promotes.
 
 ## Queue
 
-Ranked by domain-eligible firings (from `scripts/index-sessions.mjs`; re-derive
-rather than trusting these counts). `opp` = silent-skip **candidates**, which
-over-produce by construction and are not defect counts.
+**Ordered by inferred deadline, soonest first** (re-ranked 2026-09-15). Transcripts
+age out: 8 of the 23 sessions queued on 2026-09-01 were already gone by
+2026-09-14 (learnings `2026-09-15-harvest-queue-transcripts-age-out-before-harvest`).
+"Purge by" is transcript mtime + 30 days, an **inference** from the observed
+window, not a read of the deletion rule; a resumed session moves its mtime.
+Firing counts come from `scripts/index-sessions.mjs` (re-derive rather than
+trusting them). `opp` = silent-skip **candidates**, which over-produce by
+construction and are not defect counts.
 
-| Session | Domain-eligible | opp | Repos | Done |
-|---|---|---|---|---|
-| `951cdf1d` | 11 | 1 | network-as-code | 2026-09-01 |
-| `edf43652` | 11 | 9 | linear-ceiling, kv-transfer-replication | |
-| `0295a4ce` | 10 | 1 | intent-plane | |
-| `1c43d113` | 10 | 10 | parallax | |
-| `fcb0d613` | 10 | 0 | passed-vs-true-demo, closed-loop-default-detection | |
-| `3ca345ea` | 8 | 4 | intent-plane | |
-| `d038135c` | 7 | 2 | kv-transfer-replication | |
-| `6435db0b` | 5 | 0 | treasury-intent-controller | |
-| `c4006536` | 5 | 1 | treasury-intent-controller, intent-plane | |
-| `578f8105` | 4 | 2 | vantage | |
-| `62dcb1b1` | 4 | 0 | parallax, closed-loop-default-detection | |
-| `741f21a6` | 4 | 0 | treasury-intent-controller, intent-plane | |
-| `15f5e05f` | 3 | 1 | closed-loop-default-detection | |
-| `6c30e95a` | 3 | 3 | institutional-defi-platform-infra | |
-| `925a8227` | 2 | 1 | baseline, meridian | |
-| `9b0a4435` | 2 | 1 | baseline, parallax | |
-| `b76699b6` | 2 | 0 | parallax, vantage | |
-| `f736547f` | 2 | 5 | agentic-self-instruct, untrusted-self-instruct | |
-| `1b845026` | 1 | 0 | regulatory-rule-engine | |
-| `6085c0fc` | 1 | 1 | linear-ceiling | |
-| `98157576` | 1 | 0 | nav-reconciliation-demo | |
-| `b6167acd` | 1 | 1 | closed-loop-default-detection | |
-| `e6e0badf` | 1 | 0 | intent-plane | |
+| Session | Domain-eligible | opp | Repos | Transcript mtime (UTC) | Purge by (inferred) | Done |
+|---|---|---|---|---|---|---|
+| `0295a4ce` | 10 | 1 | intent-plane | 2026-08-16T18:02Z | 2026-09-15 | |
+| `e6e0badf` | 1 | 0 | intent-plane | 2026-08-17T02:10Z | 2026-09-16 | |
+| `3ca345ea` | 8 | 4 | intent-plane | 2026-08-19T03:02Z | 2026-09-18 | |
+| `62dcb1b1` | 4 | 0 | parallax, closed-loop-default-detection | 2026-08-19T03:14Z | 2026-09-18 | |
+| `15f5e05f` | 3 | 1 | closed-loop-default-detection | 2026-08-21T03:24Z | 2026-09-20 | |
+| `b76699b6` | 2 | 0 | parallax, vantage | 2026-08-22T02:27Z | 2026-09-21 | |
+| `741f21a6` | 4 | 0 | treasury-intent-controller, intent-plane | 2026-08-22T03:04Z | 2026-09-21 | |
+| `f736547f` | 2 | 5 | agentic-self-instruct, untrusted-self-instruct | 2026-08-23T04:29Z | 2026-09-22 | |
+| `6085c0fc` | 1 | 1 | linear-ceiling | 2026-08-27T03:58Z | 2026-09-26 | |
+| `951cdf1d` | 11 | 1 | network-as-code | 2026-08-28T03:32Z | 2026-09-27 | 2026-09-01 |
+| `d038135c` | 7 | 2 | kv-transfer-replication | 2026-08-31T03:17Z | 2026-09-30 | |
+| `925a8227` | 2 | 1 | baseline, meridian | 2026-09-01T22:21Z | 2026-10-01 | |
+| `1b845026` | 1 | 0 | regulatory-rule-engine | 2026-09-01T22:35Z | 2026-10-01 | |
+| `9b0a4435` | 2 | 1 | baseline, parallax | 2026-09-01T22:40Z | 2026-10-01 | |
+| `edf43652` | 11 | 9 | linear-ceiling, kv-transfer-replication | 2026-09-01T23:12Z | 2026-10-01 | |
+
+**Purged before harvest** (no transcript on 2026-09-14 or 2026-09-15; never
+harvested, nothing recoverable): `1c43d113` (10 / 10, parallax), `fcb0d613`
+(10 / 0, passed-vs-true-demo, closed-loop-default-detection), `6435db0b` (5 / 0,
+treasury-intent-controller), `c4006536` (5 / 1, treasury-intent-controller,
+intent-plane), `578f8105` (4 / 2, vantage), `6c30e95a` (3 / 3,
+institutional-defi-platform-infra), `98157576` (1 / 0, nav-reconciliation-demo),
+`b6167acd` (1 / 1, closed-loop-default-detection).
 
 ## Proposed ledger rows (for the human, not written by the command)
 
