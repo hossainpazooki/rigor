@@ -45,7 +45,9 @@ skimmer-first page and its content moved here.)
 - [`audits/`](audits/) — the 37-finding spine self-audit and later audits,
   including the 2026-08-18 misfire-closure survey (5 pinned / 0 declined / 8 open).
 - [`comparisons/`](comparisons/) — measured scorecard vs. superpowers /
-  SuperML / Anthropic's Data plugin.
+  SuperML / Anthropic's Data plugin; its 2026-09-15 addendum records
+  multi-agent execution moving from superpowers' `subagent-driven-development`
+  to `orchestrate`.
 - [`contributions/`](contributions/STRATEGY.md) — the open-source contribution
   umbrella: `STRATEGY.md` is the mutable working reference (targets, lane
   rules, claim-card discipline); dated entries beside it are point-in-time
