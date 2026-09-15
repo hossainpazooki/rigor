@@ -526,3 +526,106 @@ test('the whole refused compound from that session is now allowed', () => {
   ].join('\n');
   assert.equal(decide(compound, env).block, false);
 });
+
+// ===========================================================================
+// Pinned regression, 2026-09-14: the merge rule's /^git\s+merge\b(?!...)/
+// used \b, which matches between "merge" and "-" (a boundary between a word
+// char and a non-word char). That let it swallow every plumbing command
+// sharing the "merge" prefix -- git merge-base (a read), git merge-tree,
+// git merge-file and friends (objects, index or working tree, never a
+// ref) -- and refuse them as if they were `git merge`. Found at pick-up 2026-09-14 (session 44a40c81): a live Bash
+// refusal of `git merge-base --is-ancestor cb2da49 HEAD` in ~/dev/site.
+// ===========================================================================
+
+test('git merge stays blocked in every existing form (2026-09-14 merge-base fix)', () => {
+  assert.equal(decide('git merge feature', env).block, true);
+  assert.equal(decide('git merge --no-ff feature', env).block, true);
+  assert.equal(decide('git merge origin/main 2>&1', env).block, true);
+  assert.equal(decide('git -C . merge x', env).block, true);
+  assert.equal(decide('git -c core.x=y merge x', env).block, true);
+  assert.equal(decide('sh -c "git merge x"', env).block, true);
+  assert.equal(decide('git merge', env).block, true);
+  // pre-existing safe recovery forms must remain allowed
+  assert.equal(decide('git merge --abort', env).block, false);
+  assert.equal(decide('git merge --squash feature', env).block, false);
+});
+
+// Same session, caught by the orchestrator's old-vs-new differential before
+// commit: the first fix's (?=\s|$) lookahead let a redirect glued to the verb
+// through - bash runs `git merge>out` as a real merge, but `>` is not
+// whitespace. The boundary must exclude only word characters and hyphens.
+test('a redirect or separator glued to the verb does not un-block git merge (2026-09-14 merge-base fix)', () => {
+  for (const c of ['git merge>out', 'git merge>/dev/null x', 'git merge;echo hi', 'git merge&&echo',
+                   'git merge|cat', 'git merge"" x']) {
+    assert.equal(decide(c, env).block, true, c);
+  }
+});
+
+// Same session, found by two skeptics refuting the merge fix: normalizeGitSegment
+// re-split the joined argv on whitespace, so a quoted global-option value holding
+// a space shifted the subcommand position. `git -C "a b" commit -m x` was read as
+// subcommand `b` and allowed (a shipped bypass), and a value whose second word
+// began `merge-` hid a real merge once the merge rule stopped matching merge-*.
+// isGhBlocked learned the same lesson in fix round 3; git now parses the argv array.
+test('a quoted global-option value holding a space does not hide the subcommand (2026-09-14)', () => {
+  for (const c of ['git -C "a b" commit -m x', 'git -C "a b" merge feature', 'git -C "a b" push',
+                   'git -C "r merge-x" merge feature', 'git -C "r merge-x" commit -m x',
+                   'git -c "user.name=a merge-b" merge feature', 'git --git-dir="/tmp/a merge-y" merge feature',
+                   'sh -c "git -C \'r merge-x\' merge feature"']) {
+    assert.equal(decide(c, env).block, true, c);
+  }
+  // Deliberate over-block (operator ruling 2026-09-14, "union of both views"): the
+  // hook cannot know how bash will split every value, so it blocks when EITHER the
+  // argv view or the whitespace re-split view names a write. HEAD blocked this too.
+  assert.equal(decide('git -C "x commit" status', env).block, true);
+});
+
+test('git merge-base and merge-tree are not git merge and must not be blocked (2026-09-14 merge-base fix)', () => {
+  assert.equal(decide('git merge-base --is-ancestor A B', env).block, false);
+  assert.equal(decide('git merge-base A B', env).block, false);
+  assert.equal(decide('git merge-base --fork-point main', env).block, false);
+  assert.equal(decide('git merge-tree A B', env).block, false);
+  assert.equal(
+    decide('cd /c/x && git merge-base --is-ancestor A HEAD; echo "exit=$?"', env).block,
+    false,
+  );
+});
+
+// Operator ruling 2026-09-14: the rest of the merge-* plumbing touches the working
+// tree or index, never a ref, so it is allowed on purpose - pinned so the choice is
+// deliberate rather than a side effect of the boundary fix.
+test('merge-* plumbing that writes no ref is allowed by ruling (2026-09-14)', () => {
+  for (const c of ['git merge-file a b c', 'git merge-index -o git-merge-one-file -a', 'git merge-one-file a b c',
+                   'git merge-recursive base -- head other', 'git merge-ours base -- head other',
+                   'git merge-octopus base -- head a b', 'git merge-resolve base -- head other',
+                   'git merge-subtree base -- head other']) {
+    assert.equal(decide(c, env).block, false, c);
+  }
+});
+
+// Round-2 skeptics, same session: the hook's tokenizer keeps an unquoted $(...) as one
+// token and does not track \" inside double quotes, while bash word-splits both. The
+// argv-only walk therefore lost writes the old re-split had caught. Both views now vote.
+test('a write the hook cannot tokenize like bash is still blocked by the re-split view (2026-09-14)', () => {
+  for (const c of ['git -c $(echo push.default=current push) origin', 'git -c "x.y=\\"" push origin main',
+                   'git -c $(echo commit.gpgsign=false commit) -m x']) {
+    assert.equal(decide(c, env).block, true, c);
+  }
+});
+
+// Round-2 skeptics, same session: global flags missing from the hook's list (-P,
+// --no-advice, --no-lazy-fetch, --config-env, --attr-source, ...) were read as the
+// subcommand, so `git -P push` was allowed. Any unlisted dash token before the
+// subcommand is now skipped, and git's value-taking globals consume their value.
+test('an unlisted global flag does not hide the subcommand (2026-09-14)', () => {
+  for (const c of ['git -P push', 'git --no-advice push', 'git --no-lazy-fetch commit -m x',
+                   'git --config-env user.x=HOME commit -m x', 'git --config-env=user.x=HOME push',
+                   'git --attr-source HEAD push', 'git --attr-source=HEAD push',
+                   'git -c "user.name=a commit" -P push']) {
+    assert.equal(decide(c, env).block, true, c);
+  }
+  for (const c of ['git -P log --oneline -3', 'git --no-advice status', 'git --config-env user.x=HOME log -1',
+                   'git --attr-source HEAD diff --stat']) {
+    assert.equal(decide(c, env).block, false, c);
+  }
+});

@@ -36,7 +36,14 @@ const BLOCKED = [
   // finding #12: direct ref rewrite
   /^git\s+update-ref\b/,
   // finding #14: merge (allow --abort and --squash safe ops)
-  /^git\s+merge\b(?!\s+(--abort|--squash)\b)/,
+  // fix 2026-09-14: \b matched between "merge" and "-", so plumbing sharing
+  // the prefix was blocked as if it were `git merge` - merge-base (a read),
+  // merge-tree (writes objects at most), and merge-file / merge-index /
+  // merge-one-file / the merge-<strategy> helpers (touch the working tree or
+  // index, never a ref). The verb
+  // may be followed by anything except a word character or a hyphen: a
+  // whitespace-only lookahead let `git merge>out`, a real merge, through.
+  /^git\s+merge(?![\w-])(?!\s+(--abort|--squash)\b)/,
   // finding #16: reflog erasure (allow read-only `git reflog show`)
   /^git\s+reflog\s+(delete|expire)\b/,
   // ADR-0013: force branch reset to a ref (checkout -B always resets the
@@ -51,31 +58,38 @@ const BLOCKED = [
 ];
 
 // Global option tokens that appear between `git` and the subcommand.
-// VALUE_FLAGS take the next token as their argument.
-const VALUE_FLAGS = new Set(['-C', '--git-dir', '--work-tree', '--namespace', '--exec-path', '-c']);
-// BOOL_FLAGS_RE matches single-token boolean global options (no argument).
-const BOOL_FLAGS_RE = /^(-p|--paginate|--no-pager|--bare|--no-replace-objects|--literal-pathspecs|--glob-pathspecs|--noglob-pathspecs|--icase-pathspecs|--no-optional-locks)$/;
+// VALUE_FLAGS take the next token as their argument (git 2.49 accepts the
+// separate form for each; --config-env and --attr-source added 2026-09-14).
+const VALUE_FLAGS = new Set(['-C', '--git-dir', '--work-tree', '--namespace', '--exec-path', '-c', '--config-env', '--attr-source']);
 // VALUE_FLAG_PREFIX_RE matches `--key=value` forms.
-const VALUE_FLAG_PREFIX_RE = /^(--git-dir=|--work-tree=|--namespace=|--exec-path=)/;
+const VALUE_FLAG_PREFIX_RE = /^(--git-dir=|--work-tree=|--namespace=|--exec-path=|--config-env=|--attr-source=|--list-cmds=)/;
+// Any OTHER dash token before the subcommand is skipped as a boolean global
+// (fix 2026-09-14). A fixed boolean list missed -P, --no-advice and
+// --no-lazy-fetch, which were then read as the subcommand - `git -P push` was
+// allowed. Skipping unknown dash tokens can only over-block, never hide a verb.
 
 /**
- * Strip git's own global option tokens from an already shell-normalized
- * `git ...` command string (wrappers, absolute paths, .exe, and shell -c /
- * eval bodies are handled upstream by expandCommands()). Returns null if the
- * string is not a `git` invocation at all.
+ * Strip git's own global option tokens from one shell-normalized argv
+ * (wrappers, absolute paths, .exe, and shell -c / eval bodies are handled
+ * upstream by expandArgv()) and return the rest joined as `git <subcommand> ...`.
+ * Returns null if the argv is not a `git` invocation at all.
+ *
+ * Takes the argv ARRAY, never a joined string (fix 2026-09-14): re-splitting
+ * on whitespace broke a quoted option value holding a space into two tokens,
+ * so `git -C "a b" commit -m x` was read as subcommand `b` and allowed - the
+ * lesson isGhBlocked already learned in fix round 3.
  */
-function normalizeGitSegment(s) {
-  if (!(s === 'git' || s.startsWith('git '))) return null;
-  const tokens = s.split(/\s+/);
+function normalizeGitSegment(argv) {
+  if (argv[0] !== 'git') return null;
   let i = 1; // skip 'git'
-  while (i < tokens.length) {
-    const t = tokens[i];
+  while (i < argv.length) {
+    const t = argv[i];
     if (VALUE_FLAGS.has(t)) { i += 2; continue; }
     if (VALUE_FLAG_PREFIX_RE.test(t)) { i++; continue; }
-    if (BOOL_FLAGS_RE.test(t)) { i++; continue; }
+    if (t.startsWith('-')) { i++; continue; }
     break;
   }
-  return ['git', ...tokens.slice(i)].join(' ');
+  return ['git', ...argv.slice(i)].join(' ');
 }
 
 // ADR-0013: git symbolic-ref <ref> <target> writes; --short/-d/--delete or a
@@ -377,12 +391,18 @@ export function decide(command, env = process.env) {
   if (env.RIGOR_GIT_ALLOW === '1') return { block: false };
   const expandedArgv = expandArgv(String(command));
   for (const argv of expandedArgv) {
-    // git's own BLOCKED patterns are plain regexes over the whole
-    // normalized segment; joining argv back into a string is safe here
-    // (unlike gh-api parsing) because nothing re-splits it positionally.
-    const cmdStr = argv.join(' ');
-    const gitNormalized = normalizeGitSegment(cmdStr);
-    if (gitNormalized && isBlockedGit(gitNormalized)) {
+    // git's own BLOCKED patterns are plain regexes over the normalized
+    // segment, but the global-option skip is positional. Two views vote
+    // (fix 2026-09-14, operator ruling "union of both views"): the argv array
+    // from expandArgv, which keeps a quoted value holding a space as one token
+    // (`git -C "a b" commit`), and the old whitespace re-split of that array,
+    // which lands closer to bash where the tokenizer does not model it - an
+    // unquoted $(...) that bash word-splits, a \" inside double quotes. The
+    // hook cannot know which split bash will make, so either view naming a
+    // write blocks; this can only over-block relative to either view alone.
+    const argvView = normalizeGitSegment(argv);
+    const resplitView = normalizeGitSegment(argv.join(' ').split(/\s+/).filter(Boolean));
+    if ((argvView && isBlockedGit(argvView)) || (resplitView && isBlockedGit(resplitView))) {
       return { block: true, reason: REASON };
     }
     if (isGhBlocked(argv)) {
