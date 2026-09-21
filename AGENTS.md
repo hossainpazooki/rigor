@@ -11,9 +11,11 @@ stdlib-only (`node:test`).
 
 ## Structure
 
-- `skills/` — 20 discipline skills (one folder per skill, `SKILL.md` inside):
+- `skills/` — 21 discipline skills (one folder per skill, `SKILL.md` inside):
   refute, implemented-vs-planned, gate-discipline, verify-the-effect,
-  fanout-build, fanout-recon-synthesize, orchestrate, judgment-dispatch,
+  fanout-build, fanout-recon-synthesize, orchestrate, execute-plan (a written
+  plan wave by wave, per-task review, per-wave gate; **provisional, zero
+  domains**), judgment-dispatch,
   pick-up, learn-from-misfire, the four data-engineering gates
   (data-quality-fail-closed, no-lookahead, idempotent-restatement,
   lineage-replay), and the six deployment-layer properties proposed by
@@ -21,9 +23,9 @@ stdlib-only (`node:test`).
   health-signal-fail-closed, post-implementation-probe,
   break-glass-on-record, change-class-earned — **provisional, fixture-tested
   only, zero domains**).
-- `commands/` — 9 slash commands (`/rigor:verify-claim`, `honesty-check`,
-  `recon`, `fanout`, `verify-effect`, `handoff`, `pickup`, `fanout-loop`, and
-  `harvest` — one past session per invocation, mined for evidence about rigor's
+- `commands/` — 10 slash commands (`/rigor:verify-claim`, `honesty-check`,
+  `recon`, `fanout`, `execute-plan`, `verify-effect`, `handoff`, `pickup`,
+  `fanout-loop`, and `harvest` — one past session per invocation, mined for evidence about rigor's
   own components; **provisional**, ADR-0014 Proposed).
 - `agents/` — 5 subagents: skeptic-verifier (+ `-fast` mid-tier variant,
   body byte-identical by gate), effect-prober, integration-runner,
@@ -41,9 +43,10 @@ stdlib-only (`node:test`).
   tier-sync, learnings, runlog, misfire-closure, change-record — the
   ADR-0013 three-outcome gate over a target's change log, provisional — and
   harvest, the ADR-0014 three-outcome gate that refuses a credit standing on a
-  transcript rather than a re-run, provisional) plus `extract-tails.mjs` and
-  `index-sessions.mjs`, non-gate utilities whose
-  output stays out of every repo. House style: pure exported matcher, fs only
+  transcript rather than a re-run, provisional) plus three non-gate
+  utilities: `extract-tails.mjs` and `index-sessions.mjs`, whose output stays
+  out of every repo, and `plan-waves.mjs`, which turns a writing-plans plan
+  into execute-plan args (exit 2 on a placeholder path). House style: pure exported matcher, fs only
   at the CLI boundary.
 - `tests/` — `node --test` suite, auto-discovered; green is the merge floor.
 - `config/models.json` — single source of model-tier truth (tiers, floors,

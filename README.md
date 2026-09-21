@@ -77,11 +77,11 @@ flowchart LR
   recompute from raw sources, re-run the real gate, dispatch independent
   adversarial reviewers, and require a negative control (a check that would
   pass whether or not the change worked proves nothing).
-- **Judgment, not a generic validator** — 20 skills, 8 commands, and 5 agents
+- **Judgment, not a generic validator** — 21 skills, 10 commands, and 5 agents
   that the agent applies inside *your* repository against *your* gates.
   Deliberately no turnkey validator: a checker that certified artifacts whose
   schema it cannot know would itself be unverified
-  ([why](docs/DECISIONS.md#no-turnkey-validator)). Six of the twenty skills are
+  ([why](docs/DECISIONS.md#no-turnkey-validator)). Six of the twenty-one skills are
   the **deployment layer**, proposed 2026-08-22 and not yet validated in an
   independent codebase (see below).
 - **Cost-aware model placement** — verifiers are routed across model tiers by

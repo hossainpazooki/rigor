@@ -54,6 +54,10 @@ contract and no verification, and report green. The guardrails are rigor's job:
   findings, synthesize the survivors.
 - `fanout-build` — the trustworthy multi-agent build (spike → contract → scaffold →
   build → integrate → verify).
+- `execute-plan` — a written plan, wave by wave: implementer + spec/quality
+  reviewer per task, bounded fix loop, integration gate and commit block per
+  wave, whole-branch refutation on the last wave. This is the shape that takes
+  over from a per-task subagent loop when a plan already exists.
 - `check-fanout` — the executable gate over a fan-out workflow script.
 
 This skill operationalizes the operating rule in `rules/workflows.md` onto the

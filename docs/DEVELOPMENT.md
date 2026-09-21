@@ -25,9 +25,11 @@ node scripts/check-misfire-closure.mjs docs/learn/closure-log.jsonl   # exit 0 c
 node scripts/check-change-record.mjs <target>/docs/changes/change-log.jsonl [--root <dir>]   # ADR-0013 (Proposed): exit 0 clean / 1 a change-record twin is red / 2 an unevaluable baseline halts; form only
 ```
 
-Also in `scripts/` (a utility, not a gate): `extract-tails.mjs` emits a
+Also in `scripts/` (utilities, not gates): `extract-tails.mjs` emits a
 per-session routing index from local harness transcripts — its output is a
-regenerable cache that belongs *outside* any repo.
+regenerable cache that belongs *outside* any repo — and `plan-waves.mjs`
+turns a writing-plans plan into `execute-plan` args, deriving waves from the
+tasks' Files lists (exit 2 on a placeholder path, never a guessed one).
 
 ## Install
 

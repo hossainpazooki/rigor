@@ -212,6 +212,10 @@ coupled tasks fit it poorly. `orchestrate` has no plan-writing or
 branch-finishing step. SDD carries superpowers' community mileage, while
 `orchestrate` is provisional with one independent domain (`STATUS.md`). And
 rigor's verification quality depends on the judgment tier being available.
+*(Later the same day: the `execute-plan` shape adds plan intake, per-task
+review with a bounded fix loop, and a durable ledger — spec
+[`../specs/2026-09-15-execute-plan-design.md`](../specs/2026-09-15-execute-plan-design.md);
+zero domains at write time.)*
 
 **What it gains.** Evidence re-executed rather than carried in a report;
 refutation of the claim, not only review of the diff; machine lints on the

@@ -67,9 +67,12 @@ Pure exported parser + CLI, house style (fs only at the CLI boundary):
   modify, test }, interfaces: { consumes, produces }, body, commits: [...] }] }`.
   `body` is the task's full text (the brief). `commits` are the `git commit`
   lines found in the task's steps, lifted out for later emission.
-- `deriveWaves(tasks)` → `[[task n, ...], ...]`. Rule: a task joins the earliest
-  wave in which no earlier-wave task and no same-wave task names any file it
-  names (any of create / modify / test); ties keep plan order. Deterministic;
+- `deriveWaves(tasks)` → `[[task n, ...], ...]`. Rule, in plan order: a task
+  joins the wave after the latest wave holding an earlier task that names any
+  file it names (any of create / modify / test); with no such task it joins
+  wave 1. Two tasks sharing a file therefore never share a wave, and a task's
+  wave is fixed by the tasks before it, so plan order is preserved within a
+  wave. Deterministic;
   no import analysis (a documented limit — the operator's 2026-09-11 wave
   derivation for a real plan used import lines too; this utility uses Files
   only, which is stricter, never looser, because a file named in two tasks is
@@ -140,6 +143,13 @@ commit per task, subjects taken from the plan's lifted Commit steps, paths from
 `files_changed`. The ledger row records the emitted commands; after the human
 runs them the next wave's BASE is the new HEAD. (Decision 4 — a long run never
 leaves the whole tree uncommitted, and the ledger can name commits.)
+
+Because a Workflow run cannot pause for the human, **one invocation of the
+example script executes one wave** (the `fanout-loop` precedent: command =
+iteration, the orchestrator = cadence). The orchestrator runs waves in
+sequence, emitting each wave's commit block before launching the next with the
+new HEAD as `base`; the whole-branch refutation runs in the invocation that
+executes the last wave.
 
 ### 5. Whole branch: refutation
 

@@ -60,7 +60,7 @@ Worth being precise about, because it kills the most likely misread:
   in-radius signals, a non-vacuous probe, a complete break-glass record, and
   a class citation that resolves; an unevaluable baseline exits 2). All run
   under `node --test`.
-- **Applied as judgment:** the 20 skills, 8 commands, and 5 agents are
+- **Applied as judgment:** the 21 skills, 10 commands, and 5 agents are
   discipline the agent applies *inside your repo*, against *your* gates. rigor
   deliberately ships no turnkey pipeline validator — a shipped checker that
   certified pipelines whose schema it can't know would itself be a
