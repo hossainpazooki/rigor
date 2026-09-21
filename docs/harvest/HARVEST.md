@@ -21,6 +21,7 @@ promotes.
 | Session | Records | Credited | Domains touched | Headline |
 |---|---|---|---|---|
 | [`951cdf1d`](951cdf1d.jsonl) | 3 | 2 | network-as-code | `git-guard` refused an all-read command; bisect found a redirect counted as a positional argument. Fixed and pinned. |
+| [`cc40b6d1`](cc40b6d1.jsonl) | 4 | **0** | datum, meridian, baseline | 8 Workflow runs / 93 agents under `orchestrate`, work landed in three repos — but **halted at step 5**: both judgment-tier skeptics died on exhausted credits, so nothing is credited. Candidate misfire: `check-tier-placement` false-positives on the stall-retry wrapper `orchestrate` itself mandates (8/8 scripts red, receipts show zero tier collapse). |
 
 ## Queue
 
@@ -32,6 +33,19 @@ window, not a read of the deletion rule; a resumed session moves its mtime.
 Firing counts come from `scripts/index-sessions.mjs` (re-derive rather than
 trusting them). `opp` = silent-skip **candidates**, which over-produce by
 construction and are not defect counts.
+
+**The queue is not the corpus (measured 2026-09-21).** It was built from one
+project directory. Re-indexing **all 17** directories under
+`~/.claude/projects/` found **45 sessions with firings, 29 of them carrying at
+least one domain-eligible firing**, against the **23** session ids this file
+names. `cc40b6d1` — the richest `orchestrate` corpus in the archive, 8 Workflow
+runs across three repos — was never queued and was found only by re-indexing.
+Rank from a full index, never from this table alone.
+
+**Purged since the 2026-09-15 re-rank** (confirmed absent 2026-09-21):
+`0295a4ce`, `e6e0badf`, `3ca345ea`, `62dcb1b1`, `15f5e05f`, and `b76699b6` /
+`741f21a6` on their inferred date — 15 of the 23 now unrecoverable. The
+30-day mtime inference held for both 09-21 rows.
 
 | Session | Domain-eligible | opp | Repos | Transcript mtime (UTC) | Purge by (inferred) | Done |
 |---|---|---|---|---|---|---|
@@ -69,6 +83,23 @@ institutional-defi-platform-infra), `98157576` (1 / 0, nav-reconciliation-demo),
 - **ledger kit / `check-learnings` — candidate second domain** (network-as-code,
   15 entries clean). Unlike the previous domain-2 attempt, the ledger is tracked
   **and** no dated entry was edited in history. Still form-only evidence.
+
+- **`check-tier-placement` — candidate misfire, uncredited** (`cc40b6d1`, datum
+  / meridian / baseline, re-verified 2026-09-21). The gate cannot see a tier pin
+  that arrives through an `opts` object, so it false-positives on the
+  stall-retry wrapper `orchestrate` guardrail 10 mandates: 8/8 scripts exit 1,
+  warning count equals wrapper call-site count every time, while the run
+  receipts show the answering models were exactly the configured mid/build/
+  judgment tiers — 8 silent-collapse alarms, zero collapse. **Not refuted**: the
+  judgment tier was out of credits. Needs a skeptic to attack the reading that a
+  wrapper legitimately makes a pin unverifiable by static reading.
+
+- **`orchestrate` — three domains of `helped`, uncredited** (`cc40b6d1`; datum,
+  meridian, baseline; re-verified 2026-09-21). 8 Workflow runs / 93 agents,
+  guardrail 7 honored before every dispatch, work landed as commits in all
+  three repos. Adds domains to a row already at 3 and already **settled
+  (scoped)** — so it does **not** move the status. The open item on that row is
+  the same-operator caveat, which no self-harvest can lift.
 
 ## Corpus measurements (re-derive before citing)
 
