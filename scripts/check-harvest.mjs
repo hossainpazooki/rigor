@@ -42,7 +42,20 @@ export function findHarvestViolations(records) {
   const { superseded, violations } = resolveSupersession(records, { key: 'n', label, numeric: true });
   bad.push(...violations);
 
+  // Numbering is a property of the record SEQUENCE, not of the surviving set: a
+  // superseded record still occupies its number, so the chain must count it. Checking
+  // this inside the main loop (which skips superseded records) made every correction
+  // to a non-final record break +1 for its successors — the gate forbidding the
+  // correction discipline it ships. Found harvesting cc40b6d1, 2026-09-21.
   let prevN = null;
+  records.forEach((r) => {
+    if (!Number.isInteger(r?.n) || r?.supersedes !== undefined) return;
+    if (prevN !== null && r.n !== prevN + 1) {
+      bad.push({ entry: label(r), reason: `n ${r.n} follows ${prevN} - numbering must be +1 monotonic, append-only` });
+    }
+    prevN = r.n;
+  });
+
   records.forEach((r, i) => {
     const id = label(r);
     if (superseded.has(i)) return;
@@ -97,12 +110,6 @@ export function findHarvestViolations(records) {
       bad.push({ entry: id, reason: 'credited must be an explicit boolean - an omitted credit is an ambiguous one' });
     }
 
-    if (Number.isInteger(r?.n) && r?.supersedes === undefined) {
-      if (prevN !== null && r.n !== prevN + 1) {
-        bad.push({ entry: id, reason: `n ${r.n} follows ${prevN} - numbering must be +1 monotonic, append-only` });
-      }
-      prevN = r.n;
-    }
   });
 
   return bad;

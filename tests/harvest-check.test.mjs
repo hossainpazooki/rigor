@@ -192,3 +192,26 @@ test('CLI exit 2 on a missing file, never a silent pass', () => {
     assert.equal(e.status, 2);
   }
 });
+
+test('a correction to a record that is NOT the last one keeps the numbering chain intact', () => {
+  // A superseded record still occupies its number. Skipping it before advancing the
+  // chain made every correction to a non-final record break +1 for its successors -
+  // the gate forbidding the correction discipline it ships (found harvesting cc40b6d1).
+  const recs = [
+    credited({ n: 1 }),
+    credited({ n: 2 }),
+    credited({ n: 3 }),
+    credited({ n: 2, supersedes: 2, verdict: 'not-applicable' }),
+  ];
+  assert.deepEqual(findHarvestViolations(recs), []);
+});
+
+test('a real numbering gap is still caught when an earlier record was superseded', () => {
+  const recs = [
+    credited({ n: 1 }),
+    credited({ n: 2 }),
+    credited({ n: 5 }),
+    credited({ n: 2, supersedes: 2 }),
+  ];
+  assert.match(violations(recs), /numbering must be \+1 monotonic/);
+});
