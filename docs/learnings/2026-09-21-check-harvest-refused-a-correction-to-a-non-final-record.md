@@ -1,0 +1,9 @@
+# 2026-09-21 - check-harvest refused a correction to any record but the last
+
+ts: 2026-09-21T15:20:00Z
+commit: 9626f06
+session: 3e2af12f-214c-4987-8b9a-9cf91e417bf4
+status: verified
+fact: check-harvest ships a correction mechanism - a new record carrying `supersedes`, never an edit - and forbade using it on any record except the final one. findHarvestViolations skipped superseded records at the top of its main loop (`if (superseded.has(i)) return;`, scripts/check-harvest.mjs:48 at 9626f06) and only advanced the +1 monotonic numbering chain further down in that same loop, so a superseded record stopped counting toward the chain and every record after it read as a gap. Appending an honest correction to record 2 of a 4-record file produced `HARVEST FAIL record 3: n 3 follows 1 - numbering must be +1 monotonic, append-only` - the record being corrected was blameless and record 3 was untouched. The existing test only exercised a correction to the LAST record (n=1 then supersedes 1), which is the one case that cannot expose this. Fixed by computing the numbering chain in its own pass over every non-correction record in file order, superseded or not: a superseded record still occupies its number.
+basis: red-first, against the unchanged gate at 9626f06, `node --test --test-reporter=tap tests/harvest-check.test.mjs` printed `not ok 26 - a correction to a record that is NOT the last one keeps the numbering chain intact` (26 pass / 1 fail), while the two-sided guard `a real numbering gap is still caught when an earlier record was superseded` was green before and after, so the fix cannot have been a blanket removal of the rule. After the fix 27/27 pass. On the ORIGINAL artifact rather than a twin: `node scripts/check-harvest.mjs docs/harvest/cc40b6d1.jsonl` went exit 1 to exit 0, `harvest: clean (5 records, 0 credited)`.
+re-verify: node --test tests/harvest-check.test.mjs

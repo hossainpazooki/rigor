@@ -25,10 +25,27 @@ hooks / **12** check gates — the six skills, one gate, and one hook added by
 ADR-0013, the command and gate added by ADR-0014, and the `execute-plan`
 skill + command + `plan-waves` utility added 2026-09-15, are **provisional,
 fixture-tested only, zero domains**, and enter the ceiling only because each has
-been seen red on a known-bad twin in `tests/` (**626** tests, `node --test`,
-measured 2026-09-15 — up from 591 on 2026-09-01 via the seven `git-guard`
-regression twins added below and the 28 `plan-waves` / `execute-plan` tests).
+been seen red on a known-bad twin in `tests/` (**634** tests, `node --test`,
+measured 2026-09-21 — 591 on 2026-09-01, to 626 on 2026-09-15 via the seven
+`git-guard` regression twins added below and the 28 `plan-waves` /
+`execute-plan` tests, to 634 via the eight twins added by the 2026-09-21
+`check-tier-placement` (6) and `check-harvest` (2) work).
 They leave it the moment a twin stops going red.
+
+**Second harvest, 2026-09-21 (`cc40b6d1`).** Halted at refutation — both
+judgment-tier skeptics died on exhausted credits, the same failure as
+2026-09-14 — so **5 records, 0 credited**. It still paid for itself twice.
+`check-tier-placement` was found **red by construction** on the stall-retry
+wrapper `orchestrate` guardrail 10 mandates (8/8 scripts, three domain repos,
+run receipts showing zero actual tier collapse); that is a documented limit, not
+a misfire, so it carries no closure record — the gate now resolves one hop of
+indirection and fails closed. Writing the superseding record to say so then
+exposed a real misfire in `check-harvest`: it skipped superseded records before
+advancing its `+1` numbering chain, so a correction to any record but the last
+made every later record read as a gap — **the gate forbidding the correction
+discipline it ships**. Closed pinned. Also measured: the harvest queue indexes
+23 session ids where a full re-index of all 17 project directories finds 45
+sessions with firings, 29 domain-eligible.
 
 **ADR-0014 harvest (2026-09-01, Proposed).** `/rigor:harvest` +
 `scripts/check-harvest.mjs` + `scripts/index-sessions.mjs` (indexer, not a gate).
@@ -54,7 +71,8 @@ queue was re-ranked by inferred deadline on 2026-09-15 (closure `open`).
 | `effect-prober` | agent | **settled (scoped)** — 3 non-vacuous probes, self-verified; unproven: an independent oracle, and the aftermath of a genuine live irreversible action |
 | `verify-the-effect` | skill | **settled (scoped)** — 2 domains; the live end-to-end probe gap is closed (paired negative controls, non-vacuity proven by recovery). Unproven: an oracle independent of the gate under test, and a genuinely irreversible external action. **Unchanged by ADR-0013**, which sits upstream and hands off to it |
 | `pick-up` | skill | **settled (scoped)** — 2 domains; domain 2 is the first time it killed a claim. Unproven: picking up a brief written by someone else |
-| `implemented-vs-planned`, `fanout-recon-synthesize`, `orchestrate` | skills | provisional (1 independent domain each) |
+| `implemented-vs-planned`, `fanout-recon-synthesize` | skills | provisional (1 independent domain each) |
+| `orchestrate` | skill | **settled (scoped)** — 3 domains (VANTAGE, tic, CLDD), promoted 2026-07-08; unproven: same operator all three. **This row said "provisional, 1 independent domain" from 2026-07-18 until 2026-09-21**, ten weeks after the promotion ledger had moved it — the third stale-STATUS-row instance, and nothing yet checks a status row against `feedback/FEEDBACK.md`. A 2026-09-14/15 session (`cc40b6d1`) adds a 4th, 5th and 6th domain (datum, meridian, baseline — 8 Workflow runs, 93 agents, work landed), **uncredited**: the harvest halted before refutation on exhausted judgment-tier credits |
 | `gate-discipline` | skill | provisional — 1 domain (first firing 2026-07-14) |
 | ledger kit (`docs/learnings/` + `docs/handoff/`) | convention + gate | provisional — 1 domain, **1 logged misfire**; hardened; a form gate never verifies that a basis is genuine |
 | `data-quality-fail-closed` | skill | **settled (scoped)** — 2 non-origin domains (CLDD 2026-07-19; PARALLAX 2026-08-18). Same-operator caveat. Its three-outcome vocabulary is reused verbatim by ADR-0013's `health-signal-fail-closed` |
