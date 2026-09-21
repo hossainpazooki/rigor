@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -96,4 +96,10 @@ test('RED TWIN: a missing file is UNEVALUABLE (exit 2), not a crash and not a pa
   const r = runGate(join(tmpdir(), 'no-such-dir-xyz', 'nope.mjs'));
   assert.equal(r.code, 2, 'a mistyped path must be distinguishable from a clean lint');
   assert.match(r.out, /UNEVALUABLE/);
+});
+
+test('the shipped execute-plan example is a clean fan-out (contract, integration, verify, schemas)', () => {
+  const src = readFileSync(new URL('../skills/execute-plan/example.mjs', import.meta.url), 'utf8');
+  assert.equal(isFanoutScript(src), true);
+  assert.deepEqual(analyzeFanout(src), []);
 });

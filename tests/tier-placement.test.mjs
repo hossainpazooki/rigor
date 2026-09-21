@@ -81,3 +81,8 @@ test('the shipped fanout-build example passes the gate (resolution 2 compliance)
   const example = readFileSync(resolve(here, '../skills/fanout-build/example.mjs'), 'utf8');
   assert.deepEqual(analyzeTierPlacement(example, CONFIG), []);
 });
+
+test('the shipped execute-plan example passes the gate (every non-verify call pinned)', () => {
+  const example = readFileSync(resolve(here, '../skills/execute-plan/example.mjs'), 'utf8');
+  assert.deepEqual(analyzeTierPlacement(example, CONFIG), []);
+});
