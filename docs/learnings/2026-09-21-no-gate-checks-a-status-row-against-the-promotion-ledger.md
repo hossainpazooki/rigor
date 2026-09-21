@@ -1,0 +1,9 @@
+# 2026-09-21 - no gate checks a STATUS row against the promotion ledger
+
+ts: 2026-09-21T19:43:29Z
+commit: e118250
+session: 3e2af12f-214c-4987-8b9a-9cf91e417bf4
+status: verified
+fact: docs/STATUS.md declares that the source of truth it tracks is docs/feedback/FEEDBACK.md, and nothing enforces the correspondence: no check gate opens either file. So a STATUS row can contradict the promotion ledger indefinitely and every gate stays green. It has now happened three times, each found by a human reading rather than by a gate - `skeptic-verifier-fast` "never dispatched" (false since 2026-08-18, closure open), the closure-record count (12 records read as 4), and `orchestrate` carried as "provisional (1 independent domain each)" from 6f211d9 (2026-07-18) until 2026-09-21 while FEEDBACK.md had recorded it settled (scoped) with 3 domains since 2026-07-08 - ten weeks of a shipped status row contradicting its own declared source. The first two are logged as misfires; the third is this entry. A gate comparing each STATUS component row against the FEEDBACK.md promotion row for the same component would have caught all three, and does not exist.
+basis: at 2026-09-21T19:43:29Z, at e118250, `grep -rn "STATUS.md\|FEEDBACK.md" scripts/check-*.mjs` returned exactly 1 line - `scripts/check-harvest.mjs:21: * component against rigor's own files is USE, not an independent domain (FEEDBACK.md).` - a comment, not a read; no gate calls readFileSync on either path. The orchestrate divergence: `git log -1 --format='%h %ad' --date=short -S'provisional (1 independent domain each)' -- docs/STATUS.md` gives `6f211d9 2026-07-18`, against FEEDBACK.md's orchestrate row citing promotion on 2026-07-08 (docs/feedback/2026-07-08-orchestrate-two-domains-gate-reverified.md).
+re-verify: grep -rn "STATUS.md\|FEEDBACK.md" scripts/check-*.mjs

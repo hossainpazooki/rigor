@@ -1,0 +1,9 @@
+# 2026-09-21 - check-learnings coerces unevaluable into fail, not exit 2
+
+ts: 2026-09-21T19:43:32Z
+commit: e118250
+session: 3e2af12f-214c-4987-8b9a-9cf91e417bf4
+status: verified
+fact: check-learnings exits 1, not 2, when it cannot evaluate append-onlyness. scripts/check-learnings.mjs:111-113 catches the failed `git diff`, prints "LEARNINGS FAIL: git diff unavailable - append-only check unevaluable (run inside the git repo)" and calls process.exit(1), with the comment "Fail closed: append-only is unevaluable without git, and unevaluable is not a pass." Failing closed is right, but this fails closed into the WRONG outcome: the message says unevaluable and the exit code says fail. It breaks the repo's own three-outcome convention - 0 clean / 1 fail / 2 UNEVALUABLE, stated in AGENTS.md and honored by check-fanout, check-harvest, check-misfire-closure, check-change-record and plan-waves - and it is the false-alarm side that the shipped `health-signal-fail-closed` skill names as wrong ("unevaluable halts rather than being coerced into pass (nothing backs out) or fail (a false alarm)"). Consequence in practice: pointing the gate at a sibling repo's ledger from outside that repo reports a ledger FAILURE when the ledger was never read. The gate predates the three-outcome convention; nothing has reconciled it.
+basis: at 2026-09-21T19:43:32Z, at e118250, from ~/dev/datum, `node ~/dev/rigor/scripts/check-learnings.mjs /c/Users/hossa/dev/meridian/docs/learnings` printed `fatal: ... is outside repository at 'C:/Users/hossa/dev/datum'` then `LEARNINGS FAIL: git diff unavailable - append-only check unevaluable (run inside the git repo)` and exited 1. Read at the source: scripts/check-learnings.mjs:111-113 is `process.exit(1)` under the comment quoted above.
+re-verify: sed -n '108,114p' scripts/check-learnings.mjs
