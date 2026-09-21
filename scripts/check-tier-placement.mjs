@@ -14,9 +14,18 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 //     collapses onto the session model — verified against real transcripts.
 //   - Verify-shaped stages are exempt from the unpinned warning: verifier tiering
 //     is judgment-dispatch's job, with its own receipt and gate (check-dispatch).
-// HONESTY CAVEAT: structure only. It cannot prove the pinned model is CORRECT or
-// see through indirection (a helper that sets model: away from the call site), and
-// it cannot observe which model actually ANSWERED — that is the receipt line's job.
+//   - ONE HOP of indirection is resolved: when the options argument is a forwarded
+//     identifier (`agent(prompt, opts)`, or `Object.assign({}, opts, {…})` adding no
+//     pin of its own), the pin is looked for at the call sites of the enclosing
+//     helper instead. orchestrate guardrail 10 mandates a stall-retry wrapper of
+//     exactly this shape, so reading only the agent() site made the gate red by
+//     construction on the pattern the skill requires — 8 warnings across three
+//     domain repos in session cc40b6d1 against run receipts showing zero collapse.
+//     Resolution FAILS CLOSED: an unresolvable forward, or one caller out of many
+//     that does not pin, still warns.
+// HONESTY CAVEAT: structure only. It cannot prove the pinned model is CORRECT, it
+// resolves one hop and no further (a wrapper calling a wrapper still warns), and it
+// cannot observe which model actually ANSWERED — that is the receipt line's job.
 export function analyzeTierPlacement(rawSrc, config) {
   const src = stripComments(rawSrc);
   const warnings = [];
@@ -25,31 +34,39 @@ export function analyzeTierPlacement(rawSrc, config) {
     .map((m) => ({ index: m.index, name: m[1] }));
 
   for (const call of extractAgentCalls(src)) {
-    const label = call.text.match(/\blabel\s*:\s*['"`]([^'"`]*)/)?.[1];
-    const phaseOpt = call.text.match(/\bphase\s*:\s*['"`]([^'"`]*)/)?.[1];
+    // The texts that decide this call's pin: the call itself, or — when the options
+    // are forwarded through a helper — every call site of that helper.
+    let texts = [call.text];
+    const ident = forwardedIdent(secondArgText(call.text));
+    if (ident && !hasOwnPin(call.text)) {
+      const callers = resolveCallerOptions(src, call.start, ident);
+      if (callers.length) texts = callers;
+    }
+
+    const label = texts.map((t) => t.match(/\blabel\s*:\s*['"`]([^'"`]*)/)?.[1]).find(Boolean);
+    const phaseOpt = texts.map((t) => t.match(/\bphase\s*:\s*['"`]([^'"`]*)/)?.[1]).find(Boolean);
     const phase = phaseOpt ?? phases.filter((p) => p.index < call.start).at(-1)?.name;
     const verifyShaped = /verif|skeptic|refute/i.test(phase ?? '') ||
-      /skeptic-verifier|effect-prober/.test(call.text);
-    const agentType = call.text.match(/\bagentType\s*:\s*['"`]([^'"`]+)/)?.[1];
+      texts.some((t) => /skeptic-verifier|effect-prober/.test(t));
 
-    if (/\bmodel\s*:\s*['"`]claude-/.test(call.text)) {
+    const literal = texts.find((t) => /\bmodel\s*:\s*['"`]claude-/.test(t));
+    const badAgentType = texts
+      .map((t) => t.match(/\bagentType\s*:\s*['"`]([^'"`]+)/)?.[1])
+      .find((a) => a && !(tierAgents && a.replace(/^[\w-]+:/, '') in tierAgents));
+
+    if (literal) {
       warnings.push(
         `hardcoded model literal${label ? ` in '${label}'` : ''}: source the tier from ` +
         'config/models.json (pass tiers via args) so a config change does not require ' +
         're-auditing every workflow script by hand'
       );
-    } else if (/\bmodel\s*:/.test(call.text)) {
-      // pinned via an expression — structurally sufficient
-    } else if (agentType) {
-      const bare = agentType.replace(/^[\w-]+:/, '');
-      if (!tierAgents || !(bare in tierAgents)) {
-        warnings.push(
-          `agentType '${agentType}'${label ? ` on '${label}'` : ''} is not a tier pin by itself: ` +
-          "it pins a tier only if that agent's frontmatter pins model: (config/models.json " +
-          'tier_agents). An agent with model: inherit still collapses onto the session model.'
-        );
-      }
-    } else if (!verifyShaped) {
+    } else if (badAgentType) {
+      warnings.push(
+        `agentType '${badAgentType}'${label ? ` on '${label}'` : ''} is not a tier pin by itself: ` +
+        "it pins a tier only if that agent's frontmatter pins model: (config/models.json " +
+        'tier_agents). An agent with model: inherit still collapses onto the session model.'
+      );
+    } else if (!texts.every(hasOwnPin) && !verifyShaped) {
       warnings.push(
         `agent() call${label ? ` '${label}'` : ''} without a tier pin: an unpinned call ` +
         'inherits the SESSION model, not the build tier — the swarm may silently collapse ' +
@@ -58,6 +75,109 @@ export function analyzeTierPlacement(rawSrc, config) {
     }
   }
   return warnings;
+}
+
+/** A pin the gate can see in one options text: an explicit model:, or any agentType:. */
+function hasOwnPin(text) {
+  return /\bmodel\s*:/.test(text) || /\bagentType\s*:/.test(text);
+}
+
+/** The second top-level argument of a `fn(a, b, …)` call text, '' when there is none. */
+function secondArgText(callText) {
+  const open = callText.indexOf('(');
+  if (open === -1) return '';
+  const args = splitTopLevelArgs(callText.slice(open + 1, callText.length - 1));
+  return args[1]?.trim() ?? '';
+}
+
+/**
+ * The identifier an options argument forwards, or null when the options are a literal
+ * the gate can read directly. Handles the two real wrapper forms: a bare `opts`, and
+ * `Object.assign({}, opts, { … })` whose own literal adds no pin.
+ */
+function forwardedIdent(optsText) {
+  if (/^[A-Za-z_$][\w$]*$/.test(optsText)) return optsText;
+  const assign = /^Object\.assign\s*\(\s*\{\s*\}\s*,\s*([A-Za-z_$][\w$]*)\s*,([\s\S]*)\)$/.exec(optsText);
+  if (assign && !hasOwnPin(assign[2])) return assign[1];
+  return null;
+}
+
+/**
+ * Resolve one hop: find the helper enclosing `callStart` that takes `ident` as a
+ * parameter, then return the options text of every call site of that helper outside
+ * its own body. Empty when nothing resolves — the caller then keeps warning.
+ */
+function resolveCallerOptions(src, callStart, ident) {
+  const fn = enclosingHelper(src, callStart, ident);
+  if (!fn) return [];
+  const out = [];
+  const re = new RegExp(`\\b${fn.name}\\s*\\(`, 'g');
+  let m;
+  while ((m = re.exec(src))) {
+    // Skip the declaration itself (its header holds `name(params)`) and the body
+    // (a recursive call is not a caller that supplies options).
+    if (m.index >= fn.nameIndex && m.index <= fn.bodyEnd) continue;
+    const end = scanBalanced(src, m.index + m[0].length - 1);
+    if (end === -1) continue;
+    out.push(secondArgText(src.slice(m.index, end + 1)));
+    re.lastIndex = end;
+  }
+  return out;
+}
+
+/** The nearest `function NAME(… ident …)` or `const NAME = (… ident …) =>` containing callStart. */
+function enclosingHelper(src, callStart, ident) {
+  const decl = /(?:(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)|(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?\(([^)]*)\)\s*=>)/g;
+  let m, best = null;
+  while ((m = decl.exec(src))) {
+    if (m.index > callStart) break;
+    const name = m[1] ?? m[3];
+    const params = m[2] ?? m[4];
+    if (!new RegExp(`\\b${ident}\\b`).test(params)) continue;
+    const bodyStart = src.indexOf('{', m.index + m[0].length - 1);
+    if (bodyStart === -1) continue;
+    const bodyEnd = scanBalancedBraces(src, bodyStart);
+    if (bodyEnd === -1 || callStart < bodyStart || callStart > bodyEnd) continue;
+    best = { name, bodyStart, bodyEnd, nameIndex: m.index };
+  }
+  return best;
+}
+
+/** From an opening '{', the index of its matching '}', string-aware. -1 if unbalanced. */
+function scanBalancedBraces(src, open) {
+  let depth = 0, quote = null;
+  for (let i = open; i < src.length; i++) {
+    const c = src[i];
+    if (quote) {
+      if (c === '\\') { i++; continue; }
+      if (c === quote) quote = null;
+      continue;
+    }
+    if (c === "'" || c === '"' || c === '`') { quote = c; continue; }
+    if (c === '{') depth++;
+    else if (c === '}' && --depth === 0) return i;
+  }
+  return -1;
+}
+
+/** Split an argument list on top-level commas, ignoring commas in strings/brackets. */
+function splitTopLevelArgs(inner) {
+  const args = [];
+  let depth = 0, quote = null, start = 0;
+  for (let i = 0; i < inner.length; i++) {
+    const c = inner[i];
+    if (quote) {
+      if (c === '\\') { i++; continue; }
+      if (c === quote) quote = null;
+      continue;
+    }
+    if (c === "'" || c === '"' || c === '`') { quote = c; continue; }
+    if (c === '(' || c === '[' || c === '{') depth++;
+    else if (c === ')' || c === ']' || c === '}') depth--;
+    else if (c === ',' && depth === 0) { args.push(inner.slice(start, i)); start = i + 1; }
+  }
+  args.push(inner.slice(start));
+  return args;
 }
 
 // Length-preserving, string-aware comment blanking so prose mentioning agent()

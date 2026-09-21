@@ -86,3 +86,79 @@ test('the shipped execute-plan example passes the gate (every non-verify call pi
   const example = readFileSync(resolve(here, '../skills/execute-plan/example.mjs'), 'utf8');
   assert.deepEqual(analyzeTierPlacement(example, CONFIG), []);
 });
+
+// ---------------------------------------------------------------------------
+// One hop of indirection: a pin forwarded through orchestrate guardrail 10's
+// stall-retry wrapper. Minimized from the real artifact - wf-datum-coalesce-r1.mjs
+// in session cc40b6d1 - where the gate raised 8 silent-collapse warnings across
+// three domain repos while the run receipts showed zero collapse.
+// ---------------------------------------------------------------------------
+
+test('a pin forwarded through the stall-retry wrapper is seen (harvest cc40b6d1)', () => {
+  const src = `
+const BUILD = args.build, MID = args.mid;
+async function run(prompt, opts) {
+  let r = await agent(prompt, opts)
+  if (r == null) {
+    r = await agent(prompt, Object.assign({}, opts, { label: opts.label + ':retry' }))
+  }
+  return r
+}
+phase('Build');
+const results = await pipeline(ITEMS, (item) => item.kind === 'build'
+  ? run(DATUM_BUILD, { label: 'build-datum', phase: 'Build', model: BUILD, schema: S })
+  : run(CONTRACT, { label: 'recon', phase: 'Recon', model: MID, schema: S }));
+`;
+  assert.deepEqual(analyzeTierPlacement(src, CONFIG), []);
+});
+
+test('the agentType fallback variant of the wrapper resolves through its callers', () => {
+  const src = `
+async function run(prompt, opts, fallback) {
+  let r = await agent(prompt, opts)
+  if (r == null) r = await agent(prompt, Object.assign({}, opts, { agentType: fallback, label: opts.label + ':fallback' }))
+  return r
+}
+phase('Integrate');
+await run('check', { label: 'v', agentType: 'rigor:integration-runner', schema: S }, 'rigor:skeptic-verifier');
+`;
+  assert.deepEqual(analyzeTierPlacement(src, CONFIG), []);
+});
+
+// The two-sided leg: a boundary fix must be tested on the forms a LOOSER boundary
+// would wrongly admit, not only on the form the old rule wrongly refused.
+
+test('a wrapper whose callers do not pin is still flagged (looser-boundary guard)', () => {
+  const src = `
+async function run(prompt, opts) { return await agent(prompt, opts) }
+phase('Build');
+await run('build it', { label: 'build:a', schema: S });
+`;
+  const warnings = analyzeTierPlacement(src, CONFIG);
+  assert.ok(warnings.some((w) => /tier pin/.test(w)), 'an unpinned caller must still collapse-warn');
+});
+
+test('a wrapper is pinned only when EVERY caller pins (one unpinned caller is enough)', () => {
+  const src = `
+const BUILD = args.build;
+async function run(prompt, opts) { return await agent(prompt, opts) }
+phase('Build');
+await run('a', { label: 'a', model: BUILD, schema: S });
+await run('b', { label: 'b', schema: S });
+`;
+  assert.ok(analyzeTierPlacement(src, CONFIG).some((w) => /tier pin/.test(w)));
+});
+
+test('a forwarded opts with no resolvable caller fails closed to a warning', () => {
+  const src = `export async function run(prompt, opts) { return await agent(prompt, opts) }`;
+  assert.ok(analyzeTierPlacement(src, CONFIG).some((w) => /tier pin/.test(w)));
+});
+
+test('a caller that hardcodes a model literal is still flagged through the wrapper', () => {
+  const src = `
+async function run(prompt, opts) { return await agent(prompt, opts) }
+phase('Build');
+await run('a', { label: 'a', model: 'claude-opus-5', schema: S });
+`;
+  assert.ok(analyzeTierPlacement(src, CONFIG).some((w) => /hardcoded model literal/.test(w)));
+});
