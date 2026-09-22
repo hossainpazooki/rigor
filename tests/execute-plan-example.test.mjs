@@ -22,7 +22,7 @@ function run(args, behaviour = {}) {
     if (behaviour[opts.label]) return behaviour[opts.label](prompt, opts);
     if (kind === 'implement' || kind === 'fix') return okImpl;
     if (kind === 'review') return okReview;
-    if (kind === 'integrate') return { green: true, commands: [], drift_fixed: 'none', model: 'm-model' };
+    if (kind === 'integrate') return { green: true, commands: [{ cmd: 'node --test', exitCode: 0, tail: 'pass 1' }], drift_fixed: 'none', model: 'm-model' };
     if (kind === 'verify') return { claim: 'c', verdict: 'true', evidence: 'e', model: 'j-model' };
     throw new Error('unexpected label ' + opts.label);
   };
@@ -126,6 +126,43 @@ test('a red integration gate halts without a commit block', async () => {
   const { out } = await run(baseArgs(), { 'integrate:wave-1': async () => ({ green: false, commands: [], drift_fixed: '', model: 'm-model' }) });
   assert.equal(out.halted, true);
   assert.equal(out.commit_block, undefined);
+});
+
+// 2026-09-22: three acceptance gaps found by a cross-model review (Codex,
+// gpt-6-astra) with simulated agent responses. Each twin below was red first.
+test('green is derived from the recorded gate run, not the integrator\'s flag: exit 1 with green: true halts', async () => {
+  const lie = { green: true, commands: [{ cmd: 'node --test', exitCode: 1, tail: 'fail 1' }], drift_fixed: 'none', model: 'm-model' };
+  const { out } = await run(baseArgs(), { 'integrate:wave-1': async () => lie });
+  assert.equal(out.halted, true);
+  assert.equal(out.commit_block, undefined);
+  // no recorded run of the named gate at all is not green either
+  const none = { green: true, commands: [{ cmd: 'git status --short', exitCode: 0, tail: '' }], drift_fixed: 'none', model: 'm-model' };
+  const b = await run(baseArgs(), { 'integrate:wave-1': async () => none });
+  assert.equal(b.out.halted, true);
+  // an honest iteration log (red, then green on the last run of the gate) stays green
+  const iter = { green: true, commands: [{ cmd: 'node --test', exitCode: 1, tail: 'fail 1' }, { cmd: 'node --test', exitCode: 0, tail: 'pass 9' }], drift_fixed: 'renamed export', model: 'm-model' };
+  const c = await run(baseArgs(), { 'integrate:wave-1': async () => iter });
+  assert.equal(c.out.halted, undefined);
+  assert.ok(c.out.commit_block);
+});
+
+test('a fix agent returning BLOCKED halts the task; the reviewer never sees it', async () => {
+  const fail = { spec: { verdict: 'FAIL', missing: ['x'], extra: [] }, quality: { verdict: 'APPROVED', issues: [] }, cannot_verify: [], model: 'm-model' };
+  const blocked = { status: 'BLOCKED', files_changed: [], tests: { cmd: '', exit: 1, tail: '' }, concerns: 'schema missing', report_file: '', model: 'b-model' };
+  const { out, calls } = await run(baseArgs(), { 'review:task-1:0': async () => fail, 'fix:task-1:1': async () => blocked });
+  assert.match(out.results.find((r) => r.task.n === 1).halted, /BLOCKED: schema missing/);
+  assert.equal(calls.filter((c) => c.label === 'review:task-1:1').length, 0);
+  assert.equal(out.halted, true);
+  assert.equal(out.commit_block, undefined);
+});
+
+test('a final wave that derives zero claims is unevaluable, never claimTrue', async () => {
+  const args = { ...baseArgs(), completed: [1, 2, 4], final: true };
+  for (const t of args.plan.tasks) t.interfaces.produces = 'nothing';
+  const { out, calls, logs } = await run(args);
+  assert.equal(calls.filter((c) => c.label === 'verify').length, 0);
+  assert.equal(out.claimTrue, false);
+  assert.ok(logs.some((l) => /zero claims/.test(l)), 'the reason is logged');
 });
 
 test('the contract prepended to every agent carries the constraints and the ownership map', async () => {

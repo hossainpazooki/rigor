@@ -160,6 +160,10 @@ const results = await pipeline(
       impl = await agent(implPrompt(t, findings), { label: 'fix:task-' + t.n + ':' + (round + 1), phase: 'Build', schema: IMPL_SCHEMA, model: TIERS.build });
       if (!impl) return { task: t, halted: 'fix agent returned null' };
       receipt('execute-plan.fix', 'task-' + t.n + ':' + (round + 1), impl, TIERS.build);
+      // A blocked fix is a blocked task: the same halt as a blocked implementer, before any reviewer sees it.
+      if (impl.status === 'BLOCKED' || impl.status === 'NEEDS_CONTEXT') {
+        return { task: t, impl, review, halted: impl.status + ': ' + impl.concerns };
+      }
     }
   }
 );
@@ -179,8 +183,13 @@ const integ = await agent(
   { label: 'integrate:wave-' + (waveIdx + 1), phase: 'Integrate', agentType: 'rigor:integration-runner', schema: INTEG_SCHEMA, model: TIERS.mid }
 );
 receipt('execute-plan.integrate', 'wave-' + (waveIdx + 1), integ, TIERS.mid);
-if (!integ || !integ.green) {
-  log('halt: wave ' + (waveIdx + 1) + ' integration not green - no commit block emitted');
+// Green is derived from the recorded runs of the named gate, never from the integrator's
+// flag: the LAST recorded run of the gate must exist and exit 0 (an honest iteration log
+// may carry earlier red runs). A flag with no gate run, or a red last run, is not green.
+const gateRuns = ((integ && integ.commands) || []).filter((c) => typeof c.cmd === 'string' && c.cmd.includes(A.gate));
+const gateGreen = gateRuns.length > 0 && gateRuns[gateRuns.length - 1].exitCode === 0;
+if (!integ || !integ.green || !gateGreen) {
+  log('halt: wave ' + (waveIdx + 1) + ' integration not green' + (integ && integ.green && !gateGreen ? ' (integrator reported green but the recorded gate runs do not show it)' : '') + ' - no commit block emitted');
   return { wave: waveIdx + 1, results: rows, integ, halted: true, receipts, verdictRecords };
 }
 
@@ -199,6 +208,8 @@ if (A.final) {
   phase('Verify');
   // Refute the CLAIM, not just the gate: the plan's Goal and every Produces interface.
   const claims = A.claims || PLAN.tasks.filter((t) => t.interfaces.produces && t.interfaces.produces !== 'nothing').map((t) => 'Task ' + t.n + ' produces ' + t.interfaces.produces);
+  // Zero claims means zero skeptics: unevaluable, never a pass. Pass args.claims explicitly.
+  if (!claims.length) log('WARNING: zero claims derived for the final wave - no skeptic dispatched; claimTrue is false, not vacuously true. Pass args.claims.');
   verdicts = (await parallel(claims.map((c) => () => agent(
     'Gate-green is not claim-true. REFUTE this claim by re-executing it: is it actually wired, reachable and exercised by a test that fails without it? Recompute from raw output; default to refuted unless proven. Read-only; never run a git write. Claim: ' + c + RECEIPT,
     { label: 'verify', phase: 'Verify', agentType: 'rigor:skeptic-verifier', schema: VERDICT_SCHEMA, model: TIERS.judgment }
@@ -209,7 +220,7 @@ if (A.final) {
   }
   const missing = claims.length - verdicts.length;
   if (missing) log('WARNING: ' + missing + ' skeptic vote(s) returned null - those claims are NOT verified');
-  claimTrue = missing === 0 && verdicts.every((v) => v.verdict === 'true');
+  claimTrue = claims.length > 0 && missing === 0 && verdicts.every((v) => v.verdict === 'true');
 }
 
 return { wave: waveIdx + 1, results: rows, integ, commit_block, receipts, verdictRecords, verdicts, claimTrue: Boolean(integ.green) && claimTrue };

@@ -39,7 +39,9 @@ It is `orchestrate`'s third shape, for work that already has a plan —
    at most **two** fix rounds. A third failing review halts the wave: a task
    that cannot pass its own brief three times is a plan defect, and the
    plan is the human's to amend. `BLOCKED` and `NEEDS_CONTEXT` halt the
-   wave the same way, with the implementer's specifics in the result.
+   wave the same way, with the implementer's specifics in the result —
+   from a fix agent as much as from the implementer; no reviewer sees a
+   blocked result.
 5. **Stakes route the reviewer.** Medium by default (`skeptic-verifier-fast`,
    mid tier). High when a task's files match the irreversibility markers —
    default pattern `migrat|deploy|release|helm|terraform|kube|workflows`,
@@ -49,7 +51,10 @@ It is `orchestrate`'s third shape, for work that already has a plan —
    every worker leaves a receipt.
 6. **Integrate the wave.** `integration-runner` runs the named gate and
    returns verbatim tails; it fixes only cross-file drift between this
-   wave's tasks and never weakens a test. Red halts.
+   wave's tasks and never weakens a test. Green is derived from the
+   recorded runs, never from the integrator's flag: the last recorded run
+   of the named gate must exit 0, and a flag with no gate run is red.
+   Red halts.
 7. **Emit the commit block.** Green ⇒ the run returns the wave's commit
    commands — the plan's own Commit steps, lifted — for the human to run.
    Agents never write history. Append one ledger row per task (`task`,
@@ -61,7 +66,9 @@ It is `orchestrate`'s third shape, for work that already has a plan —
 8. **Next wave** once the human has committed: new `base`, same ledger.
    On the last wave the run also refutes the plan's load-bearing claims
    (the Goal, each `Produces` interface) with judgment-tier skeptics;
-   `claimTrue` needs a green gate and zero refuted or missing votes.
+   `claimTrue` needs a green gate, at least one claim, and zero refuted or
+   missing votes — zero derived claims is unevaluable, not a pass; pass
+   `claims` explicitly when the plan's interfaces produce nothing.
 
 ## What the reviewer reads
 
