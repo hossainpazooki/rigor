@@ -213,6 +213,35 @@ test('an answered echoing a second configured model is ambiguous — fail-closed
   assert.match(bad[0].reason, /silent downgrade/);
 });
 
+// 2026-09-22: a cross-model review (Codex, gpt-6-astra) found that the gate read
+// dispatch_tier and verifier_model as two unrelated fields — a "judgment" label
+// with a cheap-tier receipt passed every class. The label is now bound to the
+// tier's configured model; a record may name another harness's tier block.
+test('seed 5: a judgment label whose requested model is the cheap tier is a lie about the tier, not a clean dispatch', () => {
+  const r = clean({ inferred_stakes: 'high', rubric_criteria_hit: ['irreversibility'], verifier_model: { requested: 'model-c', answered: 'model-c' } });
+  const bad = findDispatchViolations([r], CONFIG);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].reason, /dispatch_tier judgment names model-j/);
+  assert.match(bad[0].reason, /requested model-c/);
+});
+
+test('seed 5b: a mid label with a model that is no tier in this config is unbound, fail-closed', () => {
+  const r = clean({ dispatch_tier: 'mid', verifier_model: { requested: 'model-old', answered: 'model-old' } });
+  const bad = findDispatchViolations([r], CONFIG);
+  assert.equal(bad.length, 1);
+  assert.match(bad[0].reason, /dispatch_tier mid names model-m/);
+});
+
+test('a record naming another harness resolves its tier through that harness block', () => {
+  const cfg = { ...CONFIG, codex: { judgment: 'gpt-j', mid: 'gpt-m' } };
+  const ok = clean({ harness: 'codex', verifier_model: { requested: 'gpt-j', answered: 'gpt-j' } });
+  assert.deepEqual(findDispatchViolations([ok], cfg), []);
+  const lie = clean({ harness: 'codex', verifier_model: { requested: 'gpt-m', answered: 'gpt-m' } });
+  assert.equal(findDispatchViolations([lie], cfg).length, 1);
+  const unknown = clean({ harness: 'other', verifier_model: { requested: 'x', answered: 'x' } });
+  assert.match(findDispatchViolations([unknown], CONFIG)[0].reason, /no model configured for tier judgment in harness other/);
+});
+
 test('empty log is clean', () => {
   assert.deepEqual(findDispatchViolations([], CONFIG), []);
 });

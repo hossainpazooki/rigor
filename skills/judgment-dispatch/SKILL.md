@@ -108,6 +108,9 @@ Before the run's claims are trusted, lint the log:
 
 ```
 node scripts/check-dispatch.mjs <verdicts.jsonl> [config/models.json]
+# a historical log is checked against the models.json in force when it was
+# written (git show <sha>:config/models.json): the tier label is bound to
+# the tier's configured model, so a re-pinned tier reads as unbound otherwise
 ```
 
 ## Degradation

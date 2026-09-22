@@ -7,17 +7,21 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
  * inferred by the orchestrating agent — the same agent whose claims are being
  * checked — so the inference itself must be logged and mechanically checkable,
  * and certain nodes are floored to the judgment tier beyond inference's reach.
- * Four violation classes, per the design (docs/specs/2026-07-05-judgment-dispatch-design.md):
+ * Five violation classes, per the design (docs/specs/2026-07-05-judgment-dispatch-design.md):
  *
  *   1. fox-and-henhouse — a high-stakes dispatch (inferred_stakes: "high", or any
  *      rubric marker from config.high_stakes_criteria) ran below the judgment tier.
  *   2. floor violation — a node in config.floored_nodes dispatched below judgment tier.
  *   3. unlogged inference — missing dispatch fields; treated as high-stakes, fail-closed.
  *   4. silent downgrade — verifier_model.answered != requested without downgraded: true.
+ *   5. unbound tier label — verifier_model.requested is not the model the config assigns
+ *      dispatch_tier (in the record's harness block, if it names one). Added 2026-09-22
+ *      after a cross-model review showed classes 1–4 never tied the label to the receipt.
  *
  * record: { node, claim, dispatch_tier, verifier_model: { requested, answered },
- *           inferred_stakes, rubric_criteria_hit, downgraded }
- * config: needs floored_nodes and high_stakes_criteria (config/models.json shape).
+ *           inferred_stakes, rubric_criteria_hit, downgraded, harness? }
+ * config: needs the tier→model keys, floored_nodes and high_stakes_criteria
+ *         (config/models.json shape); an optional <harness> block with its own tiers.
  * No fs in the matcher; the caller loads records and config at the CLI boundary.
  *
  * Worker receipts (ADR-0006 res 3) share this log, tagged role: "worker":
@@ -80,6 +84,23 @@ export function findDispatchViolations(records, config) {
       continue;
     }
 
+    // 5. unbound tier label — dispatch_tier is only evidence once it is tied to the model
+    //    the config assigns that tier; a "judgment" label over a cheap-tier receipt passed
+    //    classes 1–4 (found by a cross-model review, 2026-09-22). A record may name the
+    //    harness whose tier block applies (harness: "codex" → config.codex); absent or
+    //    "claude" means the top-level tiers. A historical log is checked against the
+    //    models.json in force when it was written, passed as the CLI's second argument.
+    const harness = typeof r.harness === 'string' && r.harness !== 'claude' ? r.harness : null;
+    const block = harness ? config[harness] : config;
+    const tierModel = block && typeof block[r.dispatch_tier] === 'string' ? block[r.dispatch_tier] : null;
+    if (!tierModel) {
+      bad.push({ claim: id, reason: `unbound tier label — no model configured for tier ${r.dispatch_tier} in harness ${harness ?? 'claude'}; fail-closed` });
+      continue;
+    }
+    if (r.verifier_model.requested.trim() !== tierModel) {
+      bad.push({ claim: id, reason: `unbound tier label — dispatch_tier ${r.dispatch_tier} names ${tierModel} in this config but requested ${r.verifier_model.requested} (pass the models.json in force at the run if this log is historical)` });
+    }
+
     // 1. fox-and-henhouse — high stakes (declared or evidenced by markers) on the cheap tier.
     const markersHit = r.rubric_criteria_hit.filter((c) => highMarkers.includes(c));
     if (r.dispatch_tier !== 'judgment' && (r.inferred_stakes === 'high' || markersHit.length)) {
@@ -112,7 +133,7 @@ export function parseVerdictLog(text) {
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const file = process.argv[2];
   if (!file) {
-    console.error('usage: check-dispatch.mjs <verdicts.jsonl|json> [models.json]  # records per judgment-dispatch verdict schema');
+    console.error('usage: check-dispatch.mjs <verdicts.jsonl|json> [models.json]  # records per judgment-dispatch verdict schema; for a historical log pass the models.json in force when it was written');
     process.exit(1);
   }
   const configPath = process.argv[3] ?? resolve(dirname(fileURLToPath(import.meta.url)), '../config/models.json');
