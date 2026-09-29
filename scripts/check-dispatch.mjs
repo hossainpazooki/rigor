@@ -1,6 +1,7 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { isAlias, parseModelId, compareVersions } from './model-id.mjs';
 
 /**
  * Fail-closed lint over a run's verdict log (judgment-dispatch). Stakes are
@@ -29,6 +30,13 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
  * Workers have no stakes rubric, so classes 1–3's rubric fields are not required
  * of them — but the receipt itself is (fail-closed), and class 4 applies as-is:
  * a worker answering on a model it did not request is a silent tier collapse.
+ *
+ * Alias tiers (ADR-0015). A tier may hold a family alias instead of a model id. The
+ * harness resolves the alias at dispatch, so a receipt is matched by FAMILY (class 4)
+ * and its VERSION is judged against the lock, config/models.lock.json, by
+ * findLockFindings: equal is clean, newer is a move (reported, not a failure), older
+ * is a regression (a violation unless logged as a downgrade), and a receipt that
+ * cannot be placed is unevaluable. CLI exits: 0 clean, 1 violation, 2 unevaluable.
  */
 /** A receipt matches when answered IS the requested id, or unambiguously contains it
  * as a whole token (display-name echo). Any other configured tier model also present
@@ -37,6 +45,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 export function receiptMatches(requested, answered, config = {}) {
   const req = (requested ?? '').trim();
   const ans = (answered ?? '').trim();
+  // A family alias is matched by family: the harness resolves it to a version at
+  // dispatch, so the version is judged against the lock (findLockFindings), not here.
+  if (isAlias(req)) return parseModelId(ans)?.family === req;
   if (req !== '' && req === ans) return true;
   const token = (hay, needle) => {
     const esc = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -65,7 +76,7 @@ export function findDispatchViolations(records, config) {
         bad.push({ claim: id, reason: `unlogged worker receipt — missing ${missing.join(', ')}; treated as a silent collapse, fail-closed` });
         continue;
       }
-      if (!receiptMatches(r.verifier_model.requested, r.verifier_model.answered, config) && r.downgraded !== true) {
+      if (!unreadableUnderAlias(r) && !receiptMatches(r.verifier_model.requested, r.verifier_model.answered, config) && r.downgraded !== true) {
         bad.push({ claim: id, reason: `silent downgrade — worker answered ${r.verifier_model.answered} != requested ${r.verifier_model.requested} without downgraded: true` });
       }
       continue;
@@ -114,11 +125,53 @@ export function findDispatchViolations(records, config) {
     }
 
     // 4. silent downgrade — a substitution is a logged downgrade, never a silent one.
-    if (!receiptMatches(r.verifier_model.requested, r.verifier_model.answered, config) && r.downgraded !== true) {
+    if (!unreadableUnderAlias(r) && !receiptMatches(r.verifier_model.requested, r.verifier_model.answered, config) && r.downgraded !== true) {
       bad.push({ claim: id, reason: `silent downgrade — answered ${r.verifier_model.answered} != requested ${r.verifier_model.requested} without downgraded: true` });
     }
   }
   return bad;
+}
+
+/** An alias was requested and the receipt names no readable id: neither a match nor a
+ * downgrade can be asserted, so class 4 stays silent and findLockFindings reports it
+ * as unevaluable. */
+function unreadableUnderAlias(r) {
+  return isAlias(r.verifier_model.requested) && parseModelId(r.verifier_model.answered) === null;
+}
+
+/**
+ * Judge alias receipts against the lock: the record of which model id each family
+ * alias last resolved to. lock: { <family>: { resolved, since, run } }.
+ * Returns { moved, violations, unevaluable }. Records that request an exact id are
+ * not the lock's business; a wrong-family answer is class 4's.
+ */
+export function findLockFindings(records, lock) {
+  const out = { moved: [], violations: [], unevaluable: [] };
+  for (const r of records) {
+    const id = r.claim ?? r.label ?? r.node ?? '<unidentified record>';
+    const req = r?.verifier_model?.requested;
+    const ans = r?.verifier_model?.answered;
+    if (!isAlias(req) || typeof ans !== 'string') continue;
+    const family = req.trim();
+    const got = parseModelId(ans);
+    if (got === null) {
+      if (r.downgraded !== true) out.unevaluable.push({ claim: id, reason: `answered "${ans}" names no readable model id, so it cannot be placed against the lock` });
+      continue;
+    }
+    if (got.family !== family) continue;
+    const locked = parseModelId(lock?.[family]?.resolved);
+    if (locked === null || locked.family !== family) {
+      out.unevaluable.push({ claim: id, reason: `no lock entry for family ${family}` });
+      continue;
+    }
+    const order = compareVersions(got.version, locked.version);
+    if (order > 0) {
+      if (!out.moved.some((m) => m.family === family && m.to === got.id)) out.moved.push({ family, from: locked.id, to: got.id });
+    } else if (order < 0 && r.downgraded !== true) {
+      out.violations.push({ claim: id, reason: `tier regressed — ${family} answered ${got.id}, older than the locked ${locked.id}, without downgraded: true` });
+    }
+  }
+  return out;
 }
 
 /** Parse a verdict log: a JSON array, or JSONL (one record per non-empty line). */
@@ -133,17 +186,28 @@ export function parseVerdictLog(text) {
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const file = process.argv[2];
   if (!file) {
-    console.error('usage: check-dispatch.mjs <verdicts.jsonl|json> [models.json]  # records per judgment-dispatch verdict schema; for a historical log pass the models.json in force when it was written');
+    console.error('usage: check-dispatch.mjs <verdicts.jsonl|json> [models.json] [models.lock.json]  # records per judgment-dispatch verdict schema; for a historical log pass the models.json and the lock in force when it was written');
     process.exit(1);
   }
-  const configPath = process.argv[3] ?? resolve(dirname(fileURLToPath(import.meta.url)), '../config/models.json');
+  const here = dirname(fileURLToPath(import.meta.url));
+  const configPath = process.argv[3] ?? resolve(here, '../config/models.json');
+  // The default lock goes with the default config only: a historical config names its own lock, or none.
+  const lockPath = process.argv[4] ?? (process.argv[3] ? null : resolve(here, '../config/models.lock.json'));
   const records = parseVerdictLog(readFileSync(file, 'utf8'));
   const config = JSON.parse(readFileSync(configPath, 'utf8'));
-  const bad = findDispatchViolations(records, config);
+  const lock = lockPath && existsSync(lockPath) ? JSON.parse(readFileSync(lockPath, 'utf8')) : {};
+  const found = findLockFindings(records, lock);
+  const bad = [...findDispatchViolations(records, config), ...found.violations];
   if (bad.length) {
     for (const b of bad) console.error(`DISPATCH FAIL ${b.claim}: ${b.reason}`);
     console.error('Fix: log the rubric inference on every dispatch, keep floored nodes on the judgment tier, and flag every downgrade.');
     process.exit(1);
   }
+  if (found.unevaluable.length) {
+    for (const u of found.unevaluable) console.error(`DISPATCH UNEVALUABLE ${u.claim}: ${u.reason}`);
+    console.error('dispatch: unevaluable - a receipt could not be placed against the lock. Unevaluable halts (exit 2).');
+    process.exit(2);
+  }
+  for (const m of found.moved) console.log(`TIER MOVED ${m.family}: ${m.from} -> ${m.to} (propose the lock update with scripts/tier-lock.mjs)`);
   console.log(`dispatch: clean (${records.length} record${records.length === 1 ? '' : 's'})`);
 }
