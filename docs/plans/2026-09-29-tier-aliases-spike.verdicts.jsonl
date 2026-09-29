@@ -1,0 +1,3 @@
+{"role":"worker","node":"tier-alias.spike","label":"probe:fable","verifier_model":{"requested":"fable","answered":"claude-fable-5-1"}}
+{"role":"worker","node":"tier-alias.spike","label":"probe:opus","verifier_model":{"requested":"opus","answered":"claude-opus-5-5"}}
+{"role":"worker","node":"tier-alias.spike","label":"probe:sonnet","verifier_model":{"requested":"sonnet","answered":"claude-sonnet-5-5"}}
