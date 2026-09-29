@@ -9,6 +9,12 @@ judgment-adjacent work) is unchanged; only the model string moves, and every
 2026-08-22 receipt that reads `claude-opus-4-8[1m]` is a record of what answered
 *before* the re-pin. The usage-economics premise remains unmeasured on Opus 5 too.
 
+**Amended 2026-09-29 (operator-directed, ADR-0015 Proposed):** the mid tier's
+value in `config/models.json` and in both mid-tier agents' frontmatter is the
+family alias `opus`, no longer a model id. Which id answers is recorded in
+`config/models.lock.json`. The decision (a mid tier exists and routes
+judgment-adjacent work) is unchanged.
+
 ## Context
 
 `config/models.json` declared three tiers but mapped only two models: `build` and `cheap`
