@@ -48,6 +48,12 @@ discipline it ships**. Closed pinned. Also measured: the harvest queue indexes
 23 session ids where a full re-index of all 17 project directories finds 45
 sessions with firings, 29 domain-eligible.
 
+**Third and fourth harvests, 2026-09-29 (`5891a78d`, `ed0788c7`).** The first
+to complete step 5: five readings went to one judgment-tier skeptic each, four
+survived and one was refuted in part. **8 records, 4 credited.** No status
+below moves on them; the proposed rows are in `harvest/HARVEST.md` and
+promotion is the operator's act.
+
 **ADR-0014 harvest (2026-09-01, Proposed).** `/rigor:harvest` +
 `scripts/check-harvest.mjs` + `scripts/index-sessions.mjs` (indexer, not a gate).
 One session harvested end-to-end. It produced the **first evidence this repo has
