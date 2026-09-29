@@ -22,6 +22,12 @@ promotes.
 |---|---|---|---|---|
 | [`951cdf1d`](951cdf1d.jsonl) | 3 | 2 | network-as-code | `git-guard` refused an all-read command; bisect found a redirect counted as a positional argument. Fixed and pinned. |
 | [`cc40b6d1`](cc40b6d1.jsonl) | 4 | **0** | datum, meridian, baseline | 8 Workflow runs / 93 agents under `orchestrate`, work landed in three repos — but **halted at step 5**: both judgment-tier skeptics died on exhausted credits, so nothing is credited. Candidate misfire: `check-tier-placement` false-positives on the stall-retry wrapper `orchestrate` itself mandates (8/8 scripts red, receipts show zero tier collapse). |
+| [`5891a78d`](5891a78d.jsonl) | 3 | 2 | prefix-mortality | `git-guard` denied a commit aimed at a scratch copy and replays the same way today; the session's handoff brief reproduces on all seven re-verify lines. First harvest whose step 5 ran at the judgment tier. |
+| [`ed0788c7`](ed0788c7.jsonl) | 5 | 2 | intent-plane | `check-tier-placement` was never run on two workflow scripts and every unpinned agent answered on the session model; the handoff brief carried two re-verify lines that were false when the session ended. One `check-learnings` result is unevaluable: the repository it ran in is gone. The `pick-up` firing was not adjudicated. |
+
+Step-5 verdicts for the two 2026-09-29 harvests:
+[`2026-09-29-5891a78d-ed0788c7.verdicts.jsonl`](2026-09-29-5891a78d-ed0788c7.verdicts.jsonl)
+(`check-dispatch` clean, 6 records).
 
 ## Queue
 
@@ -64,6 +70,8 @@ Rank from a full index, never from this table alone.
 | `1b845026` | 1 | 0 | regulatory-rule-engine | 2026-09-01T22:35Z | 2026-10-01 | |
 | `9b0a4435` | 2 | 1 | baseline, parallax | 2026-09-01T22:40Z | 2026-10-01 | |
 | `edf43652` | 11 | 9 | linear-ceiling, kv-transfer-replication | 2026-09-01T23:12Z | 2026-10-01 | |
+| `ed0788c7` | 3 | 1 | intent-plane | 2026-09-19T01:08Z | 2026-10-19 | 2026-09-29 |
+| `5891a78d` | 4 | 2 | prefix-mortality | 2026-09-29T03:00Z | 2026-10-29 | 2026-09-29 |
 
 **Purged before harvest** (no transcript on 2026-09-14 or 2026-09-15; never
 harvested, nothing recoverable): `1c43d113` (10 / 10, parallax), `fcb0d613`
@@ -100,6 +108,22 @@ institutional-defi-platform-infra), `98157576` (1 / 0, nav-reconciliation-demo),
   three repos. Adds domains to a row already at 3 and already **settled
   (scoped)** — so it does **not** move the status. The open item on that row is
   the same-operator caveat, which no self-harvest can lift.
+
+- **`git-guard` — `helped`, new domain** (`5891a78d`, prefix-mortality,
+  re-verified 2026-09-29, survived one judgment-tier skeptic). Denied a commit
+  in a scratch copy; the commit clause alone is necessary and sufficient.
+- **`handoff` — `helped`, new domain** (`5891a78d`, prefix-mortality,
+  re-verified 2026-09-29, survived). Seven of seven re-verify lines reproduce.
+- **`handoff` — `misfired`, uncredited** (`ed0788c7`, intent-plane). Two
+  re-verify lines were false when the session ended: one falsified by the
+  session's own next write, one false at write time. Nothing in the command
+  re-runs a brief's lines after the last write of the session.
+- **`orchestrate` / `check-tier-placement` — `silently-skipped`** (`ed0788c7`,
+  intent-plane, re-verified 2026-09-29, survived). The skill did not name the
+  tier gate when the session ran, and the 12 agents the gate flags (of 18
+  dispatched) answered on the session model. Whether the skill names it today was not checked by this harvest.
+- **`check-learnings` — `helped`, form-only** (`ed0788c7`, learnings staged
+  outside a repository, survived). A missing index was refused and then written.
 
 ## Corpus measurements (re-derive before citing)
 
