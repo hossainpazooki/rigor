@@ -2,7 +2,7 @@
 name: skeptic-verifier
 description: Adversarial refuter for load-bearing claims. Recomputes empirical numbers from raw sources and actively tries to falsify a claim before it gets written into a doc, README, commit message, or reply. Use it on any empirical or technical claim you are about to trust — especially a workflow's or subagent's self-reported success. Read-only; never edits code or touches git.
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
-model: claude-fable-5
+model: fable
 status: provisional
 ---
 
