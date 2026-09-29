@@ -46,7 +46,13 @@ contract and no verification, and report green. The guardrails are rigor's job:
     run on the **build tier**, the integration closer and a delegated
     contract author on the **mid tier**; verifiers route
     through `judgment-dispatch`'s stakes rubric. Tier → model lives in
-    `config/models.json`, never in the prompt.
+    `config/models.json`, never in the prompt. Under ADR-0015 (**Proposed**,
+    provisional) a tier's value is a family alias, which the harness resolves
+    at dispatch to the version its alias points to: usually the newest of the
+    family, but it can lag, and an alias of the session model's own family
+    resolves to the session's exact model. After a run with no violation,
+    `check-dispatch` reports any tier that moved and `tier-lock` prints the
+    lock update for the human to commit.
 
 ## The shapes
 

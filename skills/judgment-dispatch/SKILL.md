@@ -12,7 +12,11 @@ accident. rigor's judgment nodes (adversarial verification) run on the
 rung stays in config as the terminal fallback, currently with no agent mapped
 to it). The tier → model mapping lives in exactly two places —
 `config/models.json` and the agent variants' frontmatter — never in prose.
-`check-tier-sync` enforces that the two places agree.
+`check-tier-sync` enforces that the two places agree. Both hold a family
+alias; the model id an alias last resolved to is recorded in a third file,
+`config/models.lock.json`, which `check-dispatch` reads and nothing
+dispatches from. Everything this skill says about aliases and the lock is
+ADR-0015, **Proposed** and provisional.
 
 Workers are not judgment nodes. Builders and mappers run on the **build
 tier** (`orchestrate` guardrail #11, `fanout-build` step 4); the integration
@@ -83,13 +87,19 @@ violations. Fields, on top of the verifier's own verdict:
 |---|---|
 | `node` | The judgment node dispatched (e.g. `refute.move-3`, `verify-the-effect.verdict-cross-check`) — matched against `floored_nodes`. |
 | `dispatch_tier` | `"judgment"` \| `"mid"` \| `"cheap"` — the tier the rubric selected. |
-| `verifier_model` | `{ requested, answered }` — the pinned model and the model that actually answered. A routing substitution is thereby a **logged** downgrade, never silent. |
+| `verifier_model` | `{ requested, answered }` — the tier's configured value (a family alias; an exact id in a log from before the aliases) and the bare id of the model that answered. A routing substitution is thereby a **logged** downgrade, never silent. |
 | `inferred_stakes` | `"low"` \| `"medium"` \| `"high"`. |
 | `rubric_criteria_hit` | Array of criterion ids from the rubric above. |
-| `downgraded` | `true` when `answered != requested` or a fallback tier was used. |
+| `downgraded` | `true` when the answer does not match the request — another family under an alias, an older version than the lock, another id under an exact pin — or a fallback tier was used. A record carrying it is not judged against the lock. |
 
 `requested` comes from the variant's frontmatter (synced to config by
-`check-tier-sync`). `answered` comes from the verifier itself: append to every
+`check-tier-sync`). Under ADR-0015 (**Proposed**, provisional) it is a family
+alias: the harness resolves it at dispatch to the version its alias points to,
+which is usually the newest of the family and can lag it, and
+`config/models.lock.json` records which id that last was. Pass the tier's value
+from config as the dispatch's model, or pass nothing; a model passed on the
+dispatch overrides the agent's frontmatter.
+`answered` comes from the verifier itself: append to every
 dispatch prompt — *"End your verdict with one line: `MODEL: <name> | <id>`,
 verbatim from your own system prompt."* That is a per-dispatch prompt
 addition; the canonical agent bodies stay untouched. Note the honest limit:
@@ -99,18 +109,23 @@ API billing metadata.
 **Worker receipts share this log** (ADR-0006): workers (build or mid tier) append
 `{ role: "worker", node, label, verifier_model: { requested, answered },
 downgraded }` — no stakes rubric (workers aren't judgment nodes), but the
-receipt itself is required fail-closed, and `answered != requested` without
-`downgraded: true` is the same silent-downgrade violation. This is what makes
+receipt itself is required fail-closed, and an answer that does not match the
+request without `downgraded: true` is the same silent-downgrade violation. This is what makes
 a silent tier collapse visible inside the run's own artifact instead of
 requiring post-hoc transcript archaeology.
 
 Before the run's claims are trusted, lint the log:
 
 ```
-node scripts/check-dispatch.mjs <verdicts.jsonl> [config/models.json]
-# a historical log is checked against the models.json in force when it was
-# written (git show <sha>:config/models.json): the tier label is bound to
-# the tier's configured model, so a re-pinned tier reads as unbound otherwise
+node scripts/check-dispatch.mjs <verdicts.jsonl> [config/models.json] [config/models.lock.json]
+# exit 0 clean, 1 violation, 2 unevaluable. A receipt must be one bare id (a
+# tag such as [1m] and a date suffix are allowed). On a newer version than the
+# lock it prints TIER MOVED and does not fail; an older one is a regression.
+# a historical log is checked against the models.json and the lock in force
+# when it was written (git show <sha>:config/models.json): the tier label is
+# bound to the tier's configured value, so a changed tier reads as unbound otherwise
+node scripts/tier-lock.mjs <verdicts.jsonl> --date YYYY-MM-DD --run <run id>
+# prints the lock the run implies; writes nothing
 ```
 
 ## Degradation
@@ -118,7 +133,10 @@ node scripts/check-dispatch.mjs <verdicts.jsonl> [config/models.json]
 Judgment tier unavailable → fall to the next tier in `fallback_order`, with
 `downgraded: true` in the record. Aggregation stays null-safe per the fan-out
 survival rules. A downgrade is never a silent pass — `check-dispatch` fails
-closed on `answered != requested` without the flag.
+closed on an answer that does not match the request without the flag. An alias of the session
+model's own family resolves to the session's exact model, not the newest of
+the family; on an older session model that shows up as a regression against
+the lock.
 
 ## What this skill does not change
 

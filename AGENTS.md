@@ -29,7 +29,8 @@ stdlib-only (`node:test`).
   own components; **provisional**, ADR-0014 Proposed).
 - `agents/` — 5 subagents: skeptic-verifier (+ `-fast` mid-tier variant,
   body byte-identical by gate), effect-prober, integration-runner,
-  repo-cartographer. `model:` frontmatter is pinned per tier.
+  repo-cartographer. `model:` frontmatter holds its tier's family alias
+  (ADR-0015, Proposed).
 - `hooks/` — `hooks.json` wires three hooks: `git-guard.mjs` (PreToolUse on
   Bash — blocks git-history writes incl. wrapped/`-c`/plumbing forms and
   remote-side `gh pr merge` / mutating `gh api` calls), `change-guard.mjs`
@@ -43,14 +44,18 @@ stdlib-only (`node:test`).
   tier-sync, learnings, runlog, misfire-closure, change-record — the
   ADR-0013 three-outcome gate over a target's change log, provisional — and
   harvest, the ADR-0014 three-outcome gate that refuses a credit standing on a
-  transcript rather than a re-run, provisional) plus three non-gate
+  transcript rather than a re-run, provisional) plus four non-gate
   utilities: `extract-tails.mjs` and `index-sessions.mjs`, whose output stays
-  out of every repo, and `plan-waves.mjs`, which turns a writing-plans plan
-  into execute-plan args (exit 2 on a placeholder path). House style: pure exported matcher, fs only
-  at the CLI boundary.
+  out of every repo, `plan-waves.mjs`, which turns a writing-plans plan
+  into execute-plan args (exit 2 on a placeholder path), and `tier-lock.mjs`,
+  which prints the lock a run's receipts imply and writes nothing
+  (**provisional**, ADR-0015 Proposed). `model-id.mjs` is a shared module, not
+  a CLI. House style: pure exported matcher, fs only at the CLI boundary.
 - `tests/` — `node --test` suite, auto-discovered; green is the merge floor.
 - `config/models.json` — single source of model-tier truth (tiers, floors,
-  tier→agent map); two gates enforce agreement with agent frontmatter.
+  tier→agent map); two gates enforce agreement with agent frontmatter. Tier
+  values are family aliases; `config/models.lock.json` records which model id
+  each alias last resolved to (ADR-0015, Proposed).
 - `rules/` — working-agreement modules vendored for self-containment
   (point-in-time copy; see `rules/PROVENANCE.md`).
 - `docs/` — indexed by `docs/README.md` (authoritative vs ledger vs

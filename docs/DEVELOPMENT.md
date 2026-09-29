@@ -17,7 +17,8 @@ node scripts/check-citation-fidelity.mjs <claims.json>
 node scripts/check-effect-probe.mjs <probes.json>
 node scripts/check-fanout.mjs <workflow.mjs>
 node scripts/check-tier-placement.mjs <workflow.mjs>   # every non-verify agent() call carries a real tier pin
-node scripts/check-dispatch.mjs <verdicts.jsonl>   # verifier dispatches logged, floored, no silent downgrades; worker receipts linted from the same log
+node scripts/check-dispatch.mjs <verdicts.jsonl>   # verifier dispatches logged, floored, no silent downgrades; worker receipts linted from the same log; exit 0 / 1 / 2, a moved tier printed
+node scripts/tier-lock.mjs <verdicts.jsonl> --date YYYY-MM-DD --run <run id>   # prints the lock a run implies; writes nothing
 node scripts/check-tier-sync.mjs                   # agent frontmatter agrees with config/models.json
 node scripts/check-learnings.mjs docs/learnings    # ledger entries anchored, append-only, index↔folder consistent
 node scripts/check-runlog.mjs <effort>/run-log.jsonl   # run-log entries carry the invariant core; +1 monotonic; non-empty re-verify pointer
@@ -27,9 +28,12 @@ node scripts/check-change-record.mjs <target>/docs/changes/change-log.jsonl [--r
 
 Also in `scripts/` (utilities, not gates): `extract-tails.mjs` emits a
 per-session routing index from local harness transcripts — its output is a
-regenerable cache that belongs *outside* any repo — and `plan-waves.mjs`
+regenerable cache that belongs *outside* any repo — `index-sessions.mjs`
+indexes control firings in those transcripts for a harvest, `plan-waves.mjs`
 turns a writing-plans plan into `execute-plan` args, deriving waves from the
-tasks' Files lists (exit 2 on a placeholder path, never a guessed one).
+tasks' Files lists (exit 2 on a placeholder path, never a guessed one), and
+`tier-lock.mjs` prints the lock a run's receipts imply. `model-id.mjs` is a
+module the dispatch gate and `tier-lock` share; it has no command line.
 
 ## Install
 

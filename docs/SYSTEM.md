@@ -76,14 +76,16 @@ cross-checks) from **mechanical nodes** (the deterministic `check-*` gates,
 which need no model at all). `judgment-dispatch` finishes the thought: which
 model runs a judgment node is an architectural decision enforced by a gate,
 not a per-call accident. Verifiers route across a tier ladder — a premium
-**judgment tier** (shipped default: Claude Fable 5) and a **mid tier**
-(shipped default: Claude Opus 5, re-pinned 2026-08-22 from Opus 4.8) for routine verification, with a `cheap`
+**judgment tier** (the `fable` family) and a **mid tier**
+(the `opus` family) for routine verification, with a `cheap`
 rung kept in config as the terminal fallback — via an explicit stakes rubric
 the orchestrator must apply *and log* before every dispatch. Workers get their
-own lanes: builders and mappers run on the **build tier** (Claude Sonnet 5 by
-default); the integration closer and a delegated contract author run the
+own lanes: builders and mappers run on the **build tier** (the `sonnet`
+family); the integration closer and a delegated contract author run the
 **mid tier** (judgment-adjacent work) — the judgment tier is never spent
-writing the code it will later have to judge.
+writing the code it will later have to judge. Each tier holds a family alias,
+not a model id; `config/models.lock.json` records which id each alias last
+resolved to (ADR-0015, Proposed).
 
 ```mermaid
 flowchart LR
@@ -120,11 +122,13 @@ exactly where the strong skeptic matters most. Three mechanical answers:
 - **Downgrades are never silent.** The verdict logs the requested *and* the
   answering model; a substitution without `downgraded: true` fails the gate.
 
-Model *strings* live in exactly two places — `config/models.json` and agent
+A tier's value lives in exactly two places — `config/models.json` and agent
 frontmatter, held together by `check-tier-sync` (which also verifies the two
-skeptic variants share one canonical prompt body byte-for-byte) — so model
-churn is a config edit, not a prose hunt. The pin mechanism is live-verified
-with a non-vacuous probe ([build record](plans/2026-07-07-judgment-dispatch-plan.md));
+skeptic variants share one canonical prompt body byte-for-byte) — so changing
+a tier is a config edit, not a prose hunt. Under ADR-0015 (Proposed) the value
+is a family alias, and the model id it last resolved to is recorded in a third
+file, `config/models.lock.json`. The pin mechanism was live-verified, for
+exact ids, with a non-vacuous probe ([build record](plans/2026-07-07-judgment-dispatch-plan.md));
 the rubric itself hasn't survived an independent domain yet
 ([STATUS](STATUS.md)).
 

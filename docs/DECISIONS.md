@@ -38,7 +38,9 @@ expensive orchestrating model … now a gate."
 **Decision:** [ADR-0006 — Silent tier
 collapse](adr/0006-silent-tier-collapse.md) · **accepted** 2026-07-18; the mid
 tier it routes through is [ADR-0007](adr/0007-mid-tier-opus.md) · accepted
-2026-07-22, **re-pinned to `claude-opus-5` 2026-08-22**.
+2026-07-22, re-pinned to `claude-opus-5` 2026-08-22, and **held as a family
+alias since 2026-09-29** ([ADR-0015](adr/0015-tiers-follow-the-latest-model.md),
+Proposed).
 
 **What is built:** `check-tier-placement` (every non-verify `agent()` call must
 carry a real tier pin; `agentType:` alone is not one), worker receipts naming
@@ -101,7 +103,7 @@ gate exits 2 — unevaluable by design, not green.
 
 ## Everything else
 
-The full index, decided-vs-as-built for all thirteen decisions:
+The full index, decided-vs-as-built for all fifteen decisions:
 [`adr/README.md`](adr/README.md). The three pages that must track the tree —
 [`SYSTEM.md`](SYSTEM.md), [`STATUS.md`](STATUS.md),
 [`DEVELOPMENT.md`](DEVELOPMENT.md) — are listed in [`README.md`](README.md).

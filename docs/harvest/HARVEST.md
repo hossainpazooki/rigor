@@ -27,7 +27,8 @@ promotes.
 
 Step-5 verdicts for the two 2026-09-29 harvests:
 [`2026-09-29-5891a78d-ed0788c7.verdicts.jsonl`](2026-09-29-5891a78d-ed0788c7.verdicts.jsonl)
-(`check-dispatch` clean, 6 records).
+(`check-dispatch` clean, 6 records, against the config in force when it was
+written: pass `git show a83f9bd:config/models.json` as the second argument).
 
 ## Queue
 
