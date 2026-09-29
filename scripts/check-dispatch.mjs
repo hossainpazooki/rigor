@@ -144,6 +144,11 @@ function unreadableUnderAlias(r) {
  * alias last resolved to. lock: { <family>: { resolved, since, run } }.
  * Returns { moved, violations, unevaluable }. Records that request an exact id are
  * not the lock's business; a wrong-family answer is class 4's.
+ *
+ * A record logged `downgraded: true` is not judged against the lock at all: the flag
+ * is the orchestrator's own statement that something other than the request answered.
+ * The first version exempted such a record from two of the three lock outcomes and
+ * not from the third (refuted 2026-09-29, second round).
  */
 export function findLockFindings(records, lock) {
   const out = { moved: [], violations: [], unevaluable: [] };
@@ -152,10 +157,11 @@ export function findLockFindings(records, lock) {
     const req = r?.verifier_model?.requested;
     const ans = r?.verifier_model?.answered;
     if (!isAlias(req) || typeof ans !== 'string') continue;
+    if (r.downgraded === true) continue;
     const family = req.trim();
     const got = parseModelId(ans);
     if (got === null) {
-      if (r.downgraded !== true) out.unevaluable.push({ claim: id, reason: `answered "${ans}" names no readable model id, so it cannot be placed against the lock` });
+      out.unevaluable.push({ claim: id, reason: `answered "${ans}" names no readable model id, so it cannot be placed against the lock` });
       continue;
     }
     if (got.family !== family) continue;
@@ -167,7 +173,7 @@ export function findLockFindings(records, lock) {
     const order = compareVersions(got.version, locked.version);
     if (order > 0) {
       if (!out.moved.some((m) => m.family === family && m.to === got.id)) out.moved.push({ family, from: locked.id, to: got.id });
-    } else if (order < 0 && r.downgraded !== true) {
+    } else if (order < 0) {
       out.violations.push({ claim: id, reason: `tier regressed — ${family} answered ${got.id}, older than the locked ${locked.id}, without downgraded: true` });
     }
   }
@@ -195,8 +201,22 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   const lockPath = process.argv[4] ?? (process.argv[3] ? null : resolve(here, '../config/models.lock.json'));
   const records = parseVerdictLog(readFileSync(file, 'utf8'));
   const config = JSON.parse(readFileSync(configPath, 'utf8'));
-  const lock = lockPath && existsSync(lockPath) ? JSON.parse(readFileSync(lockPath, 'utf8')) : {};
+  // A lock that cannot be read is no lock: every alias receipt is then unevaluable.
+  let lock = {};
+  let lockProblem = null;
+  if (lockPath && existsSync(lockPath)) {
+    try {
+      lock = JSON.parse(readFileSync(lockPath, 'utf8'));
+    } catch (e) {
+      lockProblem = `cannot read the lock ${lockPath}: ${e.message}`;
+    }
+    if (lockProblem === null && (lock === null || typeof lock !== 'object' || Array.isArray(lock))) {
+      lockProblem = `the lock ${lockPath} is not an object of entries`;
+    }
+    if (lockProblem !== null) lock = {};
+  }
   const found = findLockFindings(records, lock);
+  if (lockProblem !== null) found.unevaluable.unshift({ claim: 'lock', reason: lockProblem });
   const bad = [...findDispatchViolations(records, config), ...found.violations];
   if (bad.length) {
     for (const b of bad) console.error(`DISPATCH FAIL ${b.claim}: ${b.reason}`);

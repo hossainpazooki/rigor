@@ -20,9 +20,11 @@ test('a [1m] suffix and a date suffix are not part of the version', () => {
   assert.deepEqual(parseModelId('claude-haiku-4-5-20251001'), { family: 'haiku', version: [4, 5], id: 'claude-haiku-4-5' });
 });
 
-test('a display-name echo that contains one id parses to that id', () => {
-  assert.equal(parseModelId('Sonnet 5.5 (claude-sonnet-5-5)').id, 'claude-sonnet-5-5');
-  assert.equal(parseModelId('claude-opus-5 | claude-opus-5[1m]').id, 'claude-opus-5');
+// Tightened 2026-09-29 after the whole-branch refutation: this test first asserted
+// that an id inside a display-name echo is read. A receipt is a bare id or unreadable.
+test('seed: a display-name echo is unreadable, even when it contains one id', () => {
+  assert.equal(parseModelId('Sonnet 5.5 (claude-sonnet-5-5)'), null);
+  assert.equal(parseModelId('claude-opus-5 | claude-opus-5[1m]'), null);
 });
 
 test('seed: a receipt naming two different ids is unreadable, not a pick of one', () => {

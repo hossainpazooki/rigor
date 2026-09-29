@@ -27,7 +27,14 @@ test('an alias receipt answered by its own family matches, whatever the version'
   assert.equal(receiptMatches('sonnet', 'claude-sonnet-5', CONFIG), true);
   assert.equal(receiptMatches('sonnet', 'claude-sonnet-5-5', CONFIG), true);
   assert.equal(receiptMatches('opus', 'claude-opus-5[1m]', CONFIG), true);
-  assert.equal(receiptMatches('fable', 'Fable 5.1 (claude-fable-5-1)', CONFIG), true);
+});
+
+// Tightened 2026-09-29 after the whole-branch refutation: the test above first
+// asserted that a display-name echo matches. Under an alias only a bare id does.
+test('seed: under an alias a display-name echo does not match, whatever id it contains', () => {
+  assert.equal(receiptMatches('fable', 'Fable 5.1 (claude-fable-5-1)', CONFIG), false);
+  assert.equal(receiptMatches('fable', 'I am Haiku 4.5, not claude-fable-5-1', CONFIG), false);
+  assert.equal(receiptMatches('fable', 'claude-fable-5-1-mini', CONFIG), false);
 });
 
 test('seed: an alias receipt answered by another family is a silent downgrade', () => {
